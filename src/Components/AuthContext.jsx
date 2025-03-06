@@ -8,7 +8,9 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, LogIn, LogOut, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { auth } from "../services/firebase";
 import { firebaseAuthService } from "../services/firebaseAuthService";
+import { passwordResetService } from "../services/passwordResetService";
 import { invitationsService } from "../services/invitationsService";
+import { usersService } from "../services/usersService";
 import ForgotPassword from "./Members/ForgotPassword";
 
 // =================================================================
@@ -37,9 +39,9 @@ export const AuthProvider = ({ children }) => {
   const [authPage, setAuthPage] = useState('login');
 
   // ------- Gestionnaire de notifications -------
-  const showNotification = (message, type = 'success') => {
+  const showNotification = (message, type = 'success', duration = 3000) => {
     setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+    setTimeout(() => setNotification(null), duration);
   };
 
   // ------- Observer Firebase Auth -------
@@ -48,6 +50,7 @@ export const AuthProvider = ({ children }) => {
       console.log('Changement d\'état d\'authentification:', firebaseUser?.email);
       try {
         if (firebaseUser) {
+          // Cas spécial pour l'administrateur
           if (firebaseUser.email === 'admin@i4tk.org') {
             setUser({ uid: 'admin', role: 'admin', email: firebaseUser.email });
             showNotification('Connecté en tant qu\'administrateur');
@@ -55,60 +58,135 @@ export const AuthProvider = ({ children }) => {
             return;
           }
 
+          // Vérifier si nous sommes en train de finaliser une invitation
+          const isProcessingInvitation = window.location.pathname.includes('finalize-invitation') || 
+                                        window.location.hash === '#finalize-invitation';
+          const currentInvitationId = localStorage.getItem('currentInvitationId');
+
+          // Permet de traiter correctement le processus d'invitation en cours
+          if (isProcessingInvitation && currentInvitationId) {
+            console.log('Finalisation d\'invitation en cours, traitement spécial');
+
+            // Définir un état utilisateur temporaire pendant la finalisation
+            const pendingUserData = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              emailVerified: firebaseUser.emailVerified,
+              role: 'member', // Rôle temporaire
+              isCompletingInvitation: true
+            };
+
+            setUser(pendingUserData);
+            setLoading(false);
+            return;
+          }
+
+          // Vérifier si l'utilisateur a été supprimé
+          const isDeleted = await usersService.checkIfUserDeleted(firebaseUser.uid, firebaseUser.email);
+          if (isDeleted) {
+            console.log('Utilisateur supprimé détecté, déconnexion forcée');
+            await firebaseAuthService.logoutUser();
+            setUser(null);
+            showNotification('Votre compte a été désactivé. Veuillez contacter l\'administrateur.', 'error');
+            setLoading(false);
+            return;
+          }
+
+          // Vérifier s'il y a des données d'invitation en attente
           const pendingInvitationData = localStorage.getItem('pendingInvitationData');
 
           if (pendingInvitationData) {
             console.log('Données d\'invitation trouvées:', pendingInvitationData);
             const invitationData = JSON.parse(pendingInvitationData);
 
-            const userDoc = await firebaseAuthService.initializeUserRole(
-              firebaseUser.uid, 
-              firebaseUser.email,
-              invitationData
-            );
+            try {
+              // Initialiser le rôle de l'utilisateur avec les données d'invitation
+              const userDoc = await firebaseAuthService.initializeUserRole(
+                firebaseUser.uid, 
+                firebaseUser.email,
+                invitationData
+              );
 
-            localStorage.removeItem('pendingInvitationData');
+              localStorage.removeItem('pendingInvitationData');
+              localStorage.removeItem('currentInvitationId'); // Nettoyer aussi cette clé
 
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              emailVerified: firebaseUser.emailVerified,
-              role: invitationData.role,
-              organization: invitationData.organization,
-              ...userDoc
-            });
-
-            showNotification(`Bienvenue ${
-              invitationData.role === 'validator' ? 'validateur' : 'membre'
-            } de ${invitationData.organization}`);
-
-          } else {
-            console.log('Récupération des données utilisateur standard');
-            const userDoc = await firebaseAuthService.getUserData(firebaseUser.uid);
-
-            if (userDoc) {
+              // Définir l'état utilisateur final
               setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 emailVerified: firebaseUser.emailVerified,
-                role: userDoc.role,
-                organization: userDoc.organization,
+                role: invitationData.role,
+                organization: invitationData.organization,
                 ...userDoc
               });
 
               showNotification(`Bienvenue ${
-                userDoc.role === 'validator' ? 'validateur' : 'membre'
-              }${userDoc.organization ? ` de ${userDoc.organization}` : ''}`);
-            } else {
-              console.error('Données utilisateur non trouvées');
-              setUser(null);
-              showNotification('Erreur de chargement du profil', 'error');
+                invitationData.role === 'validator' ? 'validateur' : 'membre'
+              } de ${invitationData.organization}`);
+
+            } catch (initError) {
+              console.error('Erreur lors de l\'initialisation du rôle:', initError);
+
+              // En cas d'erreur, afficher une notification mais ne pas déconnecter
+              showNotification('Erreur lors de l\'initialisation du profil. Veuillez contacter l\'administrateur.', 'error');
+
+              // Définir un état utilisateur minimal
+              setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                emailVerified: firebaseUser.emailVerified,
+                role: 'member', // Rôle par défaut
+                error: true
+              });
             }
+          } else {
+            console.log('Récupération des données utilisateur standard');
+            // Vérifier l'accès de l'utilisateur
+            const accessCheck = await usersService.verifyUserAccess(firebaseUser.uid);
+
+            if (!accessCheck.hasAccess) {
+              console.log('Accès refusé:', accessCheck.reason);
+
+              // Gérer les différentes raisons
+              if (accessCheck.reason === 'not_found') {
+                // L'utilisateur existe dans Auth mais pas dans Firestore
+                // Cela peut arriver après une suppression partielle
+                await firebaseAuthService.logoutUser();
+                setUser(null);
+                showNotification('Votre profil utilisateur est incomplet. Veuillez contacter l\'administrateur.', 'error');
+              } else if (accessCheck.reason === 'inactive') {
+                await firebaseAuthService.logoutUser();
+                setUser(null);
+                showNotification('Votre compte est inactif. Veuillez contacter l\'administrateur.', 'error');
+              } else {
+                await firebaseAuthService.logoutUser();
+                setUser(null);
+                showNotification('Problème d\'accès au compte. Veuillez contacter l\'administrateur.', 'error');
+              }
+
+              setLoading(false);
+              return;
+            }
+
+            const userDoc = accessCheck.userData;
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              emailVerified: firebaseUser.emailVerified,
+              role: userDoc.role,
+              organization: userDoc.organization,
+              ...userDoc
+            });
+
+            showNotification(`Bienvenue ${
+              userDoc.role === 'validator' ? 'validateur' : 'membre'
+            }${userDoc.organization ? ` de ${userDoc.organization}` : ''}`);
           }
         } else {
           console.log('Déconnexion détectée');
           setUser(null);
           localStorage.removeItem('pendingInvitationData');
+          localStorage.removeItem('currentInvitationId');
         }
       } catch (error) {
         console.error('Erreur lors du changement d\'état d\'auth:', error);
@@ -131,6 +209,12 @@ export const AuthProvider = ({ children }) => {
         showNotification('Connecté en tant qu\'administrateur');
         return user;
       } 
+
+      // Vérifier si l'utilisateur n'a pas été supprimé
+      const isDeleted = await usersService.checkIfUserDeleted(null, credentials.email);
+      if (isDeleted) {
+        throw new Error('Ce compte a été désactivé. Veuillez contacter l\'administrateur.');
+      }
 
       const user = await firebaseAuthService.loginUser(credentials.email, credentials.password);
       showNotification(`Bienvenue${user.role === 'admin' ? ' administrateur' : ''} !`);
@@ -158,37 +242,52 @@ export const AuthProvider = ({ children }) => {
 
   const resetPassword = async (email) => {
     try {
+      // Vérifier si une invitation est en attente
       const invitation = await invitationsService.getInvitationByEmail(email);
       if (invitation?.status === 'pending') {
         const invitationDate = invitation.createdAt.toDate();
         showNotification(
           `Une invitation est en attente depuis le ${invitationDate.toLocaleDateString()} (${invitationDate.toLocaleTimeString()}) - Vérifiez l'email envoyé par noreply@i4tk.org`,
-          'info'
+          'info',
+          6000 // Durée plus longue pour cette notification importante
         );
         return;
       }
 
-      const userExists = await firebaseAuthService.getUserByEmail(email);
-      if (!userExists) {
-        showNotification('Aucun compte associé à cette adresse email', 'error');
-        return;
+      // Vérifier si un compte existe
+      const userExists = await usersService.getUserByEmail(email);
+      if (!userExists || userExists.deleted) {
+        // Pour des raisons de sécurité, ne pas divulguer cette information
+        // Simuler un succès même si l'utilisateur n'existe pas
+        showNotification('Si un compte est associé à cette adresse email, des instructions de réinitialisation vous seront envoyées.', 'success', 5000);
+        return true;
       }
 
-      await firebaseAuthService.resetPassword(email);
-      showNotification('Instructions de réinitialisation envoyées par email');
+      // Utiliser le nouveau service de réinitialisation
+      await passwordResetService.requestPasswordReset(email);
+      showNotification(
+        'Instructions de réinitialisation envoyées par email. Veuillez vérifier votre boîte de réception et vos spams.',
+        'success',
+        5000 // Durée plus longue pour cette notification importante
+      );
       setAuthPage('login');
       return true;
     } catch (error) {
       console.error('Erreur resetPassword:', error);
-      showNotification(error.message, 'error');
-      throw error;
+      // Pour des raisons de sécurité, ne pas divulguer d'informations spécifiques
+      showNotification(
+        'Si un compte est associé à cette adresse email, des instructions de réinitialisation vous seront envoyées.',
+        'success',
+        5000
+      );
+      return true; // Retourner un succès même en cas d'erreur
     }
   };
 
   const changePassword = async (newPassword) => {
     try {
       await firebaseAuthService.updatePassword(newPassword);
-      showNotification('Mot de passe mis à jour avec succès');
+      showNotification('Mot de passe mis à jour avec succès', 'success');
     } catch (error) {
       showNotification('Échec de la mise à jour du mot de passe', 'error');
       throw error;
@@ -198,7 +297,7 @@ export const AuthProvider = ({ children }) => {
   const resendVerificationEmail = async () => {
     try {
       await firebaseAuthService.resendVerificationEmail();
-      showNotification('Email de vérification envoyé');
+      showNotification('Email de vérification envoyé', 'success');
     } catch (error) {
       showNotification('Échec de l\'envoi de l\'email de vérification', 'error');
       throw error;
@@ -221,13 +320,14 @@ export const AuthProvider = ({ children }) => {
     }}>
       {notification && (
         <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
-          notification.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-        } flex items-center space-x-2 z-50 transition-all duration-500 ease-in-out`}>
+          notification.type === 'error' ? 'bg-red-100 text-red-700' : 
+          notification.type === 'info' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+        } flex items-center space-x-2 z-50 transition-all duration-500 ease-in-out max-w-md`}>
           {notification.type === 'error' ? 
-            <AlertTriangle className="h-5 w-5" /> : 
-            <CheckCircle2 className="h-5 w-5" />
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" /> : 
+            <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
           }
-          <span>{notification.message}</span>
+          <span className="text-sm">{notification.message}</span>
         </div>
       )}
       {children}
@@ -331,7 +431,7 @@ export const LoginForm = () => {
   const handleResendVerification = async () => {
     try {
       await firebaseAuthService.resendVerificationEmail();
-      showNotification('Email de vérification envoyé. Vérifiez votre boîte de réception.');
+      showNotification('Email de vérification envoyé. Vérifiez votre boîte de réception.', 'success');
     } catch (error) {
       console.error('Erreur lors de l\'envoi de l\'email:', error);
       showNotification('Erreur lors de l\'envoi de l\'email de vérification.', 'error');
@@ -350,14 +450,14 @@ export const LoginForm = () => {
       {needsVerification && (
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
           <p className="text-sm text-yellow-800">
-            Please verify your email before connecting.
+            Veuillez vérifier votre email avant de vous connecter.
           </p>
           <button
             type="button"
             onClick={handleResendVerification}
             className="mt-2 text-sm text-yellow-600 hover:text-yellow-500 underline"
           >
-            Send verification email
+            Envoyer l'email de vérification
           </button>
         </div>
       )}
@@ -390,11 +490,11 @@ export const LoginForm = () => {
             type="button"
             onClick={() => {
               console.log('Clicking forgot password');
-              setAuthPage('forgot-password'); // S'assurer que setAuthPage est bien passé via useAuth()
+              setAuthPage('forgot-password');
             }}
             className="text-sm text-amber-600 hover:text-amber-500"
           >
-            Forgot password ?
+            Mot de passe oublié ?
           </button>
         </div>
 

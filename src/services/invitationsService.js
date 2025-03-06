@@ -23,7 +23,8 @@ import {
 } from 'firebase/firestore';
 import { 
   updatePassword,
-  sendEmailVerification
+  sendEmailVerification,
+  createUserWithEmailAndPassword
 } from 'firebase/auth';
 
 export const invitationsService = {
@@ -113,95 +114,277 @@ export const invitationsService = {
     }
   },
 
+  // ------- Récupération d'une invitation par ID -------
+  async getInvitationById(invitationId) {
+    try {
+      console.log('Récupération de l\'invitation par ID:', invitationId);
+      const invitationRef = doc(db, 'invitations', invitationId);
+      const invitationDoc = await getDoc(invitationRef);
+
+      if (!invitationDoc.exists()) {
+        return null;
+      }
+
+      return {
+        id: invitationId,
+        ...invitationDoc.data()
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'invitation par ID:', error);
+      throw error;
+    }
+  },
+
+  // ------- Génération d'un code d'invitation unique -------
+  async generateInvitationCode(invitationId) {
+    try {
+      console.log('Génération d\'un code d\'invitation pour:', invitationId);
+
+      // Générer un code aléatoire de 8 caractères (alphanumériques)
+      const code = Math.random().toString(36).substring(2, 6).toUpperCase() + 
+                   Math.random().toString(36).substring(2, 6).toUpperCase();
+
+      // Enregistrer le code dans l'invitation
+      const invitationRef = doc(db, 'invitations', invitationId);
+      await updateDoc(invitationRef, {
+        invitationCode: code,
+        codeGeneratedAt: serverTimestamp()
+      });
+
+      console.log('Code d\'invitation généré:', code);
+      return code;
+    } catch (error) {
+      console.error('Erreur lors de la génération du code d\'invitation:', error);
+      throw error;
+    }
+  },
+
+  // ------- Validation d'un code d'invitation -------
+  async validateInvitationCode(email, code) {
+    try {
+      console.log('Validation du code d\'invitation:', code, 'pour l\'email:', email);
+
+      // Récupérer les invitations pour cet email
+      const invitationsRef = collection(db, 'invitations');
+      const q = query(
+        invitationsRef,
+        where('email', '==', email.toLowerCase()),
+        where('status', '==', 'pending')
+      );
+
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        return { valid: false, message: 'Aucune invitation en attente trouvée pour cet email' };
+      }
+
+      // Rechercher l'invitation avec ce code
+      const invitation = snapshot.docs.find(doc => {
+        const data = doc.data();
+
+        // Vérifier le code et la date d'expiration
+        return data.invitationCode === code && 
+               data.expiresAt.toDate() > new Date();
+      });
+
+      if (!invitation) {
+        return { valid: false, message: 'Code d\'invitation invalide ou expiré' };
+      }
+
+      return { 
+        valid: true, 
+        invitation: {
+          id: invitation.id,
+          ...invitation.data()
+        }
+      };
+    } catch (error) {
+      console.error('Erreur lors de la validation du code d\'invitation:', error);
+      throw error;
+    }
+  },
+
+  // ------- Création de compte utilisateur à partir d'une invitation -------
+  async createUserFromInvitation(invitationId, userData) {
+    try {
+      console.log('Création d\'un utilisateur à partir de l\'invitation:', invitationId);
+
+      // 1. Valider l'invitation
+      const invitationResult = await this.validateInvitation(invitationId);
+      if (!invitationResult.valid) {
+        throw new Error(invitationResult.message);
+      }
+
+      const invitation = invitationResult.invitation;
+
+      // 2. Créer l'utilisateur dans Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth, 
+        invitation.email, 
+        userData.password
+      );
+
+      const user = userCredential.user;
+      console.log('Utilisateur créé dans Firebase Auth:', user.uid);
+
+      // 3. Préparer les données du profil utilisateur
+      const userProfile = {
+        email: invitation.email,
+        role: invitation.role,
+        organization: invitation.organization,
+        status: 'active',
+        emailVerified: true,
+        invitationId: invitationId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      // 4. Créer le profil dans Firestore et accepter l'invitation dans une transaction
+      await runTransaction(db, async (transaction) => {
+        // Référence au document utilisateur
+        const userRef = doc(db, 'users', user.uid);
+
+        // Créer le profil utilisateur
+        transaction.set(userRef, userProfile);
+
+        // Mettre à jour le statut de l'invitation
+        const invitationRef = doc(db, 'invitations', invitationId);
+        transaction.update(invitationRef, {
+          status: 'accepted',
+          acceptedAt: serverTimestamp(),
+          userId: user.uid
+        });
+      });
+
+      console.log('Profil utilisateur créé et invitation acceptée');
+
+      // 5. Retourner les données de l'utilisateur
+      return {
+        uid: user.uid,
+        email: user.email,
+        role: invitation.role,
+        organization: invitation.organization
+      };
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'utilisateur:', error);
+      throw error;
+    }
+  },
+
   // ------- Acceptation d'une invitation -------
   async acceptInvitation(invitationId, userData) {
-   console.log('Début acceptInvitation avec:', { invitationId, userData });
-   try {
-     // 1. Récupération et validation de l'invitation
-     const invitationRef = doc(db, 'invitations', invitationId);
-     const invitationDoc = await getDoc(invitationRef);
-     if (!invitationDoc.exists()) {
-       throw new Error('Invitation non trouvée');
-     }
+    console.log('Début acceptInvitation avec:', { invitationId });
+    try {
+      // 1. Récupérer l'utilisateur actuel
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error('Utilisateur non connecté');
+      }
 
-     const invitation = invitationDoc.data();
+      // 2. Récupérer et valider l'invitation
+      const invitationRef = doc(db, 'invitations', invitationId);
+      const invitationSnap = await getDoc(invitationRef);
 
-     // 2. Vérifications de validité
-     if (invitation.status !== 'pending') {
-       throw new Error('Cette invitation n\'est plus valide');
-     }
+      if (!invitationSnap.exists()) {
+        throw new Error('Invitation non trouvée');
+      }
 
-     if (invitation.expiresAt.toDate() < new Date()) {
-       await updateDoc(invitationRef, { status: 'expired' });
-       throw new Error('Cette invitation a expiré');
-     }
+      const invitation = invitationSnap.data();
 
-     // 3. Vérification de l'utilisateur connecté
-     const currentUser = auth.currentUser;
-     if (!currentUser) {
-       throw new Error('Utilisateur non connecté');
-     }
+      // 3. Vérifier que l'invitation est valide
+      if (invitation.status !== 'pending') {
+        throw new Error(`Cette invitation n'est plus valide (statut: ${invitation.status})`);
+      }
 
-     if (currentUser.email !== invitation.email) {
-       throw new Error('Cette invitation ne correspond pas à votre email');
-     }
+      if (invitation.expiresAt.toDate() < new Date()) {
+        await updateDoc(invitationRef, { status: 'expired' });
+        throw new Error('Cette invitation a expiré');
+      }
 
-     // 4. Préparation des données d'invitation
-     const invitationData = {
-       id: invitationId,
-       role: invitation.role,
-       organization: invitation.organization,
-       email: invitation.email
-     };
+      // 4. Vérifier que l'email correspond
+      if (currentUser.email !== invitation.email) {
+        throw new Error(`Cette invitation est destinée à ${invitation.email} et non à ${currentUser.email}`);
+      }
 
-     // 5. Mise à jour du mot de passe d'abord
-     await updatePassword(currentUser, userData.password);
+      console.log('Invitation validée, mise à jour du mot de passe...');
 
-     // 6. Création du profil et mise à jour de l'invitation dans une transaction
-     await runTransaction(db, async (transaction) => {
-       const userRef = doc(db, 'users', currentUser.uid);
-       const userProfile = {
-         email: currentUser.email,
-         role: invitation.role,
-         organization: invitation.organization,
-         status: 'active',
-         emailVerified: true,
-         invitationId: invitationId,
-         createdAt: serverTimestamp(),
-         updatedAt: serverTimestamp()
-       };
+      // 5. Mettre à jour le mot de passe
+      await updatePassword(currentUser, userData.password);
+      console.log('Mot de passe mis à jour avec succès');
 
-       // Créer le profil utilisateur
-       transaction.set(userRef, userProfile);
+      // 6. Préparer les données du profil utilisateur
+      const userProfile = {
+        email: currentUser.email,
+        role: invitation.role,
+        organization: invitation.organization,
+        status: 'active',
+        emailVerified: true,
+        invitationId: invitationId,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
 
-       // Mettre à jour le statut de l'invitation
-       transaction.update(invitationRef, {
-         status: 'accepted',
-         acceptedAt: serverTimestamp()
-       });
-     });
+      // 7. Créer/mettre à jour le profil et finaliser l'invitation dans une transaction
+      try {
+        console.log('Démarrage de la transaction Firestore...');
+        await runTransaction(db, async (transaction) => {
+          // Référence au document utilisateur
+          const userRef = doc(db, 'users', currentUser.uid);
 
-     // 7. Forcer un rafraîchissement de l'état d'authentification
-     await currentUser.reload();
+          // Vérifier si l'utilisateur existe déjà
+          const userDoc = await transaction.get(userRef);
 
-     // 8. Stocker temporairement les données pour AuthContext
-     localStorage.setItem('pendingInvitationData', JSON.stringify(invitationData));
+          if (userDoc.exists()) {
+            // Mettre à jour le profil existant
+            transaction.update(userRef, {
+              ...userProfile,
+              createdAt: userDoc.data().createdAt // Conserver la date de création originale
+            });
+          } else {
+            // Créer un nouveau profil
+            transaction.set(userRef, userProfile);
+          }
 
-     console.log('Invitation acceptée avec succès');
+          // Mettre à jour le statut de l'invitation
+          transaction.update(invitationRef, {
+            status: 'accepted',
+            acceptedAt: serverTimestamp(),
+            userId: currentUser.uid
+          });
+        });
+        console.log('Transaction Firestore terminée avec succès');
+      } catch (transactionError) {
+        console.error('Erreur lors de la transaction Firestore:', transactionError);
+        throw new Error('Échec de la création du profil utilisateur');
+      }
 
-     // 9. Attendre que les changements soient propagés
-     await new Promise(resolve => setTimeout(resolve, 2000));
+      // 8. Forcer un rafraîchissement de l'utilisateur
+      await currentUser.reload();
+      console.log('État d\'authentification actualisé');
 
-     return {
-       uid: currentUser.uid,
-       email: currentUser.email,
-       ...invitationData
-     };
+      // Force une propagation complète des modifications
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-   } catch (error) {
-     console.error('Erreur complète dans acceptInvitation:', error);
-     throw error;
-   }
+      // 9. Stocker les données pour AuthContext
+      const invitationData = {
+        id: invitationId,
+        role: invitation.role,
+        organization: invitation.organization,
+        email: invitation.email
+      };
+      localStorage.setItem('pendingInvitationData', JSON.stringify(invitationData));
+
+      // 10. Retourner les données de l'utilisateur
+      return {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        role: invitation.role,
+        organization: invitation.organization
+      };
+    } catch (error) {
+      console.error('Erreur lors de l\'acceptation de l\'invitation:', error);
+      throw error;
+    }
   },
 
   // ------- Annulation d'une invitation -------
@@ -337,10 +520,12 @@ export const invitationsService = {
 
       await updateDoc(doc(db, 'invitations', invitationId), {
         expiresAt: Timestamp.fromDate(expiresAt),
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
+        codeGeneratedAt: null, // Réinitialiser pour générer un nouveau code
+        invitationCode: null
       });
 
-      // Renvoyer l'email
+      // Renvoyer l'email avec un nouveau code
       await emailService.sendInvitationEmail(
         invitation.email,
         invitationId,

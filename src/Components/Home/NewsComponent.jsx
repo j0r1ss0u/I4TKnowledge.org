@@ -13,7 +13,7 @@ const NewsComponent = ({ currentLang = 'en' }) => {
       setLoading(true);
       const apiUrl = new URL('https://content.guardianapis.com/search');
       apiUrl.searchParams.append('api-key', GUARDIAN_API_KEY);
-      apiUrl.searchParams.append('section', 'science|technology|inclusion|digital governance');
+      apiUrl.searchParams.append('section', 'digital policies|technology|digital governance');
       apiUrl.searchParams.append('show-fields', 'thumbnail,trailText');
       apiUrl.searchParams.append('page-size', '6');
       apiUrl.searchParams.append('order-by', 'newest');

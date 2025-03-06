@@ -1,14 +1,15 @@
 // =================================================================
 // FinalizeInvitation.jsx
-// Composant de finalisation d'invitation utilisateur
+// Composant simplifié de finalisation d'invitation utilisateur
 // =================================================================
 
 import React, { useState, useEffect } from 'react';
 import { invitationsService } from '../../services/invitationsService';
 import { documentsService } from '../../services/documentsService';
 import { torService } from '../../services/torService';
-import { Loader2 } from 'lucide-react' ;
+import { Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { auth } from '../../services/firebase';
+import { useAuth } from '../../Components/AuthContext';
 import PasswordForm from './PasswordForm';
 
 // =================================================================
@@ -16,8 +17,12 @@ import PasswordForm from './PasswordForm';
 // =================================================================
 
 const STEPS = {
+  LOADING: 'loading',
   TOR: 'tor',
-  PASSWORD: 'password'
+  PASSWORD: 'password',
+  PROCESSING: 'processing',
+  SUCCESS: 'success',
+  ERROR: 'error'
 };
 
 // =================================================================
@@ -25,10 +30,10 @@ const STEPS = {
 // =================================================================
 
 const FinalizeInvitation = ({ handlePageChange }) => {
-  // ------- État local -------
-  const [step, setStep] = useState(STEPS.TOR);
+  // ------- Contexte et état local -------
+  const { showNotification } = useAuth();
+  const [step, setStep] = useState(STEPS.LOADING);
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [invitation, setInvitation] = useState(null);
   const [torDocument, setTorDocument] = useState(null);
@@ -36,109 +41,197 @@ const FinalizeInvitation = ({ handlePageChange }) => {
 
   // ------- Initialisation -------
   useEffect(() => {
-    const init = async () => {
+    const loadInvitation = async () => {
       try {
         setLoading(true);
-        // 1. Valider l'invitation
-        const params = new URLSearchParams(window.location.search);
-        const invitationId = params.get('invitationId');
+
+        // 1. Vérifier si l'utilisateur est connecté
+        if (!auth.currentUser) {
+          throw new Error('Vous devez être connecté pour finaliser l\'invitation');
+        }
+
+        // 2. Récupérer l'ID d'invitation du localStorage
+        const invitationId = localStorage.getItem('currentInvitationId');
         if (!invitationId) {
-          throw new Error('Invalid invitation link');
+          throw new Error('Invitation non trouvée');
         }
 
+        // 3. Valider l'invitation
+        console.log('Récupération de l\'invitation:', invitationId);
         const invitationResult = await invitationsService.validateInvitation(invitationId);
-        if (!invitationResult.valid) {
-          throw new Error(invitationResult.message);
-        }
-        setInvitation(invitationResult.invitation);
 
-        // 2. Récupérer le dernier ToR
-        const torResults = await documentsService.semanticSearch('TERMS OF REFERENCE');
-        if (torResults && torResults.length > 0) {
-          setTorDocument(torResults[0]);
-        } else {
-          throw new Error('Terms of Reference document not found');
+        if (!invitationResult.valid) {
+          throw new Error(invitationResult.message || 'Invitation invalide');
         }
+
+        const invitationData = invitationResult.invitation;
+
+        // 4. Vérifier que l'email de l'invitation correspond à l'utilisateur connecté
+        if (invitationData.email !== auth.currentUser.email) {
+          throw new Error('Cette invitation est destinée à une autre adresse email');
+        }
+
+        // 5. Récupérer le document des conditions d'utilisation
+        const torResults = await documentsService.semanticSearch('TERMS OF REFERENCE');
+        if (!torResults || torResults.length === 0) {
+          throw new Error('Document des conditions d\'utilisation introuvable');
+        }
+
+        // 6. Mettre à jour l'état
+        setInvitation(invitationData);
+        setTorDocument(torResults[0]);
+        setStep(STEPS.TOR);
+
       } catch (err) {
+        console.error('Erreur lors du chargement de l\'invitation:', err);
         setError(err.message);
+        setStep(STEPS.ERROR);
       } finally {
         setLoading(false);
       }
     };
 
-    init();
+    loadInvitation();
   }, []);
 
-  // ------- Gestionnaires d'événements -------
+  // ------- Acceptation des conditions d'utilisation -------
   const handleTorAccept = async () => {
     if (!acceptTor) {
-      setError('You must accept the Terms of Reference to continue');
+      setError('Vous devez accepter les conditions d\'utilisation pour continuer');
       return;
     }
 
     try {
-      setIsSubmitting(true);
+      setStep(STEPS.PROCESSING);
+
+      // Enregistrer l'acceptation des conditions d'utilisation
       await torService.acceptToR(invitation.email, torDocument.id);
+      console.log('Conditions d\'utilisation acceptées');
+
+      // Passer à l'étape suivante
       setStep(STEPS.PASSWORD);
+      setError(null);
+
     } catch (err) {
+      console.error('Erreur lors de l\'acceptation des conditions:', err);
       setError(err.message);
-    } finally {
-      setIsSubmitting(false);
+      setStep(STEPS.TOR); // Revenir à l'étape précédente
     }
   };
 
-  // ------- Gestionnaire de finalisation -------
+  // ------- Création du mot de passe et finalisation -------
   const handlePasswordSubmit = async ({ password }) => {
     try {
-      if (!acceptTor) {
-        throw new Error('Terms of Reference must be accepted first');
+      setStep(STEPS.PROCESSING);
+
+      if (!invitation || !invitation.id) {
+        throw new Error('Données d\'invitation manquantes');
       }
 
-      // Attendre la création complète du profil
-      const userData = await invitationsService.acceptInvitation(invitation.id, { password });
+      // Stocker les informations nécessaires pour une éventuelle reconnexion
+      localStorage.setItem('finalizationEmail', invitation.email);
+      localStorage.setItem('pendingPassword', password);
+      localStorage.setItem('finalizationCompleted', 'true');
 
-      // Forcer un rafraîchissement de l'état d'authentification
-      await auth.currentUser.reload();
+      // 1. Finaliser l'invitation avec le mot de passe
+      console.log('Finalisation de l\'invitation avec le mot de passe');
+      await invitationsService.acceptInvitation(invitation.id, { password });
 
-      // Attendre que les changements soient propagés
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // 2. Attendre que les modifications soient appliquées
+      console.log('Attente de la propagation des modifications...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
 
-      // Rediriger
-      window.history.pushState({}, '', '/');
-      handlePageChange('home');
-    } catch (error) {
-      throw error;
+      // 3. Recharger l'utilisateur pour actualiser ses informations
+      if (auth.currentUser) {
+        await auth.currentUser.reload();
+      }
+
+      // 4. Afficher un message de succès
+      console.log('Invitation acceptée avec succès');
+      setStep(STEPS.SUCCESS);
+      showNotification('Votre compte a été créé avec succès!', 'success', 5000);
+
+      // 5. Nettoyer le localStorage des données d'invitation
+      localStorage.removeItem('currentInvitationId');
+
+      // 6. Rediriger avec un rafraîchissement complet de la page
+      setTimeout(() => {
+        window.location.href = '/'; // Force un rechargement complet plutôt qu'une navigation SPA
+      }, 3000);
+    } catch (err) {
+      console.error('Erreur lors de la finalisation de l\'invitation:', err);
+      setError(err.message);
+      setStep(STEPS.PASSWORD); // Revenir à l'étape du mot de passe
+
+      // Nettoyer les données sensibles en cas d'erreur
+      localStorage.removeItem('pendingPassword');
+      localStorage.removeItem('finalizationCompleted');
     }
   };
 
   // ------- Rendus conditionnels -------
-  if (loading) {
+
+  // État de chargement
+  if (step === STEPS.LOADING || step === STEPS.PROCESSING) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
+      <div className="flex flex-col justify-center items-center min-h-[60vh]">
+        <Loader2 className="h-12 w-12 animate-spin text-amber-600 mb-4" />
+        <p className="text-gray-600">
+          {step === STEPS.LOADING ? 'Chargement...' : 'Traitement en cours...'}
+        </p>
       </div>
     );
   }
 
-  if (error) {
+  // État d'erreur
+  if (step === STEPS.ERROR) {
     return (
       <div className="container mx-auto max-w-md p-6">
-        <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <p className="font-bold">Error</p>
-          <p>{error}</p>
+        <div className="bg-red-50 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg">
+          <div className="flex items-center mb-4">
+            <AlertTriangle className="h-8 w-8 text-red-500 mr-3" />
+            <h2 className="text-xl font-bold">Erreur</h2>
+          </div>
+          <p className="mb-4">{error}</p>
+          <button
+            onClick={() => handlePageChange('home')}
+            className="w-full bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-md transition-colors"
+          >
+            Retour à l'accueil
+          </button>
         </div>
       </div>
     );
   }
 
-  // ------- Rendu principal -------
-  return (
-    <div className="container mx-auto max-w-2xl p-6">
-      {step === STEPS.TOR ? (
+  // État de succès
+  if (step === STEPS.SUCCESS) {
+    return (
+      <div className="container mx-auto max-w-md p-6">
+        <div className="bg-green-50 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg">
+          <div className="flex items-center justify-center mb-4">
+            <CheckCircle className="h-12 w-12 text-green-500 mr-3" />
+            <h2 className="text-xl font-bold">Inscription réussie!</h2>
+          </div>
+          <p className="text-center mb-4">
+            Votre compte a été créé avec succès. Vous allez être redirigé(e) vers la page d'accueil.
+          </p>
+          <div className="flex justify-center">
+            <div className="animate-pulse h-2 w-24 bg-green-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Étape des conditions d'utilisation
+  if (step === STEPS.TOR) {
+    return (
+      <div className="container mx-auto max-w-2xl p-6">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="p-6">
             <h2 className="text-2xl font-bold text-center mb-6">
-              Terms of Reference
+              Conditions d'utilisation
             </h2>
 
             {torDocument && (
@@ -155,7 +248,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                         rel="noopener noreferrer"
                         className="text-amber-600 hover:text-amber-700"
                       >
-                        View complete document
+                        Voir le document complet
                       </a>
                     </div>
                   )}
@@ -170,37 +263,59 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                       className="form-checkbox h-5 w-5 text-amber-600"
                     />
                     <span className="text-gray-700">
-                      I have read and accept the Terms of Reference
+                      J'ai lu et j'accepte les conditions d'utilisation
                     </span>
                   </label>
                 </div>
 
+                {error && (
+                  <div className="mt-4 px-4 py-2 bg-red-50 border-l-4 border-red-500 text-red-700">
+                    <p>{error}</p>
+                  </div>
+                )}
+
                 <div className="mt-6">
                   <button
                     onClick={handleTorAccept}
-                    disabled={!acceptTor || isSubmitting}
-                    className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={!acceptTor}
+                    className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        <span>Processing...</span>
-                      </div>
-                    ) : (
-                      'Continue'
-                    )}
+                    Continuer
                   </button>
                 </div>
               </div>
             )}
           </div>
         </div>
-      ) : (
-        <PasswordForm 
-          onSubmit={handlePasswordSubmit}
-          buttonText="Complete Registration"
-        />
-      )}
+      </div>
+    );
+  }
+
+  // Étape de création du mot de passe
+  return (
+    <div className="container mx-auto max-w-md p-6">
+      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="p-6">
+          <h2 className="text-2xl font-bold text-center mb-6">
+            Créer un mot de passe
+          </h2>
+
+          <p className="text-gray-600 mb-6 text-center">
+            Dernière étape ! Veuillez créer un mot de passe sécurisé pour votre compte.
+          </p>
+
+          {error && (
+            <div className="mb-4 px-4 py-2 bg-red-50 border-l-4 border-red-500 text-red-700">
+              <p>{error}</p>
+            </div>
+          )}
+
+          <PasswordForm 
+            onSubmit={handlePasswordSubmit}
+            buttonText="Finaliser l'inscription"
+          />
+        </div>
+      </div>
     </div>
   );
 };

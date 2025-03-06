@@ -16,7 +16,25 @@ import { AuthProvider } from "./Components/AuthContext";
 import { MembersProvider } from './Components/Members/MembersContext';
 import { testFirebaseConnection } from "./services/firebase";
 import { useAuth } from "./Components/AuthContext";
-import { signOut, sendPasswordResetEmail} from 'firebase/auth';
+import { firebaseAuthService } from "./services/firebaseAuthService";
+
+// Services
+import { auth } from "./services/firebase";
+import { db } from './services/firebase';
+import { 
+  isSignInWithEmailLink, 
+  signInWithEmailLink,
+  sendPasswordResetEmail
+} from 'firebase/auth';
+import { 
+  collection, 
+  doc, 
+  serverTimestamp, 
+  query, 
+  where, 
+  getDocs, 
+  updateDoc 
+} from 'firebase/firestore';
 
 // Components
 import Header from './Components/Header';
@@ -28,13 +46,10 @@ import { ProtectedForumPage } from "./Components/Forum/ForumPage";
 import GenealogyPage from "./Components/Library/GenealogyPage";
 import LibraryChat from "./Components/Library/LibraryChat";
 import FinalizeInvitation from './Components/Members/FinalizeInvitation';
+import InvitationValidator from './Components/Members/InvitationValidator';
 import Pressrelease from "./Components/About/Pressrelease";
-import { auth } from "./services/firebase";
-import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { LoginForm } from "./Components/AuthContext";
 import ForgotPassword from "./Components/Members/ForgotPassword";
-import { collection, doc, serverTimestamp, query, where, getDocs, updateDoc } from 'firebase/firestore';
-import { db } from './services/firebase';
 
 // ================ QUERY CLIENT CONFIGURATION ================
 const queryClient = new QueryClient({
@@ -55,19 +70,22 @@ const VALID_PAGES = [
   'forum',
   'chat',
   'genealogy',
-  'finalize-invitation'
+  'finalize-invitation',
+  'reset-password',
+  'register'
 ];
 
 // ================ APP CONTENT COMPONENT ================
 function AppContent() {
   // ===== State Management =====
-  const { user, authPage, setAuthPage } = useAuth();
+  const { user, authPage, setAuthPage, showNotification } = useAuth();
   const [currentPage, setCurrentPage] = useState("home");
   const [currentLang, setCurrentLang] = useState('en');
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('preferredView') || 'cards');
   const { address } = useAccount();
   const [selectedTokenId, setSelectedTokenId] = useState(null);
+  const [processingAuthLink, setProcessingAuthLink] = useState(false);
 
   // ===== Page Change Handler =====
   const handlePageChange = (newPage) => {
@@ -143,53 +161,213 @@ function AppContent() {
     }
   }, [address]);
 
-  // ===== Email Sign In Link Handler =====
+  // ===== URL Parameter Processing Effect =====
   useEffect(() => {
-    if (isSignInWithEmailLink(auth, window.location.href)) {
+    const processUrlParameters = () => {
       const params = new URLSearchParams(window.location.search);
-      const action = params.get('action');
-      let email = params.get('email');
 
-      if (!email) {
-        email = window.prompt('Please enter your email for confirmation');
+      // Traitement des codes d'invitation
+      if (params.has('code') && params.has('email')) {
+        console.log('Détection de paramètres d\'invitation:', params.get('code'), params.get('email'));
+        handlePageChange('register');
+        return;
       }
 
-      if (!email) {
-        email = action === 'resetPassword' 
-          ? window.localStorage.getItem('emailForReset')
-          : window.localStorage.getItem('emailForInvitation');
+      // Traitement des réinitialisations de mot de passe
+      if (params.has('resetId')) {
+        console.log('Détection de paramètres de réinitialisation de mot de passe');
+        handlePageChange('reset-password');
+        return;
+      }
+    };
+
+    processUrlParameters();
+  }, []);
+
+  // ===== Legacy Email Sign In Link Handler =====
+  // Gardé pour compatibilité avec les anciens liens
+  useEffect(() => {
+    const handleAuthLinks = async () => {
+      // Vérifier si c'est un lien d'authentification
+      if (!isSignInWithEmailLink(auth, window.location.href)) {
+        return;
       }
 
-      signInWithEmailLink(auth, email, window.location.href)
-        .then(async () => {
-          if (action === 'resetPassword') {
-            try {
-              const resetId = params.get('resetId');
-              if (resetId) {
-                const resetRef = doc(db, 'passwordResets', resetId);
-                await updateDoc(resetRef, {
-                  status: 'validated',
-                  validatedAt: serverTimestamp()
-                });
-              }
-              window.localStorage.removeItem('emailForReset');
-              setAuthPage('forgot-password');
-            } catch (error) {
-              console.error('Error in reset password flow:', error);
-              setAuthPage('login');
+      // Vérifier si on a déjà traité ce lien exact
+      const currentUrl = window.location.href;
+      if (localStorage.getItem('processedAuthLink') === currentUrl) {
+        console.log('Ce lien a déjà été traité, ignoré');
+        return;
+      }
+
+      console.log('Détection de lien d\'authentification');
+      setIsLoading(true);
+
+      try {
+        // Marquer ce lien comme en cours de traitement
+        localStorage.setItem('processedAuthLink', currentUrl);
+
+        const params = new URLSearchParams(window.location.search);
+        const invitationId = params.get('invitationId');
+        const resetId = params.get('resetId');
+
+        // Récupérer l'email (une seule fois)
+        let email = params.get('email');
+        if (!email) {
+          // Essayer de récupérer du localStorage
+          email = invitationId 
+            ? localStorage.getItem('emailForInvitation')
+            : resetId 
+              ? localStorage.getItem('emailForReset')
+              : null;
+
+          // Si toujours pas d'email, demander à l'utilisateur
+          if (!email) {
+            email = window.prompt('Veuillez entrer votre email pour continuer');
+
+            // Si l'utilisateur annule le prompt
+            if (!email) {
+              throw new Error('Email requis pour continuer');
+            }
+
+            // Stocker l'email pour éviter de le redemander
+            if (invitationId) {
+              localStorage.setItem('emailForInvitation', email);
+            } else if (resetId) {
+              localStorage.setItem('emailForReset', email);
             }
           }
-          else if (params.get('invitationId')) {
-            window.localStorage.removeItem('emailForInvitation');
-            handlePageChange('finalize-invitation');
+        }
+
+        // Authentification avec le lien
+        console.log('Tentative d\'authentification avec:', email);
+        await signInWithEmailLink(auth, email, window.location.href);
+        console.log('Authentification réussie');
+
+        // Nettoyer les données temporaires
+        localStorage.removeItem('emailForInvitation');
+        localStorage.removeItem('emailForReset');
+
+        // Traitement spécifique selon le type de lien
+        if (invitationId) {
+          console.log('Redirection vers la page de finalisation d\'invitation');
+          // Stocker l'ID d'invitation pour la page de finalisation
+          localStorage.setItem('currentInvitationId', invitationId);
+
+          // Nettoyer l'URL et rediriger
+          window.history.replaceState({}, '', '/finalize-invitation');
+          handlePageChange('finalize-invitation');
+          showNotification('Veuillez compléter votre inscription', 'info', 5000);
+        } 
+        else if (resetId) {
+          console.log('Traitement de la réinitialisation de mot de passe');
+          // Mettre à jour le statut dans Firestore
+          const resetRef = doc(db, 'passwordResets', resetId);
+          await updateDoc(resetRef, {
+            status: 'validated',
+            validatedAt: serverTimestamp()
+          });
+
+          // Nettoyer l'URL et afficher la modal de réinitialisation
+          window.history.replaceState({}, '', '/');
+          setAuthPage('forgot-password');
+          showNotification('Veuillez définir votre nouveau mot de passe', 'info', 5000);
+        }
+        else {
+          console.log('Redirection vers la page d\'accueil');
+          // Rediriger vers l'accueil
+          window.history.replaceState({}, '', '/');
+          handlePageChange('home');
+          showNotification('Connecté avec succès', 'success');
+        }
+      } catch (error) {
+        console.error('Erreur lors du traitement du lien d\'authentification:', error);
+        showNotification(error.message || 'Erreur lors de l\'authentification', 'error', 5000);
+
+        // Supprimer le marqueur en cas d'erreur pour permettre une nouvelle tentative
+        localStorage.removeItem('processedAuthLink');
+
+        // Rediriger vers la page d'accueil en cas d'erreur
+        window.history.replaceState({}, '', '/');
+        handlePageChange('home');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    handleAuthLinks();
+  }, [handlePageChange, showNotification, setAuthPage]);
+
+  // ===== Effet de vérification d'authentification après redirection =====
+  useEffect(() => {
+    const checkAuthAfterRedirect = async () => {
+      // Vérifier si nous venons d'une finalisation d'invitation
+      const finalizationCompleted = localStorage.getItem('finalizationCompleted');
+
+      if (finalizationCompleted) {
+        console.log('Vérification de l\'état d\'authentification après finalisation');
+
+        // Si l'utilisateur n'est pas connecté mais que nous avons des données de connexion
+        if (!user && localStorage.getItem('pendingPassword')) {
+          try {
+            setIsLoading(true);
+            // Récupérer les informations de connexion
+            const email = localStorage.getItem('finalizationEmail');
+            const password = localStorage.getItem('pendingPassword');
+
+            if (email && password) {
+              console.log('Tentative de reconnexion après finalisation');
+              // Tenter une connexion avec les identifiants stockés
+              await firebaseAuthService.loginUser(email, password);
+              showNotification('Connexion réussie', 'success');
+            }
+          } catch (error) {
+            console.error('Échec de la reconnexion après finalisation:', error);
+            showNotification('Veuillez vous connecter avec votre nouveau mot de passe', 'info');
+          } finally {
+            // Nettoyer les données temporaires
+            localStorage.removeItem('finalizationCompleted');
+            localStorage.removeItem('finalizationEmail');
+            localStorage.removeItem('pendingPassword');
+            setIsLoading(false);
           }
-        })
-        .catch((error) => {
-          console.error('Error processing sign-in link:', error);
-          setAuthPage('login');
-        });
+        } else {
+          // Nettoyer les données si l'utilisateur est déjà connecté
+          localStorage.removeItem('finalizationCompleted');
+          localStorage.removeItem('finalizationEmail');
+          localStorage.removeItem('pendingPassword');
+        }
+      }
+    };
+
+    checkAuthAfterRedirect();
+  }, [user, showNotification]);
+
+  // ===== Effet de redirection vers le domaine principal =====
+  useEffect(() => {
+    // Forcer la redirection vers le domaine principal si nécessaire
+    if (
+      window.location.hostname === 'i4tk.replit.app' && 
+      !localStorage.getItem('preventDomainRedirect') &&
+      process.env.NODE_ENV === 'production' // Ne pas rediriger en développement
+    ) {
+      // Préserver tous les paramètres d'URL
+      const newUrl = `https://www.i4tknowledge.org${window.location.pathname}${window.location.search}${window.location.hash}`;
+      localStorage.setItem('preventDomainRedirect', 'true');
+
+      // Redirection
+      console.log('Redirection vers le domaine principal:', newUrl);
+      window.location.href = newUrl;
+      return;
     }
-  }, [setAuthPage, handlePageChange]);
+
+    // Nettoyer après un délai
+    const timeout = setTimeout(() => {
+      localStorage.removeItem('preventDomainRedirect');
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   // ===== Language Handler =====
   const handleLanguageChange = (newLang) => {
@@ -201,7 +379,10 @@ function AppContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="rounded-full bg-amber-200 h-12 w-12 mb-4"></div>
+          <div className="h-4 bg-amber-100 rounded w-24"></div>
+        </div>
       </div>
     );
   }
@@ -243,8 +424,14 @@ function AppContent() {
             />
           )}
           {currentPage === "about" && <AboutPage currentLang={currentLang} />}
+          {currentPage === "register" && (
+            <InvitationValidator handlePageChange={handlePageChange} />
+          )}
           {currentPage === "finalize-invitation" && (
             <FinalizeInvitation handlePageChange={handlePageChange} />
+          )}
+          {currentPage === "reset-password" && (
+            <ForgotPassword />
           )}
           {currentPage === "chat" && user?.role === "admin" && (
             <LibraryChat currentLang={currentLang} />
