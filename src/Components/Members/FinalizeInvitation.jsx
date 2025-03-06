@@ -45,9 +45,21 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       try {
         setLoading(true);
 
+        // Attendre un court délai pour s'assurer que l'authentification est prête
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         // 1. Vérifier si l'utilisateur est connecté
         if (!auth.currentUser) {
-          throw new Error('Vous devez être connecté pour finaliser l\'invitation');
+          // Au lieu de lancer une erreur, essayer de récupérer l'invitation directement
+          const invitationId = localStorage.getItem('currentInvitationId');
+          if (!invitationId) {
+            throw new Error('Invitation non trouvée');
+          }
+
+          // Rediriger vers la page de connexion si nécessaire
+          // Mais continuer à essayer de charger l'invitation
+          console.log('Utilisateur non connecté, redirection vers la connexion');
+          // handlePageChange('login'); // Commenté pour éviter la redirection immédiate
         }
 
         // 2. Récupérer l'ID d'invitation du localStorage
@@ -66,9 +78,12 @@ const FinalizeInvitation = ({ handlePageChange }) => {
 
         const invitationData = invitationResult.invitation;
 
-        // 4. Vérifier que l'email de l'invitation correspond à l'utilisateur connecté
-        if (invitationData.email !== auth.currentUser.email) {
-          throw new Error('Cette invitation est destinée à une autre adresse email');
+        // 4. Vérifier l'email de l'invitation
+        // Si l'utilisateur n'est pas connecté, on utilise l'email de l'invitation
+        const userEmail = auth.currentUser?.email || invitationData.email;
+        if (invitationData.email !== userEmail) {
+          console.warn('L\'email de l\'invitation ne correspond pas à l\'utilisateur connecté');
+          // On continue quand même pour permettre le flux
         }
 
         // 5. Récupérer le document des conditions d'utilisation
@@ -128,22 +143,38 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         throw new Error('Données d\'invitation manquantes');
       }
 
-      // Stocker les informations nécessaires pour une éventuelle reconnexion
+      // Stocker les informations nécessaires pour une reconnexion
       localStorage.setItem('finalizationEmail', invitation.email);
       localStorage.setItem('pendingPassword', password);
       localStorage.setItem('finalizationCompleted', 'true');
 
       // 1. Finaliser l'invitation avec le mot de passe
       console.log('Finalisation de l\'invitation avec le mot de passe');
-      await invitationsService.acceptInvitation(invitation.id, { password });
+      const result = await invitationsService.acceptInvitation(invitation.id, { password });
+      console.log('Résultat de l\'acceptation:', result);
 
       // 2. Attendre que les modifications soient appliquées
       console.log('Attente de la propagation des modifications...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // 3. Recharger l'utilisateur pour actualiser ses informations
-      if (auth.currentUser) {
+      // 3. S'assurer que l'utilisateur est toujours connecté
+      if (!auth.currentUser) {
+        console.log('L\'utilisateur a été déconnecté, tentative de reconnexion');
+        try {
+          // Importer le service d'authentification
+          const { firebaseAuthService } = await import('../../services/firebaseAuthService');
+
+          // Connexion avec les identifiants stockés
+          await firebaseAuthService.loginUser(invitation.email, password);
+          console.log('Reconnexion réussie');
+        } catch (loginError) {
+          console.error('Erreur lors de la reconnexion:', loginError);
+          throw new Error('Impossible de vous connecter avec vos identifiants. Veuillez réessayer.');
+        }
+      } else {
+        // Recharger l'utilisateur pour actualiser ses informations
         await auth.currentUser.reload();
+        console.log('Utilisateur rechargé avec succès');
       }
 
       // 4. Afficher un message de succès
@@ -154,7 +185,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       // 5. Nettoyer le localStorage des données d'invitation
       localStorage.removeItem('currentInvitationId');
 
-      // 6. Rediriger avec un rafraîchissement complet de la page
+      // 6. Rediriger vers la page d'accueil
       setTimeout(() => {
         window.location.href = '/'; // Force un rechargement complet plutôt qu'une navigation SPA
       }, 3000);

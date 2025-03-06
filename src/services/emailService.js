@@ -4,7 +4,6 @@
 // =================================================================
 import { sendPasswordResetEmail, getAuth } from 'firebase/auth';
 import { invitationsService } from './invitationsService';
-import sgMail from '@sendgrid/mail';
 
 // Configuration de base
 const BASE_URL = 'https://i4tknowledge.org';
@@ -14,10 +13,6 @@ const actionCodeSettings = {
   url: BASE_URL,
   handleCodeInApp: false
 };
-
-// Configuration de SendGrid avec la clé API
-const SENDGRID_API_KEY = import.meta.env.VITE_SENDGRID_API_KEY;
-sgMail.setApiKey(SENDGRID_API_KEY);
 
 // Détection de l'environnement
 const isDevelopment = window.location.hostname.includes('replit.dev') || 
@@ -35,46 +30,11 @@ export const emailService = {
       // Langue préférée de l'utilisateur
       const userLang = localStorage.getItem('preferredLanguage') || 'en';
 
-      // Préparer le contenu de l'email
-      const subject = userLang === 'fr' 
-        ? `Invitation à rejoindre ${organizationName}` 
-        : `Invitation to join ${organizationName}`;
-
-      const htmlContent = userLang === 'fr'
-        ? `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Vous avez été invité(e) à rejoindre ${organizationName}</h2>
-            <p>Pour accepter cette invitation, veuillez utiliser le code suivant :</p>
-            <div style="padding: 15px; background-color: #f5f5f5; font-size: 20px; text-align: center; margin: 20px 0; font-family: monospace; letter-spacing: 2px;">
-              ${code}
-            </div>
-            <p>Ou cliquez directement sur ce lien :</p>
-            <a href="${BASE_URL}/register?email=${encodeURIComponent(email)}&code=${code}" style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
-              Accepter l'invitation
-            </a>
-            <p>Cette invitation expirera dans 7 jours.</p>
-          </div>
-        `
-        : `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>You have been invited to join ${organizationName}</h2>
-            <p>To accept this invitation, please use the following code:</p>
-            <div style="padding: 15px; background-color: #f5f5f5; font-size: 20px; text-align: center; margin: 20px 0; font-family: monospace; letter-spacing: 2px;">
-              ${code}
-            </div>
-            <p>Or click directly on this link:</p>
-            <a href="${BASE_URL}/register?email=${encodeURIComponent(email)}&code=${code}" style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
-              Accept invitation
-            </a>
-            <p>This invitation will expire in 7 days.</p>
-          </div>
-        `;
-
       // Si en environnement de développement, simuler l'envoi
       if (isDevelopment) {
         console.log('=== INVITATION EMAIL SIMULATION ===');
         console.log(`To: ${email}`);
-        console.log(`Subject: ${subject}`);
+        console.log(`Subject: ${userLang === 'fr' ? `Invitation à rejoindre ${organizationName}` : `Invitation to join ${organizationName}`}`);
         console.log(`Code: ${code}`);
         console.log(`Link: ${BASE_URL}/register?email=${encodeURIComponent(email)}&code=${code}`);
         console.log('===================================');
@@ -89,20 +49,29 @@ export const emailService = {
         return true;
       }
 
-      // En production, envoyer l'email avec SendGrid
-      const msg = {
-        to: email,
-        from: {
-          email: 'noreply@i4tknowledge.org',
-          name: 'I4TK'
+      // En production, appeler la fonction HTTP
+      const response = await fetch('https://us-central1-i4tk-website.cloudfunctions.net/sendInvitationEmailHttp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        subject: subject,
-        html: htmlContent
-      };
+        body: JSON.stringify({
+          email,
+          invitationId,
+          organizationName,
+          code,
+          language: userLang
+        })
+      });
 
-      // Envoi de l'email avec la bibliothèque SendGrid
-      const response = await sgMail.send(msg);
-      console.log('Invitation email sent successfully', response);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Invitation email sent successfully', result);
       return true;
     } catch (error) {
       console.error('Error sending invitation email:', error);

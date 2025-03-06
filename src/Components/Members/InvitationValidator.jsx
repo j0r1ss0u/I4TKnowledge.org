@@ -41,18 +41,26 @@ const InvitationValidator = ({ handlePageChange }) => {
 
   // ------- Pré-remplissage des champs à partir de l'URL -------
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const emailParam = params.get('email');
-    const codeParam = params.get('code');
-    const langParam = params.get('lang') || 'en';
+    // Récupérer tout ce qui se trouve après le hash
+    const hashPart = window.location.hash;
 
-    if (emailParam) setEmail(emailParam);
-    if (codeParam) setCode(codeParam);
-    setCurrentLang(langParam);
+    // Extraire les paramètres de la partie après le hash
+    const queryString = hashPart.split('?')[1];
 
-    // Si les deux paramètres sont présents, valider automatiquement
-    if (emailParam && codeParam) {
-      validateInvitation(emailParam, codeParam);
+    if (queryString) {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get('email');
+      const codeParam = params.get('code');
+      const langParam = params.get('lang') || 'en';
+
+      if (emailParam) setEmail(emailParam);
+      if (codeParam) setCode(codeParam);
+      setCurrentLang(langParam);
+
+      // Si les deux paramètres sont présents, valider automatiquement
+      if (emailParam && codeParam) {
+        validateInvitation(emailParam, codeParam);
+      }
     }
   }, []);
 
@@ -130,22 +138,24 @@ const InvitationValidator = ({ handlePageChange }) => {
         password: password
       });
 
+      // Stocker l'ID d'invitation pour la finalisation
+      localStorage.setItem('currentInvitationId', invitation.id);
+
       // Afficher un message de succès
       setStep(STEPS.SUCCESS);
       showNotification(
         currentLang === 'fr' 
-          ? 'Votre compte a été créé avec succès!' 
-          : 'Your account has been successfully created!', 
+          ? 'Compte créé! Vous allez maintenant être dirigé vers les conditions d\'utilisation.' 
+          : 'Account created! You will now be directed to the terms of reference.', 
         'success', 
         5000
       );
 
-      // Rediriger vers la page d'accueil après un court délai
+      // Rediriger vers la page de finalisation
       setTimeout(() => {
-        // Forcer un rechargement complet pour garantir l'état d'authentification
-        window.location.href = '/';
+        window.location.href = '/#finalize-invitation';
       }, 3000);
-    } catch (error) {
+      } catch (error) {
       console.error('Erreur lors de la création du compte:', error);
       setError(error.message);
       setStep(STEPS.ACCOUNT_SETUP);
