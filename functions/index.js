@@ -41,7 +41,7 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
               ${code}
             </div>
             <p>Ou cliquez directement sur ce lien :</p>
-            <a href="https://i4tknowledge.org/?email=${encodeURIComponent(email)}&code=${code}#/register"
+            <a href="https://i4tknowledge.org/?email=${encodeURIComponent(email)}&code=${code}#register"
                style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
               Accepter l'invitation
             </a>
@@ -56,7 +56,7 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
               ${code}
             </div>
             <p>Or click directly on this link:</p>
-            <a href="https://i4tknowledge.org/?email=${encodeURIComponent(email)}&code=${code}#/register"
+            <a href="https://i4tknowledge.org/?email=${encodeURIComponent(email)}&code=${code}#register"
                style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
               Accept invitation
             </a>

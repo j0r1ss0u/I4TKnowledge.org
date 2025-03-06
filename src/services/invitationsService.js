@@ -537,6 +537,37 @@ export const invitationsService = {
       console.error('Erreur lors du renvoi de l\'invitation:', error);
       throw error;
     }
+  },
+
+  // ------- NOUVELLE FONCTION: Activation explicite du compte utilisateur -------
+  async activateUserAccount(userId) {
+    try {
+      console.log('Activation du compte utilisateur:', userId);
+      const userRef = doc(db, 'users', userId);
+
+      // Récupérer les données actuelles de l'utilisateur
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      // Mettre à jour le statut à 'active' s'il ne l'est pas déjà
+      const userData = userSnap.data();
+      if (userData.status !== 'active') {
+        await updateDoc(userRef, {
+          status: 'active',
+          updatedAt: serverTimestamp()
+        });
+        console.log('Compte utilisateur activé avec succès');
+      } else {
+        console.log('Le compte utilisateur est déjà actif');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de l\'activation du compte utilisateur:', error);
+      throw error;
+    }
   }
 };
 

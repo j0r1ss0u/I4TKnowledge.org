@@ -1,21 +1,20 @@
 // =================================================================
 // FinalizeInvitation.jsx
-// Composant simplifié de finalisation d'invitation utilisateur
+// Component to accept Terms of Reference and create user account
 // =================================================================
 
 import React, { useState, useEffect } from 'react';
 import { invitationsService } from '../../services/invitationsService';
-import { documentsService } from '../../services/documentsService';
 import { torService } from '../../services/torService';
+import { documentsService } from '../../services/documentsService';
 import { Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { firebaseAuthService } from '../../services/firebaseAuthService';
 import { auth } from '../../services/firebase';
 import { useAuth } from '../../Components/AuthContext';
-import PasswordForm from './PasswordForm';
 
 // =================================================================
-// Constantes
+// CONSTANTS
 // =================================================================
-
 const STEPS = {
   LOADING: 'loading',
   TOR: 'tor',
@@ -26,11 +25,56 @@ const STEPS = {
 };
 
 // =================================================================
-// Composant Principal
+// PASSWORD FORM COMPONENT
 // =================================================================
+const PasswordForm = ({ onSubmit, password, setPassword, confirmPassword, setConfirmPassword, error, currentLang }) => {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {currentLang === 'fr' ? 'Mot de passe' : 'Password'}
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          placeholder={currentLang === 'fr' ? '8 caractères minimum' : '8 characters minimum'}
+          minLength={8}
+          required
+        />
+      </div>
 
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {currentLang === 'fr' ? 'Confirmez le mot de passe' : 'Confirm password'}
+        </label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          placeholder={currentLang === 'fr' ? 'Entrez à nouveau votre mot de passe' : 'Enter your password again'}
+          minLength={8}
+          required
+        />
+      </div>
+
+      <button
+        type="submit"
+        className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md transition-colors"
+      >
+        {currentLang === 'fr' ? 'Finaliser l\'inscription' : 'Complete registration'}
+      </button>
+    </form>
+  );
+};
+
+// =================================================================
+// MAIN COMPONENT
+// =================================================================
 const FinalizeInvitation = ({ handlePageChange }) => {
-  // ------- Contexte et état local -------
+  // Context and local state
   const { showNotification } = useAuth();
   const [step, setStep] = useState(STEPS.LOADING);
   const [loading, setLoading] = useState(true);
@@ -39,66 +83,57 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   const [torDocument, setTorDocument] = useState(null);
   const [acceptTor, setAcceptTor] = useState(false);
 
-  // ------- Initialisation -------
+  // Password state
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Language state
+  const [currentLang, setCurrentLang] = useState(() => {
+    return localStorage.getItem('preferredLanguage') || 'en';
+  });
+
+  // =================================================================
+  // INITIALIZATION EFFECT
+  // Load invitation data and ToR document
+  // =================================================================
   useEffect(() => {
     const loadInvitation = async () => {
       try {
         setLoading(true);
 
-        // Attendre un court délai pour s'assurer que l'authentification est prête
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // 1. Vérifier si l'utilisateur est connecté
-        if (!auth.currentUser) {
-          // Au lieu de lancer une erreur, essayer de récupérer l'invitation directement
-          const invitationId = localStorage.getItem('currentInvitationId');
-          if (!invitationId) {
-            throw new Error('Invitation non trouvée');
-          }
-
-          // Rediriger vers la page de connexion si nécessaire
-          // Mais continuer à essayer de charger l'invitation
-          console.log('Utilisateur non connecté, redirection vers la connexion');
-          // handlePageChange('login'); // Commenté pour éviter la redirection immédiate
-        }
-
-        // 2. Récupérer l'ID d'invitation du localStorage
+        // 1. Get invitation ID from localStorage
         const invitationId = localStorage.getItem('currentInvitationId');
         if (!invitationId) {
-          throw new Error('Invitation non trouvée');
+          throw new Error(currentLang === 'fr' 
+            ? 'Invitation non trouvée. Veuillez valider votre invitation d\'abord.' 
+            : 'Invitation not found. Please validate your invitation first.');
         }
 
-        // 3. Valider l'invitation
-        console.log('Récupération de l\'invitation:', invitationId);
+        // 2. Validate the invitation
+        console.log('Retrieving invitation:', invitationId);
         const invitationResult = await invitationsService.validateInvitation(invitationId);
 
         if (!invitationResult.valid) {
-          throw new Error(invitationResult.message || 'Invitation invalide');
+          throw new Error(invitationResult.message || (currentLang === 'fr' ? 'Invitation invalide' : 'Invalid invitation'));
         }
 
         const invitationData = invitationResult.invitation;
 
-        // 4. Vérifier l'email de l'invitation
-        // Si l'utilisateur n'est pas connecté, on utilise l'email de l'invitation
-        const userEmail = auth.currentUser?.email || invitationData.email;
-        if (invitationData.email !== userEmail) {
-          console.warn('L\'email de l\'invitation ne correspond pas à l\'utilisateur connecté');
-          // On continue quand même pour permettre le flux
-        }
-
-        // 5. Récupérer le document des conditions d'utilisation
+        // 3. Get Terms of Reference document
         const torResults = await documentsService.semanticSearch('TERMS OF REFERENCE');
         if (!torResults || torResults.length === 0) {
-          throw new Error('Document des conditions d\'utilisation introuvable');
+          throw new Error(currentLang === 'fr' 
+            ? 'Document des conditions d\'utilisation introuvable' 
+            : 'Terms of Reference document not found');
         }
 
-        // 6. Mettre à jour l'état
+        // 4. Update state
         setInvitation(invitationData);
         setTorDocument(torResults[0]);
         setStep(STEPS.TOR);
 
       } catch (err) {
-        console.error('Erreur lors du chargement de l\'invitation:', err);
+        console.error('Error loading invitation:', err);
         setError(err.message);
         setStep(STEPS.ERROR);
       } finally {
@@ -107,145 +142,183 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     };
 
     loadInvitation();
-  }, []);
+  }, [currentLang]);
 
-  // ------- Acceptation des conditions d'utilisation -------
+  // =================================================================
+  // TOR ACCEPTANCE HANDLER
+  // Handle user accepting the Terms of Reference
+  // =================================================================
   const handleTorAccept = async () => {
     if (!acceptTor) {
-      setError('Vous devez accepter les conditions d\'utilisation pour continuer');
+      setError(currentLang === 'fr' 
+        ? 'Vous devez accepter les conditions d\'utilisation pour continuer' 
+        : 'You must accept the Terms of Reference to continue');
       return;
     }
 
     try {
       setStep(STEPS.PROCESSING);
 
-      // Enregistrer l'acceptation des conditions d'utilisation
-      await torService.acceptToR(invitation.email, torDocument.id);
-      console.log('Conditions d\'utilisation acceptées');
-
-      // Passer à l'étape suivante
+      // Move to password step
       setStep(STEPS.PASSWORD);
       setError(null);
 
     } catch (err) {
-      console.error('Erreur lors de l\'acceptation des conditions:', err);
+      console.error('Error accepting Terms of Reference:', err);
       setError(err.message);
-      setStep(STEPS.TOR); // Revenir à l'étape précédente
+      setStep(STEPS.TOR); // Return to ToR step
     }
   };
 
-  // ------- Création du mot de passe et finalisation -------
-  const handlePasswordSubmit = async ({ password }) => {
+  // =================================================================
+  // PASSWORD VALIDATION
+  // Validate password meets requirements
+  // =================================================================
+  const validatePassword = () => {
+    if (password !== confirmPassword) {
+      setError(currentLang === 'fr' 
+        ? 'Les mots de passe ne correspondent pas' 
+        : 'Passwords do not match');
+      return false;
+    }
+
+    if (password.length < 8) {
+      setError(currentLang === 'fr' 
+        ? 'Le mot de passe doit contenir au moins 8 caractères' 
+        : 'Password must be at least 8 characters');
+      return false;
+    }
+
+    return true;
+  };
+
+  // =================================================================
+  // ACCOUNT CREATION
+  // Create user account and finalize invitation
+  // =================================================================
+  const handleCreateAccount = async (e) => {
+    e?.preventDefault(); // Make optional if called programmatically
+
+    if (!validatePassword()) {
+      return;
+    }
+
     try {
       setStep(STEPS.PROCESSING);
 
       if (!invitation || !invitation.id) {
-        throw new Error('Données d\'invitation manquantes');
+        throw new Error(currentLang === 'fr' ? 'Données d\'invitation manquantes' : 'Invitation data missing');
       }
 
-      // Stocker les informations nécessaires pour une reconnexion
+      // 1. Create user account
+      console.log('Creating user account with invitation', invitation.id);
+      const result = await invitationsService.createUserFromInvitation(invitation.id, { 
+        password: password 
+      });
+
+      // 2. Store credentials for potential reconnection
       localStorage.setItem('finalizationEmail', invitation.email);
       localStorage.setItem('pendingPassword', password);
       localStorage.setItem('finalizationCompleted', 'true');
 
-      // 1. Finaliser l'invitation avec le mot de passe
-      console.log('Finalisation de l\'invitation avec le mot de passe');
-      const result = await invitationsService.acceptInvitation(invitation.id, { password });
-      console.log('Résultat de l\'acceptation:', result);
+      // 3. Wait for authentication to be effective
+      console.log('Waiting for authentication propagation...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // 2. Attendre que les modifications soient appliquées
-      console.log('Attente de la propagation des modifications...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // 3. S'assurer que l'utilisateur est toujours connecté
+      // 4. Check if user is logged in (attempt login if not)
       if (!auth.currentUser) {
-        console.log('L\'utilisateur a été déconnecté, tentative de reconnexion');
-        try {
-          // Importer le service d'authentification
-          const { firebaseAuthService } = await import('../../services/firebaseAuthService');
-
-          // Connexion avec les identifiants stockés
-          await firebaseAuthService.loginUser(invitation.email, password);
-          console.log('Reconnexion réussie');
-        } catch (loginError) {
-          console.error('Erreur lors de la reconnexion:', loginError);
-          throw new Error('Impossible de vous connecter avec vos identifiants. Veuillez réessayer.');
-        }
-      } else {
-        // Recharger l'utilisateur pour actualiser ses informations
-        await auth.currentUser.reload();
-        console.log('Utilisateur rechargé avec succès');
+        console.log('User not logged in, attempting login...');
+        await firebaseAuthService.loginUser(invitation.email, password);
       }
 
-      // 4. Afficher un message de succès
-      console.log('Invitation acceptée avec succès');
-      setStep(STEPS.SUCCESS);
-      showNotification('Votre compte a été créé avec succès!', 'success', 5000);
+      // 5. Register ToR acceptance
+      console.log('Recording Terms of Reference acceptance...');
+      await torService.acceptToR(invitation.email, torDocument.id);
 
-      // 5. Nettoyer le localStorage des données d'invitation
+      // 6. Update user account activation status
+      console.log('Ensuring user account is active...');
+      await invitationsService.activateUserAccount(result.uid || auth.currentUser.uid);
+
+      // 7. Show success message
+      console.log('Account created successfully');
+      setStep(STEPS.SUCCESS);
+      showNotification(currentLang === 'fr' 
+        ? 'Votre compte a été créé avec succès!' 
+        : 'Your account has been created successfully!', 'success', 5000);
+
+      // 8. Clean localStorage (except data needed for reconnection)
       localStorage.removeItem('currentInvitationId');
 
-      // 6. Rediriger vers la page d'accueil
+      // 9. Redirect to home page after a short delay
       setTimeout(() => {
-        window.location.href = '/'; // Force un rechargement complet plutôt qu'une navigation SPA
+        // Force complete reload rather than SPA navigation
+        window.location.href = '/'; 
       }, 3000);
     } catch (err) {
-      console.error('Erreur lors de la finalisation de l\'invitation:', err);
+      console.error('Error finalizing invitation:', err);
       setError(err.message);
-      setStep(STEPS.PASSWORD); // Revenir à l'étape du mot de passe
+      setStep(STEPS.PASSWORD);
 
-      // Nettoyer les données sensibles en cas d'erreur
+      // Clean sensitive data in case of error
       localStorage.removeItem('pendingPassword');
       localStorage.removeItem('finalizationCompleted');
     }
   };
 
-  // ------- Rendus conditionnels -------
+  // =================================================================
+  // CONDITIONAL RENDERING
+  // =================================================================
 
-  // État de chargement
+  // Loading state
   if (step === STEPS.LOADING || step === STEPS.PROCESSING) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[60vh]">
         <Loader2 className="h-12 w-12 animate-spin text-amber-600 mb-4" />
         <p className="text-gray-600">
-          {step === STEPS.LOADING ? 'Chargement...' : 'Traitement en cours...'}
+          {step === STEPS.LOADING 
+            ? (currentLang === 'fr' ? 'Chargement...' : 'Loading...') 
+            : (currentLang === 'fr' ? 'Traitement en cours...' : 'Processing...')}
         </p>
       </div>
     );
   }
 
-  // État d'erreur
+  // Error state
   if (step === STEPS.ERROR) {
     return (
       <div className="container mx-auto max-w-md p-6">
         <div className="bg-red-50 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg">
           <div className="flex items-center mb-4">
             <AlertTriangle className="h-8 w-8 text-red-500 mr-3" />
-            <h2 className="text-xl font-bold">Erreur</h2>
+            <h2 className="text-xl font-bold">{currentLang === 'fr' ? 'Erreur' : 'Error'}</h2>
           </div>
           <p className="mb-4">{error}</p>
           <button
             onClick={() => handlePageChange('home')}
             className="w-full bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-md transition-colors"
           >
-            Retour à l'accueil
+            {currentLang === 'fr' ? 'Retour à l\'accueil' : 'Back to home'}
           </button>
         </div>
       </div>
     );
   }
 
-  // État de succès
+  // Success state
   if (step === STEPS.SUCCESS) {
     return (
       <div className="container mx-auto max-w-md p-6">
         <div className="bg-green-50 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg">
           <div className="flex items-center justify-center mb-4">
             <CheckCircle className="h-12 w-12 text-green-500 mr-3" />
-            <h2 className="text-xl font-bold">Inscription réussie!</h2>
+            <h2 className="text-xl font-bold">
+              {currentLang === 'fr' ? 'Inscription réussie!' : 'Registration successful!'}
+            </h2>
           </div>
           <p className="text-center mb-4">
-            Votre compte a été créé avec succès. Vous allez être redirigé(e) vers la page d'accueil.
+            {currentLang === 'fr'
+              ? 'Votre compte a été créé avec succès. Vous allez être redirigé(e) vers la page d\'accueil.'
+              : 'Your account has been created successfully. You will be redirected to the home page.'}
           </p>
           <div className="flex justify-center">
             <div className="animate-pulse h-2 w-24 bg-green-200 rounded"></div>
@@ -255,14 +328,14 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     );
   }
 
-  // Étape des conditions d'utilisation
+  // ToR acceptance state
   if (step === STEPS.TOR) {
     return (
       <div className="container mx-auto max-w-2xl p-6">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="p-6">
             <h2 className="text-2xl font-bold text-center mb-6">
-              Conditions d'utilisation
+              {currentLang === 'fr' ? 'Conditions d\'utilisation' : 'Terms of Reference'}
             </h2>
 
             {torDocument && (
@@ -279,7 +352,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                         rel="noopener noreferrer"
                         className="text-amber-600 hover:text-amber-700"
                       >
-                        Voir le document complet
+                        {currentLang === 'fr' ? 'Voir le document complet' : 'View full document'}
                       </a>
                     </div>
                   )}
@@ -294,7 +367,9 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                       className="form-checkbox h-5 w-5 text-amber-600"
                     />
                     <span className="text-gray-700">
-                      J'ai lu et j'accepte les conditions d'utilisation
+                      {currentLang === 'fr' 
+                        ? 'J\'ai lu et j\'accepte les conditions d\'utilisation' 
+                        : 'I have read and accept the Terms of Reference'}
                     </span>
                   </label>
                 </div>
@@ -311,7 +386,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                     disabled={!acceptTor}
                     className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    Continuer
+                    {currentLang === 'fr' ? 'Continuer' : 'Continue'}
                   </button>
                 </div>
               </div>
@@ -322,17 +397,19 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     );
   }
 
-  // Étape de création du mot de passe
+  // Password creation state (default for STEPS.PASSWORD)
   return (
     <div className="container mx-auto max-w-md p-6">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="p-6">
           <h2 className="text-2xl font-bold text-center mb-6">
-            Créer un mot de passe
+            {currentLang === 'fr' ? 'Créer un mot de passe' : 'Create a password'}
           </h2>
 
           <p className="text-gray-600 mb-6 text-center">
-            Dernière étape ! Veuillez créer un mot de passe sécurisé pour votre compte.
+            {currentLang === 'fr'
+              ? 'Dernière étape ! Veuillez créer un mot de passe sécurisé pour votre compte.'
+              : 'Final step! Please create a secure password for your account.'}
           </p>
 
           {error && (
@@ -342,8 +419,13 @@ const FinalizeInvitation = ({ handlePageChange }) => {
           )}
 
           <PasswordForm 
-            onSubmit={handlePasswordSubmit}
-            buttonText="Finaliser l'inscription"
+            onSubmit={handleCreateAccount}
+            password={password}
+            setPassword={setPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            error={error}
+            currentLang={currentLang}
           />
         </div>
       </div>

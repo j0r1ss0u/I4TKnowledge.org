@@ -1,3 +1,8 @@
+// =================================================================
+// torService.js
+// Service to manage Terms of Reference acceptances
+// =================================================================
+
 import { 
   collection, 
   addDoc,
@@ -6,30 +11,41 @@ import {
   where,
   orderBy,
   serverTimestamp,
-  getDoc,  // Ajout
-  doc      // Ajout
+  doc,
+  getDoc
 } from 'firebase/firestore';
-import { db, auth } from './firebase';  // Ou le chemin correct vers votre config Firebase
+import { db, auth } from './firebase';
 
 export const torService = {
-  
-  async acceptToR(userId, docId) {
-    try {
-      const acceptancesRef = collection(db, 'torAcceptances');
-      const currentUser = auth.currentUser;
-      const userDoc = await getDoc(doc(db, 'users', userId));
-      const userData = userDoc.data();
 
+  // =================================================================
+  // ACCEPT TERMS OF REFERENCE
+  // Record a user's acceptance of the Terms of Reference
+  // =================================================================
+  async acceptToR(email, documentId) {
+    try {
+      console.log('Recording ToR acceptance for:', email, documentId);
+
+      // Check if user is authenticated
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        console.error('Error: User must be authenticated to accept ToR');
+        throw new Error('User must be authenticated to accept Terms of Reference');
+      }
+
+      // Create acceptance document
+      const acceptancesRef = collection(db, 'torAcceptances');
       const acceptanceDoc = {
-        userId: currentUser.uid,  // Stockage de l'UID Firebase au lieu de l'email
-        documentId: docId,
+        userId: currentUser.uid,
+        documentId: documentId,
+        email: email,
         acceptedAt: serverTimestamp(),
         status: 'accepted',
-        email: currentUser?.email || '', // On garde l'email pour référence
-        organization: userData?.organization || ''
+        organization: ""  // Required field according to database structure
       };
 
       const docRef = await addDoc(acceptancesRef, acceptanceDoc);
+      console.log('ToR acceptance recorded successfully:', docRef.id);
       return docRef.id;
     } catch (error) {
       console.error('Error recording ToR acceptance:', error);
@@ -37,8 +53,31 @@ export const torService = {
     }
   },
 
-  // Récupérer la liste des signataires
-  
+  // =================================================================
+  // CHECK IF USER HAS ACCEPTED TOR
+  // Verify if a user has already accepted a specific ToR document
+  // =================================================================
+  async hasAcceptedToR(userId, documentId) {
+    try {
+      const acceptancesRef = collection(db, 'torAcceptances');
+      const q = query(
+        acceptancesRef,
+        where('userId', '==', userId),
+        where('documentId', '==', documentId),
+        where('status', '==', 'accepted')
+      );
+      const snapshot = await getDocs(q);
+      return !snapshot.empty;
+    } catch (error) {
+      console.error('Error checking ToR acceptance:', error);
+      throw error;
+    }
+  },
+
+  // =================================================================
+  // GET SIGNATORIES
+  // Retrieve all users who have accepted a specific ToR document
+  // =================================================================
   async getSignatories(documentId) {
     try {
       console.log('Fetching signatories for document:', documentId);
@@ -49,18 +88,10 @@ export const torService = {
         where('status', '==', 'accepted'),
         orderBy('acceptedAt', 'desc')
       );
+
       const snapshot = await getDocs(q);
-
-      // Log des données brutes
-      console.log('Raw signatories data:', snapshot.docs.map(doc => doc.data()));
-
-      // Vérifions que nous avons bien des UIDs
       const signatories = snapshot.docs.map(doc => {
         const data = doc.data();
-        console.log('Processing signatory data:', data);
-        if (!data.userId) {
-          console.warn('No userId found for signatory:', data);
-        }
         return {
           id: doc.id,
           ...data,
@@ -72,25 +103,6 @@ export const torService = {
       return signatories;
     } catch (error) {
       console.error('Error fetching ToR signatories:', error);
-      throw error;
-    }
-  },
-
-  // Vérifier si un utilisateur a accepté le ToR
-  async hasAcceptedToR(userId, documentId) {
-    try {
-      const acceptancesRef = collection(db, 'torAcceptances');
-      const q = query(
-        acceptancesRef,
-        where('userId', '==', userId),
-        where('documentId', '==', documentId),
-        where('status', '==', 'accepted')
-      );
-
-      const snapshot = await getDocs(q);
-      return !snapshot.empty;
-    } catch (error) {
-      console.error('Error checking ToR acceptance:', error);
       throw error;
     }
   }

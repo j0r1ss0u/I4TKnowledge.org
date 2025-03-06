@@ -169,6 +169,14 @@ function AppContent() {
       // Traitement des codes d'invitation
       if (params.has('code') && params.has('email')) {
         console.log('Détection de paramètres d\'invitation:', params.get('code'), params.get('email'));
+
+        // Stocker la préférence de langue si fournie
+        if (params.has('lang')) {
+          const lang = params.get('lang');
+          localStorage.setItem('preferredLanguage', lang);
+          setCurrentLang(lang);
+        }
+
         handlePageChange('register');
         return;
       }
@@ -250,15 +258,12 @@ function AppContent() {
 
         // Traitement spécifique selon le type de lien
         if (invitationId) {
-          console.log('Redirection vers la page de finalisation d\'invitation');
-          // Stocker l'ID d'invitation pour la page de finalisation
-          localStorage.setItem('currentInvitationId', invitationId);
-
-          // Nettoyer l'URL et rediriger
-          window.history.replaceState({}, '', '/finalize-invitation');
-          handlePageChange('finalize-invitation');
-          showNotification('Veuillez compléter votre inscription', 'info', 5000);
-        } 
+          console.log('DEPRECATED: Ancien système d\'invitation par lien détecté');
+          // Ne plus utiliser cette méthode, rediriger vers l'accueil
+          window.history.replaceState({}, '', '/');
+          handlePageChange('home');
+          showNotification('Cette méthode d\'invitation n\'est plus supportée. Veuillez demander un nouveau code d\'invitation.', 'warning', 5000);
+        }
         else if (resetId) {
           console.log('Traitement de la réinitialisation de mot de passe');
           // Mettre à jour le statut dans Firestore
@@ -319,7 +324,20 @@ function AppContent() {
               console.log('Tentative de reconnexion après finalisation');
               // Tenter une connexion avec les identifiants stockés
               await firebaseAuthService.loginUser(email, password);
-              showNotification('Connexion réussie', 'success');
+
+              // Ajouter un délai pour s'assurer que l'état de l'utilisateur est mis à jour
+              await new Promise(resolve => setTimeout(resolve, 2000));
+
+              if (auth.currentUser) {
+                showNotification('Connexion réussie', 'success');
+
+                // Rafraîchir la page pour s'assurer que toutes les données utilisateur sont correctement chargées
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1000);
+              } else {
+                throw new Error('Connexion réussie mais état utilisateur non mis à jour');
+              }
             }
           } catch (error) {
             console.error('Échec de la reconnexion après finalisation:', error);
