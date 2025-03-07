@@ -4,6 +4,17 @@
 // Gère l'état de connexion et fournit les fonctionnalités d'auth
 // =================================================================
 
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '../services/firebase';
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { User, LogIn, LogOut, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { auth } from "../services/firebase";
@@ -45,14 +56,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ------- Observer Firebase Auth -------
+  // Remplacer l'useEffect qui gère onAuthStateChanged dans AuthContext.jsx
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      console.log('Changement d\'état d\'authentification:', firebaseUser?.email);
+      console.log('[DEBUG] Changement d\'état d\'authentification:', firebaseUser?.email);
       try {
         if (firebaseUser) {
           // Cas spécial pour l'administrateur
-          if (firebaseUser.email === 'admin@i4tk.org') {
-            setUser({ uid: 'admin', role: 'admin', email: firebaseUser.email });
+          if (firebaseUser.email === 'admin@i4tk.org' || firebaseUser.email === 'joris.galea@i4tknowledge.net') {
+            setUser({ uid: firebaseUser.uid, role: 'admin', email: firebaseUser.email });
             showNotification('Connecté en tant qu\'administrateur');
             setLoading(false);
             return;
@@ -65,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 
           // Permet de traiter correctement le processus d'invitation en cours
           if (isProcessingInvitation && currentInvitationId) {
-            console.log('Finalisation d\'invitation en cours, traitement spécial');
+            console.log('[DEBUG] Finalisation d\'invitation en cours, traitement spécial');
 
             // Définir un état utilisateur temporaire pendant la finalisation
             const pendingUserData = {
@@ -81,13 +93,100 @@ export const AuthProvider = ({ children }) => {
             return;
           }
 
-          // Vérifier si l'utilisateur a été supprimé
-          const isDeleted = await usersService.checkIfUserDeleted(firebaseUser.uid, firebaseUser.email);
-          if (isDeleted) {
-            console.log('Utilisateur supprimé détecté, déconnexion forcée');
-            await firebaseAuthService.logoutUser();
-            setUser(null);
-            showNotification('Votre compte a été désactivé. Veuillez contacter l\'administrateur.', 'error');
+          // Rechercher l'utilisateur par email
+          const usersRef = collection(db, 'users');
+          const q = query(usersRef, where('email', '==', firebaseUser.email));
+          const querySnapshot = await getDocs(q);
+
+          // Utilisateur trouvé par email dans Firestore
+          if (!querySnapshot.empty) {
+            // Utilisateur trouvé par email
+            const userDoc = querySnapshot.docs[0];
+            const userData = userDoc.data();
+
+            console.log(`[DEBUG] Utilisateur trouvé par email dans Firestore: ${userDoc.id}, statut: ${userData.status}`);
+
+            if (userData.status === 'active') {
+              // Utilisateur actif trouvé, continuer normalement
+              setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                emailVerified: firebaseUser.emailVerified,
+                role: userData.role,
+                organization: userData.organization,
+                ...userData
+              });
+
+              showNotification(`Bienvenue ${
+                userData.role === 'validator' ? 'validateur' : 'membre'
+              }${userData.organization ? ` de ${userData.organization}` : ''}`);
+
+              setLoading(false);
+              return;
+            } else {
+              // Utilisateur trouvé mais inactif
+              console.log('[DEBUG] Compte utilisateur inactif, déconnexion');
+              await firebaseAuthService.logoutUser();
+              setUser(null);
+              showNotification('Votre compte est inactif. Veuillez contacter l\'administrateur.', 'error');
+              setLoading(false);
+              return;
+            }
+          }
+
+          // Vérifier aussi l'utilisateur par UID au cas où l'email aurait changé
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userRef);
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+
+            console.log(`[DEBUG] Utilisateur trouvé par UID dans Firestore: ${firebaseUser.uid}`);
+
+            if (userData.status === 'active') {
+              setUser({
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
+                emailVerified: firebaseUser.emailVerified,
+                role: userData.role,
+                organization: userData.organization,
+                ...userData
+              });
+
+              showNotification(`Bienvenue ${
+                userData.role === 'validator' ? 'validateur' : 'membre'
+              }${userData.organization ? ` de ${userData.organization}` : ''}`);
+
+              setLoading(false);
+              return;
+            } else {
+              console.log('[DEBUG] Compte utilisateur inactif, déconnexion');
+              await firebaseAuthService.logoutUser();
+              setUser(null);
+              showNotification('Votre compte est inactif. Veuillez contacter l\'administrateur.', 'error');
+              setLoading(false);
+              return;
+            }
+          }
+
+          // Si nous arrivons ici, l'utilisateur n'existe pas dans Firestore
+          // Vérifier s'il existe une invitation en attente pour cet email
+          const invitationsRef = collection(db, 'invitations');
+          const invitationQuery = query(invitationsRef, where('email', '==', firebaseUser.email), where('status', '==', 'pending'));
+          const invitationSnapshot = await getDocs(invitationQuery);
+
+          if (!invitationSnapshot.empty) {
+            console.log(`[DEBUG] Invitation en attente trouvée pour ${firebaseUser.email}, continuer le processus`);
+
+            // Définir un état utilisateur temporaire
+            setUser({
+              uid: firebaseUser.uid,
+              email: firebaseUser.email,
+              emailVerified: firebaseUser.emailVerified,
+              role: 'member', // Rôle par défaut temporaire
+              isCompletingInvitation: true
+            });
+
             setLoading(false);
             return;
           }
@@ -96,7 +195,7 @@ export const AuthProvider = ({ children }) => {
           const pendingInvitationData = localStorage.getItem('pendingInvitationData');
 
           if (pendingInvitationData) {
-            console.log('Données d\'invitation trouvées:', pendingInvitationData);
+            console.log('[DEBUG] Données d\'invitation trouvées:', pendingInvitationData);
             const invitationData = JSON.parse(pendingInvitationData);
 
             try {
@@ -125,7 +224,7 @@ export const AuthProvider = ({ children }) => {
               } de ${invitationData.organization}`);
 
             } catch (initError) {
-              console.error('Erreur lors de l\'initialisation du rôle:', initError);
+              console.error('[DEBUG] Erreur lors de l\'initialisation du rôle:', initError);
 
               // En cas d'erreur, afficher une notification mais ne pas déconnecter
               showNotification('Erreur lors de l\'initialisation du profil. Veuillez contacter l\'administrateur.', 'error');
@@ -140,56 +239,21 @@ export const AuthProvider = ({ children }) => {
               });
             }
           } else {
-            console.log('Récupération des données utilisateur standard');
-            // Vérifier l'accès de l'utilisateur
-            const accessCheck = await usersService.verifyUserAccess(firebaseUser.uid);
-
-            if (!accessCheck.hasAccess) {
-              console.log('Accès refusé:', accessCheck.reason);
-
-              // Gérer les différentes raisons
-              if (accessCheck.reason === 'not_found') {
-                // L'utilisateur existe dans Auth mais pas dans Firestore
-                // Cela peut arriver après une suppression partielle
-                await firebaseAuthService.logoutUser();
-                setUser(null);
-                showNotification('Votre profil utilisateur est incomplet. Veuillez contacter l\'administrateur.', 'error');
-              } else if (accessCheck.reason === 'inactive') {
-                await firebaseAuthService.logoutUser();
-                setUser(null);
-                showNotification('Votre compte est inactif. Veuillez contacter l\'administrateur.', 'error');
-              } else {
-                await firebaseAuthService.logoutUser();
-                setUser(null);
-                showNotification('Problème d\'accès au compte. Veuillez contacter l\'administrateur.', 'error');
-              }
-
-              setLoading(false);
-              return;
-            }
-
-            const userDoc = accessCheck.userData;
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              emailVerified: firebaseUser.emailVerified,
-              role: userDoc.role,
-              organization: userDoc.organization,
-              ...userDoc
-            });
-
-            showNotification(`Bienvenue ${
-              userDoc.role === 'validator' ? 'validateur' : 'membre'
-            }${userDoc.organization ? ` de ${userDoc.organization}` : ''}`);
+            // Si nous arrivons ici, l'utilisateur n'existe nulle part
+            console.log('[DEBUG] Utilisateur non trouvé dans Firestore, déconnexion');
+            await firebaseAuthService.logoutUser();
+            setUser(null);
+            showNotification('Votre profil utilisateur est incomplet. Veuillez contacter l\'administrateur.', 'error');
           }
         } else {
-          console.log('Déconnexion détectée');
+          console.log('[DEBUG] Déconnexion détectée');
           setUser(null);
           localStorage.removeItem('pendingInvitationData');
-          localStorage.removeItem('currentInvitationId');
+          // Ne pas supprimer currentInvitationId lors d'une déconnexion normale
+          // car cela peut interrompre le processus d'invitation
         }
       } catch (error) {
-        console.error('Erreur lors du changement d\'état d\'auth:', error);
+        console.error('[DEBUG] Erreur lors du changement d\'état d\'auth:', error);
         setUser(null);
         showNotification('Erreur lors de la connexion', 'error');
       } finally {
@@ -199,7 +263,6 @@ export const AuthProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
-
   // ------- Méthodes d'authentification -------
   const login = async (credentials) => {
     try {

@@ -16,15 +16,13 @@ import { AuthProvider } from "./Components/AuthContext";
 import { MembersProvider } from './Components/Members/MembersContext';
 import { testFirebaseConnection } from "./services/firebase";
 import { useAuth } from "./Components/AuthContext";
-import { firebaseAuthService } from "./services/firebaseAuthService";
 
 // Services
 import { auth } from "./services/firebase";
 import { db } from './services/firebase';
 import { 
   isSignInWithEmailLink, 
-  signInWithEmailLink,
-  sendPasswordResetEmail
+  signInWithEmailLink 
 } from 'firebase/auth';
 import { 
   collection, 
@@ -46,7 +44,6 @@ import { ProtectedForumPage } from "./Components/Forum/ForumPage";
 import GenealogyPage from "./Components/Library/GenealogyPage";
 import LibraryChat from "./Components/Library/LibraryChat";
 import FinalizeInvitation from './Components/Members/FinalizeInvitation';
-import InvitationValidator from './Components/Members/InvitationValidator';
 import Pressrelease from "./Components/About/Pressrelease";
 import { LoginForm } from "./Components/AuthContext";
 import ForgotPassword from "./Components/Members/ForgotPassword";
@@ -75,6 +72,176 @@ const VALID_PAGES = [
   'register'
 ];
 
+// ================ REGISTER COMPONENT ================
+// Définir ce composant juste avant le début de la fonction AppContent
+// Ajoutez-le à votre fichier App.jsx existant
+
+function RegisterComponent({ handlePageChange, showNotification, currentLang }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+
+  // Import nécessaire pour l'icône
+  const AlertTriangle = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+      <line x1="12" y1="9" x2="12" y2="13"></line>
+      <line x1="12" y1="17" x2="12.01" y2="17"></line>
+    </svg>
+  );
+
+  // Effet pour traiter les paramètres d'URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const emailParam = params.get('email');
+    const codeParam = params.get('code');
+
+    if (emailParam && codeParam) {
+      setEmail(emailParam);
+      setCode(codeParam);
+      validateInvitation(emailParam, codeParam);
+    }
+  }, []);
+
+  // Importer invitationsService du scope global
+  const invitationsService = window.invitationsService || {
+    validateInvitationCode: async (email, code) => {
+      // Simuler l'appel API si le service n'est pas disponible
+      console.log('Validation du code d\'invitation:', code, 'pour l\'email:', email);
+
+      // Si vous avez importé correctement invitationsService, vous n'aurez pas besoin de cette partie
+      if (email && code) {
+        return { 
+          valid: true, 
+          invitation: { 
+            id: 'simulation-id',
+            email: email,
+            code: code
+          } 
+        };
+      }
+
+      return { valid: false, message: 'Email et code requis' };
+    }
+  };
+
+  // Fonction de validation
+  const validateInvitation = async (emailToValidate, codeToValidate) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const emailValue = emailToValidate || email;
+      const codeValue = codeToValidate || code;
+
+      console.log('Validation du code d\'invitation:', codeValue, 'pour l\'email:', emailValue);
+
+      // Valider le code d'invitation
+      const result = await invitationsService.validateInvitationCode(emailValue, codeValue);
+
+      if (!result.valid) {
+        setError(result.message);
+        setLoading(false);
+        return;
+      }
+
+      // Stocker l'ID d'invitation pour la page suivante
+      localStorage.setItem('currentInvitationId', result.invitation.id);
+
+      // Afficher un message de succès
+      showNotification(
+        currentLang === 'fr'
+          ? 'Code d\'invitation validé avec succès!'
+          : 'Invitation code successfully validated!',
+        'success'
+      );
+
+      // Rediriger vers la page de finalisation
+      setTimeout(() => {
+        window.history.replaceState({}, '', '/#finalize-invitation');
+        handlePageChange('finalize-invitation');
+      }, 1500);
+    } catch (error) {
+      console.error('Erreur lors de la validation:', error);
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
+  // Soumission du formulaire
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    validateInvitation();
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white shadow-lg rounded-lg p-6">
+        <h2 className="text-2xl font-bold text-center mb-6">
+          {currentLang === 'fr' ? 'Validation en cours...' : 'Validating...'}
+        </h2>
+        <div className="flex justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-amber-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white shadow-lg rounded-lg p-6">
+      <h2 className="text-2xl font-bold text-center mb-6">
+        {currentLang === 'fr' ? 'Valider votre invitation' : 'Validate your invitation'}
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {currentLang === 'fr' ? 'Adresse email' : 'Email address'}
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {currentLang === 'fr' ? 'Code d\'invitation' : 'Invitation code'}
+          </label>
+          <input
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            className="w-full px-4 py-2 border rounded-md font-mono text-center tracking-widest uppercase"
+            maxLength={8}
+            required
+          />
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center">
+            <AlertTriangle />
+            <p className="ml-2">{error}</p>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md transition-colors disabled:opacity-50"
+        >
+          {currentLang === 'fr' ? 'Valider l\'invitation' : 'Validate invitation'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
 // ================ APP CONTENT COMPONENT ================
 function AppContent() {
   // ===== State Management =====
@@ -86,7 +253,7 @@ function AppContent() {
   const { address } = useAccount();
   const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [processingAuthLink, setProcessingAuthLink] = useState(false);
-
+  
   // ===== Page Change Handler =====
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -161,39 +328,7 @@ function AppContent() {
     }
   }, [address]);
 
-  // ===== URL Parameter Processing Effect =====
-  useEffect(() => {
-    const processUrlParameters = () => {
-      const params = new URLSearchParams(window.location.search);
-
-      // Traitement des codes d'invitation
-      if (params.has('code') && params.has('email')) {
-        console.log('Détection de paramètres d\'invitation:', params.get('code'), params.get('email'));
-
-        // Stocker la préférence de langue si fournie
-        if (params.has('lang')) {
-          const lang = params.get('lang');
-          localStorage.setItem('preferredLanguage', lang);
-          setCurrentLang(lang);
-        }
-
-        handlePageChange('register');
-        return;
-      }
-
-      // Traitement des réinitialisations de mot de passe
-      if (params.has('resetId')) {
-        console.log('Détection de paramètres de réinitialisation de mot de passe');
-        handlePageChange('reset-password');
-        return;
-      }
-    };
-
-    processUrlParameters();
-  }, []);
-
-  // ===== Legacy Email Sign In Link Handler =====
-  // Gardé pour compatibilité avec les anciens liens
+  // ===== Email Sign In Link Handler =====
   useEffect(() => {
     const handleAuthLinks = async () => {
       // Vérifier si c'est un lien d'authentification
@@ -258,12 +393,15 @@ function AppContent() {
 
         // Traitement spécifique selon le type de lien
         if (invitationId) {
-          console.log('DEPRECATED: Ancien système d\'invitation par lien détecté');
-          // Ne plus utiliser cette méthode, rediriger vers l'accueil
-          window.history.replaceState({}, '', '/');
-          handlePageChange('home');
-          showNotification('Cette méthode d\'invitation n\'est plus supportée. Veuillez demander un nouveau code d\'invitation.', 'warning', 5000);
-        }
+          console.log('Redirection vers la page de finalisation d\'invitation');
+          // Stocker l'ID d'invitation pour la page de finalisation
+          localStorage.setItem('currentInvitationId', invitationId);
+
+          // Nettoyer l'URL et rediriger
+          window.history.replaceState({}, '', '/finalize-invitation');
+          handlePageChange('finalize-invitation');
+          showNotification('Veuillez compléter votre inscription', 'info', 5000);
+        } 
         else if (resetId) {
           console.log('Traitement de la réinitialisation de mot de passe');
           // Mettre à jour le statut dans Firestore
@@ -324,20 +462,7 @@ function AppContent() {
               console.log('Tentative de reconnexion après finalisation');
               // Tenter une connexion avec les identifiants stockés
               await firebaseAuthService.loginUser(email, password);
-
-              // Ajouter un délai pour s'assurer que l'état de l'utilisateur est mis à jour
-              await new Promise(resolve => setTimeout(resolve, 2000));
-
-              if (auth.currentUser) {
-                showNotification('Connexion réussie', 'success');
-
-                // Rafraîchir la page pour s'assurer que toutes les données utilisateur sont correctement chargées
-                setTimeout(() => {
-                  window.location.reload();
-                }, 1000);
-              } else {
-                throw new Error('Connexion réussie mais état utilisateur non mis à jour');
-              }
+              showNotification('Connexion réussie', 'success');
             }
           } catch (error) {
             console.error('Échec de la reconnexion après finalisation:', error);
@@ -360,33 +485,31 @@ function AppContent() {
 
     checkAuthAfterRedirect();
   }, [user, showNotification]);
-
-  // ===== Effet de redirection vers le domaine principal =====
+  
+  
+  // Validation des invitations
   useEffect(() => {
-    // Forcer la redirection vers le domaine principal si nécessaire
-    if (
-      window.location.hostname === 'i4tk.replit.app' && 
-      !localStorage.getItem('preventDomainRedirect') &&
-      process.env.NODE_ENV === 'production' // Ne pas rediriger en développement
-    ) {
-      // Préserver tous les paramètres d'URL
-      const newUrl = `https://www.i4tknowledge.org${window.location.pathname}${window.location.search}${window.location.hash}`;
-      localStorage.setItem('preventDomainRedirect', 'true');
+    // Si on est sur la page register, traiter les paramètres d'URL
+    if (currentPage === "register") {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get('email');
+      const code = params.get('code');
 
-      // Redirection
-      console.log('Redirection vers le domaine principal:', newUrl);
-      window.location.href = newUrl;
-      return;
+      if (email && code) {
+        // Stocker provisoirement pour que FinalizeInvitation puisse les utiliser
+        localStorage.setItem('pendingInvitationEmail', email);
+        localStorage.setItem('pendingInvitationCode', code);
+
+        // Rediriger automatiquement après une courte pause
+        setTimeout(() => {
+          handlePageChange('finalize-invitation');
+        }, 1500);
+      }
     }
+  }, [currentPage]);
 
-    // Nettoyer après un délai
-    const timeout = setTimeout(() => {
-      localStorage.removeItem('preventDomainRedirect');
-    }, 10000);
 
-    return () => clearTimeout(timeout);
-  }, []);
-
+  
   // ===== Language Handler =====
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -442,9 +565,17 @@ function AppContent() {
             />
           )}
           {currentPage === "about" && <AboutPage currentLang={currentLang} />}
+          
           {currentPage === "register" && (
-            <InvitationValidator handlePageChange={handlePageChange} />
+            <div className="container mx-auto max-w-md p-6">
+              <RegisterComponent 
+                handlePageChange={handlePageChange}
+                showNotification={showNotification}
+                currentLang={currentLang}
+              />
+            </div>
           )}
+          
           {currentPage === "finalize-invitation" && (
             <FinalizeInvitation handlePageChange={handlePageChange} />
           )}

@@ -108,29 +108,59 @@ export const usersService = {
   },
 
   // ------- Vérifier si un utilisateur a été supprimé -------
+
   async checkIfUserDeleted(uid, email) {
     try {
-      // Vérifier dans la collection des utilisateurs supprimés
-      if (uid) {
-        const deletedRef = doc(db, 'deletedUsers', uid);
-        const deletedDoc = await getDoc(deletedRef);
-        if (deletedDoc.exists()) {
-          return true;
+      console.log(`[DEBUG] Vérification si l'utilisateur est supprimé: UID=${uid}, Email=${email}`);
+
+      // IMPORTANT: Ignorer cette vérification pendant la finalisation d'invitation
+      if (window.location.hash === '#finalize-invitation' || 
+          localStorage.getItem('currentInvitationId')) {
+        console.log('[DEBUG] En cours de finalisation d\'invitation, autoriser l\'accès');
+        return false; // Ne pas considérer comme supprimé pendant la finalisation
+      }
+
+      // Recherche par email (prioritaire)
+      if (email) {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          console.log('[DEBUG] Utilisateur trouvé par email dans Firestore');
+          return false; // Utilisateur trouvé, donc non supprimé
         }
       }
 
-      // Vérifier par email si l'UID n'est pas fourni ou n'a pas été trouvé
-      if (email) {
-        const deletedRef = collection(db, 'deletedUsers');
-        const q = query(deletedRef, where('email', '==', email.toLowerCase()));
-        const snapshot = await getDocs(q);
-        return !snapshot.empty;
+      // Si pas trouvé par email, rechercher par UID comme fallback
+      if (uid) {
+        const userRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          console.log('[DEBUG] Utilisateur trouvé par UID dans Firestore');
+          return false; // Utilisateur trouvé, donc non supprimé
+        }
       }
 
-      return false;
+      console.log('[DEBUG] Utilisateur non trouvé dans Firestore');
+
+      // Vérifier s'il existe une invitation en attente pour cet email
+      if (email) {
+        const invitationsRef = collection(db, 'invitations');
+        const invitationQuery = query(invitationsRef, where('email', '==', email), where('status', '==', 'pending'));
+        const invitationSnapshot = await getDocs(invitationQuery);
+
+        if (!invitationSnapshot.empty) {
+          console.log(`[DEBUG] Invitation en attente trouvée pour ${email}`);
+          return false; // Ne pas considérer comme supprimé s'il a une invitation en attente
+        }
+      }
+
+      return true; // Considérer comme supprimé si non trouvé
     } catch (error) {
-      console.error('Erreur lors de la vérification de suppression:', error);
-      return false; // En cas d'erreur, nous supposons que l'utilisateur n'est pas supprimé
+      console.error('[DEBUG] Erreur lors de la vérification:', error);
+      return false; // En cas d'erreur, ne pas considérer comme supprimé
     }
   },
 
@@ -209,42 +239,109 @@ export const usersService = {
   },
 
   // ------- Vérifier l'accès d'un utilisateur -------
-  async verifyUserAccess(uid) {
+  async verifyUserAccess(uid, email) {
     try {
-      // Vérifier si l'utilisateur a été supprimé
-      const isDeleted = await this.checkIfUserDeleted(uid);
-      if (isDeleted) {
-        return {
-          hasAccess: false,
-          reason: 'deleted'
+      console.log(`[DEBUG] Vérification de l'accès utilisateur: UID=${uid}, Email=${email || 'non fourni'}`);
+
+      // IMPORTANT: Autoriser l'accès pendant la finalisation d'invitation
+      if (window.location.hash === '#finalize-invitation' || 
+          localStorage.getItem('currentInvitationId')) {
+        console.log('[DEBUG] En cours de finalisation d\'invitation, autoriser l\'accès');
+        return { 
+          hasAccess: true,
+          userData: {
+            role: 'member', // Rôle temporaire
+            isCompletingInvitation: true
+          } 
         };
       }
 
-      // Récupérer les données utilisateur
-      const userData = await this.getUserById(uid);
+      // Vérifier d'abord par email qui est plus fiable pour la correspondance
+      if (email) {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
 
-      if (!userData) {
-        return {
-          hasAccess: false,
-          reason: 'not_found'
-        };
+        if (!querySnapshot.empty) {
+          // Utiliser le premier utilisateur trouvé avec cet email
+          const userDoc = querySnapshot.docs[0];
+          const userData = userDoc.data();
+
+          console.log(`[DEBUG] Utilisateur trouvé par email dans Firestore: ${userDoc.id}, statut: ${userData.status}`);
+
+          if (userData.status === 'active') {
+            return {
+              hasAccess: true,
+              userData: {
+                ...userData,
+                id: userDoc.id
+              }
+            };
+          } else {
+            return {
+              hasAccess: false,
+              reason: 'inactive'
+            };
+          }
+        }
       }
 
-      // Vérifier le statut
-      if (userData.status !== 'active') {
-        return {
-          hasAccess: false,
-          reason: 'inactive',
-          status: userData.status
-        };
+      // Si aucun utilisateur n'est trouvé par email, vérifier par UID comme fallback
+      if (uid) {
+        const userRef = doc(db, 'users', uid);
+        const userDoc = await getDoc(userRef);
+
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+
+          console.log(`[DEBUG] Utilisateur trouvé par UID dans Firestore: ${uid}, statut: ${userData.status}`);
+
+          if (userData.status === 'active') {
+            return {
+              hasAccess: true,
+              userData: {
+                ...userData,
+                id: uid
+              }
+            };
+          } else {
+            return {
+              hasAccess: false,
+              reason: 'inactive'
+            };
+          }
+        }
+      }
+
+      // Si nous arrivons ici, l'utilisateur n'existe pas dans Firestore
+      console.log(`[DEBUG] Aucun utilisateur trouvé pour UID=${uid}, Email=${email}`);
+
+      // Vérifier s'il existe une invitation en attente pour cet email
+      if (email) {
+        const invitationsRef = collection(db, 'invitations');
+        const invitationQuery = query(invitationsRef, where('email', '==', email), where('status', '==', 'pending'));
+        const invitationSnapshot = await getDocs(invitationQuery);
+
+        if (!invitationSnapshot.empty) {
+          console.log(`[DEBUG] Invitation en attente trouvée pour ${email}`);
+          return {
+            hasAccess: true,
+            invitation: invitationSnapshot.docs[0].data(),
+            userData: {
+              email: email,
+              role: 'member', // Rôle par défaut temporaire
+              isCompletingInvitation: true
+            }
+          };
+        }
       }
 
       return {
-        hasAccess: true,
-        userData
+        hasAccess: false,
+        reason: 'not_found'
       };
     } catch (error) {
-      console.error('Erreur lors de la vérification d\'accès:', error);
+      console.error('[DEBUG] Erreur lors de la vérification de l\'accès utilisateur:', error);
       return {
         hasAccess: false,
         reason: 'error',

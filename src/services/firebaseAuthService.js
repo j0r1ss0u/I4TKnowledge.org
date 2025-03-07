@@ -100,6 +100,23 @@ export const firebaseAuthService = {
         };
       }
 
+      // Vérifier si cet utilisateur a été créé via une invitation
+      let wasInvited = false;
+      try {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const userData = querySnapshot.docs[0].data();
+          wasInvited = !!userData.invitationId; // Vérifie si invitationId est défini
+          console.log('Utilisateur créé via invitation:', wasInvited);
+        }
+      } catch (err) {
+        console.error('Erreur lors de la vérification d\'invitation:', err);
+        // Continuer même en cas d'erreur
+      }
+
       // Authentification standard
       console.log('Tentative d\'authentification standard');
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -108,8 +125,9 @@ export const firebaseAuthService = {
       console.log('Utilisateur authentifié:', user.email);
       console.log('Email vérifié:', user.emailVerified);
 
-      if (!user.emailVerified) {
-        console.log('Email non vérifié, tentative d\'envoi de l\'email de vérification...');
+      // Ignorer la vérification d'email pour les utilisateurs invités
+      if (!user.emailVerified && !wasInvited) {
+        console.log('Email non vérifié et utilisateur non invité, envoi de l\'email de vérification...');
         try {
           await sendEmailVerification(user);
           console.log('Email de vérification envoyé avec succès');
@@ -126,7 +144,7 @@ export const firebaseAuthService = {
       return {
         uid: user.uid,
         email: user.email,
-        emailVerified: user.emailVerified,
+        emailVerified: user.emailVerified || wasInvited, // Considérer comme vérifié si invité
         ...userData
       };
     } catch (error) {

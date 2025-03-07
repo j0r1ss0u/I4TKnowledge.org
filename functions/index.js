@@ -2,10 +2,16 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const sgMail = require('@sendgrid/mail');
 const cors = require('cors')({origin: true});
+const userManagement = require('./src/userManagement');
 
 // Initialiser l'application Firebase Admin
+// Cette ligne est importante - elle permet d'initialiser admin une seule fois
 admin.initializeApp();
 
+// Importer la nouvelle fonction d'authentification
+const auth = require('./src/auth');
+
+// Fonction existante pour envoyer des emails d'invitation
 exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
   return cors(req, res, async () => {
     console.log('Function called with data:', JSON.stringify(req.body, null, 2));
@@ -31,7 +37,6 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
       const subject = language === 'fr' 
         ? `Invitation à rejoindre ${organizationName || 'notre organisation'}`
         : `Invitation to join ${organizationName || 'our organization'}`;
-
       const htmlContent = language === 'fr'
         ? `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -46,6 +51,10 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
               Accepter l'invitation
             </a>
             <p>Cette invitation expirera dans 7 jours.</p>
+            <p style="font-size: 12px; color: #666; margin-top: 30px;">
+              Si vous rencontrez des problèmes pour vous connecter après avoir accepté l'invitation, 
+              veuillez vérifier votre email - un message de confirmation pourrait avoir été envoyé.
+            </p>
           </div>
         `
         : `
@@ -61,6 +70,10 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
               Accept invitation
             </a>
             <p>This invitation will expire in 7 days.</p>
+            <p style="font-size: 12px; color: #666; margin-top: 30px;">
+              If you encounter any issues logging in after accepting the invitation, 
+              please check your email - a confirmation message might have been sent.
+            </p>
           </div>
         `;
 
@@ -127,3 +140,7 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
     }
   });
 });
+
+// Exportation de la nouvelle fonction pour vérifier les emails
+exports.verifyInvitedUserEmail = auth.verifyInvitedUserEmail;
+exports.deleteAuthUserOnFirestoreDelete = userManagement.deleteAuthUserOnFirestoreDelete;

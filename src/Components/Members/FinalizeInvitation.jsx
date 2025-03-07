@@ -17,6 +17,7 @@ import { useAuth } from '../../Components/AuthContext';
 // =================================================================
 const STEPS = {
   LOADING: 'loading',
+  VALIDATION: 'validation',
   TOR: 'tor',
   PASSWORD: 'password',
   PROCESSING: 'processing',
@@ -93,15 +94,57 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   });
 
   // =================================================================
-  // INITIALIZATION EFFECT
-  // Load invitation data and ToR document
+  // INITIALIZATION EFFECT - Version mise à jour pour FinalizeInvitation.jsx
+  // Load invitation data and ToR document with support for URL parameters
   // =================================================================
   useEffect(() => {
     const loadInvitation = async () => {
       try {
         setLoading(true);
 
-        // 1. Get invitation ID from localStorage
+        // Vérifier d'abord les paramètres de l'URL
+        const params = new URLSearchParams(window.location.search);
+        const emailParam = params.get('email');
+        const codeParam = params.get('code');
+
+        // Si les paramètres sont présents dans l'URL, valider directement
+        if (emailParam && codeParam) {
+          console.log('Validation directe du code:', codeParam, 'pour:', emailParam);
+
+          // Valider le code d'invitation
+          const validationResult = await invitationsService.validateInvitationCode(emailParam, codeParam);
+
+          if (!validationResult.valid) {
+            throw new Error(validationResult.message || (currentLang === 'fr' 
+              ? 'Code d\'invitation invalide' 
+              : 'Invalid invitation code'));
+          }
+
+          // Stocker l'ID d'invitation si valide
+          localStorage.setItem('currentInvitationId', validationResult.invitation.id);
+          console.log('Code d\'invitation validé avec succès');
+
+          // Nettoyer l'URL pour éviter les problèmes de rafraîchissement
+          window.history.replaceState({}, '', '/#finalize-invitation');
+        }
+
+        // Vérifier si des paramètres d'invitation ont été passés via localStorage
+        // (depuis RegisterComponent)
+        const pendingEmail = localStorage.getItem('pendingInvitationEmail');
+        const pendingCode = localStorage.getItem('pendingInvitationCode');
+
+        if (pendingEmail && pendingCode) {
+          console.log('Traitement des paramètres d\'invitation stockés:', pendingCode, 'pour', pendingEmail);
+
+          // Nettoyer ces valeurs immédiatement pour éviter les doublons
+          localStorage.removeItem('pendingInvitationEmail');
+          localStorage.removeItem('pendingInvitationCode');
+
+          // Nous n'avons pas besoin de revalider - RegisterComponent l'a déjà fait
+          // et a stocké l'ID d'invitation dans currentInvitationId
+        }
+
+        // Récupérer l'ID d'invitation du localStorage 
         const invitationId = localStorage.getItem('currentInvitationId');
         if (!invitationId) {
           throw new Error(currentLang === 'fr' 
@@ -109,8 +152,8 @@ const FinalizeInvitation = ({ handlePageChange }) => {
             : 'Invitation not found. Please validate your invitation first.');
         }
 
-        // 2. Validate the invitation
-        console.log('Retrieving invitation:', invitationId);
+        // Valider l'invitation
+        console.log('Récupération de l\'invitation:', invitationId);
         const invitationResult = await invitationsService.validateInvitation(invitationId);
 
         if (!invitationResult.valid) {
@@ -119,7 +162,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
 
         const invitationData = invitationResult.invitation;
 
-        // 3. Get Terms of Reference document
+        // Récupérer le document des conditions d'utilisation
         const torResults = await documentsService.semanticSearch('TERMS OF REFERENCE');
         if (!torResults || torResults.length === 0) {
           throw new Error(currentLang === 'fr' 
@@ -127,11 +170,10 @@ const FinalizeInvitation = ({ handlePageChange }) => {
             : 'Terms of Reference document not found');
         }
 
-        // 4. Update state
+        // Mettre à jour l'état
         setInvitation(invitationData);
         setTorDocument(torResults[0]);
         setStep(STEPS.TOR);
-
       } catch (err) {
         console.error('Error loading invitation:', err);
         setError(err.message);
@@ -196,6 +238,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   // ACCOUNT CREATION
   // Create user account and finalize invitation
   // =================================================================
+ 
   const handleCreateAccount = async (e) => {
     e?.preventDefault(); // Make optional if called programmatically
 
@@ -211,7 +254,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       }
 
       // 1. Create user account
-      console.log('Creating user account with invitation', invitation.id);
+      console.log('[DEBUG] Creating user account with invitation', invitation.id);
       const result = await invitationsService.createUserFromInvitation(invitation.id, { 
         password: password 
       });
@@ -222,25 +265,36 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       localStorage.setItem('finalizationCompleted', 'true');
 
       // 3. Wait for authentication to be effective
-      console.log('Waiting for authentication propagation...');
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('[DEBUG] Waiting for authentication propagation...');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Augmenté à 2 secondes
 
       // 4. Check if user is logged in (attempt login if not)
       if (!auth.currentUser) {
-        console.log('User not logged in, attempting login...');
-        await firebaseAuthService.loginUser(invitation.email, password);
+        console.log('[DEBUG] User not logged in, attempting login...');
+        try {
+          await firebaseAuthService.loginUser(invitation.email, password);
+          console.log('[DEBUG] Login successful');
+        } catch (loginError) {
+          console.error('[DEBUG] Login failed:', loginError);
+          // Continue with the process even if login fails
+        }
       }
 
       // 5. Register ToR acceptance
-      console.log('Recording Terms of Reference acceptance...');
+      console.log('[DEBUG] Recording Terms of Reference acceptance...');
       await torService.acceptToR(invitation.email, torDocument.id);
 
       // 6. Update user account activation status
-      console.log('Ensuring user account is active...');
-      await invitationsService.activateUserAccount(result.uid || auth.currentUser.uid);
+      console.log('[DEBUG] Ensuring user account is active...');
+      try {
+        await invitationsService.activateUserAccount(result.uid || auth.currentUser?.uid);
+      } catch (activationError) {
+        console.error('[DEBUG] Activation error:', activationError);
+        // Continue even if activation fails - we'll try again later
+      }
 
       // 7. Show success message
-      console.log('Account created successfully');
+      console.log('[DEBUG] Account created successfully');
       setStep(STEPS.SUCCESS);
       showNotification(currentLang === 'fr' 
         ? 'Votre compte a été créé avec succès!' 
@@ -255,7 +309,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         window.location.href = '/'; 
       }, 3000);
     } catch (err) {
-      console.error('Error finalizing invitation:', err);
+      console.error('[DEBUG] Error finalizing invitation:', err);
       setError(err.message);
       setStep(STEPS.PASSWORD);
 

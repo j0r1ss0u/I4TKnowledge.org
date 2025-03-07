@@ -206,38 +206,40 @@ export const invitationsService = {
 
   // ------- Création de compte utilisateur à partir d'une invitation -------
   async createUserFromInvitation(invitationId, userData) {
-    try {
-      console.log('Création d\'un utilisateur à partir de l\'invitation:', invitationId);
+  try {
+    console.log('Création d\'un utilisateur à partir de l\'invitation:', invitationId);
 
-      // 1. Valider l'invitation
-      const invitationResult = await this.validateInvitation(invitationId);
-      if (!invitationResult.valid) {
-        throw new Error(invitationResult.message);
-      }
+    // 1. Valider l'invitation
+    const invitationResult = await this.validateInvitation(invitationId);
+    if (!invitationResult.valid) {
+      throw new Error(invitationResult.message);
+    }
 
-      const invitation = invitationResult.invitation;
+    const invitation = invitationResult.invitation;
 
-      // 2. Créer l'utilisateur dans Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth, 
-        invitation.email, 
-        userData.password
-      );
+    // 2. Créer l'utilisateur dans Firebase Auth
+    const userCredential = await createUserWithEmailAndPassword(
+      auth, 
+      invitation.email, 
+      userData.password
+    );
 
-      const user = userCredential.user;
-      console.log('Utilisateur créé dans Firebase Auth:', user.uid);
+    const user = userCredential.user;
+    console.log('Utilisateur créé dans Firebase Auth:', user.uid);
 
-      // 3. Préparer les données du profil utilisateur
-      const userProfile = {
-        email: invitation.email,
-        role: invitation.role,
-        organization: invitation.organization,
-        status: 'active',
-        emailVerified: true,
-        invitationId: invitationId,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
+    // Ligne supprimée: await user.updateProfile({ emailVerified: true });
+
+    // 3. Préparer les données du profil utilisateur
+    const userProfile = {
+      email: invitation.email,
+      role: invitation.role,
+      organization: invitation.organization,
+      status: 'active',
+      emailVerified: true,
+      invitationId: invitationId,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    };
 
       // 4. Créer le profil dans Firestore et accepter l'invitation dans une transaction
       await runTransaction(db, async (transaction) => {
@@ -386,7 +388,39 @@ export const invitationsService = {
       throw error;
     }
   },
+  
+  // Activation du compte utilisateur
+  async activateUserAccount(userId) {
+    try {
+      console.log('[DEBUG] Activation du compte utilisateur:', userId);
+      const userRef = doc(db, 'users', userId);
 
+      // Récupérer les données actuelles de l'utilisateur
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      // Mettre à jour le statut à 'active' s'il ne l'est pas déjà
+      const userData = userSnap.data();
+      if (userData.status !== 'active') {
+        await updateDoc(userRef, {
+          status: 'active',
+          updatedAt: serverTimestamp()
+        });
+        console.log('[DEBUG] Compte utilisateur activé avec succès');
+      } else {
+        console.log('[DEBUG] Le compte utilisateur est déjà actif');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('[DEBUG] Erreur lors de l\'activation du compte utilisateur:', error);
+      throw error;
+    }
+  },
+
+  
   // ------- Annulation d'une invitation -------
   async cancelInvitation(invitationId) {
     try {
