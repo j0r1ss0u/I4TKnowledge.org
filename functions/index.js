@@ -284,115 +284,113 @@ exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
 });
 
 // Cloud Function pour la validation du code
-exports.validateResetCode = functions.https.onCall(async (data, context) => {
-  try {
-    // Ne pas logger l'objet data complet qui pourrait contenir des structures circulaires
-    console.log('validateResetCode called with resetId:', data?.resetId, 'and code:', data?.code);
 
-    // Extraire les valeurs nécessaires de la requête
-    const resetId = data?.resetId;
-    const code = data?.code;
+exports.validateResetCodeHttp = functions.https.onRequest((req, res) => {
+  return cors(req, res, async () => {
+    try {
+      if (req.method !== 'POST') {
+        return res.status(405).send('Method Not Allowed');
+      }
 
-    if (!resetId || !code) {
-      console.error('Missing required parameters: resetId or code');
-      throw new functions.https.HttpsError('invalid-argument', 'Missing required parameters');
+      const { resetId, code } = req.body;
+
+      if (!resetId || !code) {
+        return res.status(400).json({ success: false, error: 'Missing required parameters' });
+      }
+
+      // Logique de validation
+      const resetRef = admin.firestore().collection('passwordResets').doc(resetId);
+      const resetDoc = await resetRef.get();
+
+      if (!resetDoc.exists) {
+        return res.status(404).json({ success: false, error: 'Invalid reset request' });
+      }
+
+      const resetData = resetDoc.data();
+
+      if (resetData.resetCode !== code) {
+        return res.status(403).json({ success: false, error: 'Invalid reset code' });
+      }
+
+      // Mise à jour du statut
+      await resetRef.update({ 
+        status: 'validated',
+        validatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      return res.status(200).json({ 
+        success: true, 
+        email: resetData.email 
+      });
+    } catch (error) {
+      console.error('Error validating reset code:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error' 
+      });
     }
-
-    // Récupérer le document de réinitialisation
-    const resetRef = admin.firestore().collection('passwordResets').doc(resetId);
-    const resetDoc = await resetRef.get();
-
-    if (!resetDoc.exists) {
-      console.error('Reset document not found for resetId:', resetId);
-      throw new functions.https.HttpsError('not-found', 'Invalid reset request');
-    }
-
-    const resetData = resetDoc.data();
-
-    // Vérifier que le code correspond
-    if (resetData.resetCode !== code) {
-      console.error('Code mismatch for resetId:', resetId);
-      throw new functions.https.HttpsError('permission-denied', 'Invalid reset code');
-    }
-
-    // Vérifier l'expiration
-    if (resetData.expiresAt.toDate() < new Date()) {
-      await resetRef.update({ status: 'expired' });
-      throw new functions.https.HttpsError('deadline-exceeded', 'Reset link expired');
-    }
-
-    // Marquer comme validé
-    await resetRef.update({ 
-      status: 'validated',
-      validatedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    // Retourner un nouvel objet simple sans référence circulaire
-    return { 
-      success: true,
-      email: resetData.email
-    };
-  } catch (error) {
-    // Log uniquement le message d'erreur, pas l'objet erreur complet
-    console.error('Error validating reset code:', error.message);
-
-    // Créer une nouvelle erreur HTTP avec seulement les informations nécessaires
-    throw new functions.https.HttpsError(
-      error.code || 'internal', 
-      error.message || 'An error occurred validating the reset code'
-    );
-  }
+  });
 });
 
 // Cloud Function pour la réinitialisation du mot de passe
-exports.completePasswordReset = functions.https.onCall(async (data, context) => {
-  try {
-    const { resetId, password } = data;
+// Fonction HTTP pour compléter la réinitialisation du mot de passe
+exports.completePasswordResetHttp = functions.https.onRequest((req, res) => {
+  return cors(req, res, async () => {
+    try {
+      console.log('completePasswordResetHttp called with body:', JSON.stringify(req.body, null, 2));
 
-    if (!resetId || !password) {
-      throw new Error('Missing required parameters');
+      if (req.method !== 'POST') {
+        return res.status(405).send('Method Not Allowed');
+      }
+
+      const { resetId, password } = req.body;
+
+      if (!resetId || !password) {
+        return res.status(400).json({ success: false, error: 'Missing required parameters' });
+      }
+
+      // Vérifier le document de réinitialisation
+      const resetRef = admin.firestore().collection('passwordResets').doc(resetId);
+      const resetDoc = await resetRef.get();
+
+      if (!resetDoc.exists) {
+        return res.status(404).json({ success: false, error: 'Invalid reset request' });
+      }
+
+      const resetData = resetDoc.data();
+
+      // Vérifier que le statut est validé
+      if (resetData.status !== 'validated') {
+        return res.status(400).json({ success: false, error: 'Reset request not validated' });
+      }
+
+      // Vérifier l'expiration
+      if (resetData.expiresAt.toDate() < new Date()) {
+        await resetRef.update({ status: 'expired' });
+        return res.status(410).json({ success: false, error: 'Reset link expired' });
+      }
+
+      // Trouver l'utilisateur par email
+      const userRecord = await admin.auth().getUserByEmail(resetData.email);
+
+      // Mettre à jour le mot de passe
+      await admin.auth().updateUser(userRecord.uid, {
+        password: password
+      });
+
+      // Marquer comme complété
+      await resetRef.update({ 
+        status: 'completed',
+        completedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      return res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error completing password reset:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Internal server error' 
+      });
     }
-
-    console.log(`Completing password reset for resetId: ${resetId}`);
-
-    // Vérifier le document de réinitialisation
-    const resetRef = admin.firestore().collection('passwordResets').doc(resetId);
-    const resetDoc = await resetRef.get();
-
-    if (!resetDoc.exists) {
-      throw new Error('Invalid reset request');
-    }
-
-    const resetData = resetDoc.data();
-
-    // Vérifier que le statut est validé
-    if (resetData.status !== 'validated') {
-      throw new Error('Reset request not validated');
-    }
-
-    // Vérifier l'expiration
-    if (resetData.expiresAt.toDate() < new Date()) {
-      await resetRef.update({ status: 'expired' });
-      throw new Error('Reset link expired');
-    }
-
-    // Trouver l'utilisateur par email
-    const userRecord = await admin.auth().getUserByEmail(resetData.email);
-
-    // Mettre à jour le mot de passe
-    await admin.auth().updateUser(userRecord.uid, {
-      password: password
-    });
-
-    // Marquer comme complété
-    await resetRef.update({ 
-      status: 'completed',
-      completedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error('Error completing password reset:', error);
-    throw new functions.https.HttpsError('internal', error.message);
-  }
+  });
 });

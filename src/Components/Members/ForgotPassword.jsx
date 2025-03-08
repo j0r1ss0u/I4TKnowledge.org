@@ -327,29 +327,7 @@ const ForgotPassword = () => {
               )}
             </button>
            
-            <button
-              type="button"
-              onClick={() => {
-                const validateResetCode = httpsCallable(functions, 'validateResetCode');
-
-                console.log('Calling test function...');
-                validateResetCode({ 
-                  resetId: "8SIT2FhwX3UdsjrLDIR1", 
-                  code: "KXK6ZYR2" 
-                })
-                .then(result => {
-                  console.log('Résultat complet:', result);
-                  console.log('Données:', result.data);
-                })
-                .catch(error => {
-                  console.error('Erreur:', error);
-                });
-              }}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            >
-              Test validateResetCode
-            </button>
-            
+           
             <button
               type="button"
               onClick={() => setAuthPage('login')}

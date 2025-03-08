@@ -15,14 +15,17 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../services/firebase';
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { User, LogIn, LogOut, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import React, { createContext, useState, useContext, useEffect, lazy, Suspense } from 'react';
+import { User, LogIn, LogOut, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { auth } from "../services/firebase";
 import { firebaseAuthService } from "../services/firebaseAuthService";
 import { passwordResetService } from "../services/passwordResetService";
 import { invitationsService } from "../services/invitationsService";
 import { usersService } from "../services/usersService";
-import ForgotPassword from "./Members/ForgotPassword";
+
+// Utiliser l'importation dynamique pour éviter l'importation circulaire
+// ForgotPassword sera chargé uniquement quand nécessaire
+const ForgotPassword = lazy(() => import('./Members/ForgotPassword'));
 
 // =================================================================
 // Création et export du Context et Hook personnalisé
@@ -56,7 +59,6 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ------- Observer Firebase Auth -------
-  // Remplacer l'useEffect qui gère onAuthStateChanged dans AuthContext.jsx
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
       console.log('[DEBUG] Changement d\'état d\'authentification:', firebaseUser?.email);
@@ -263,6 +265,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
   // ------- Méthodes d'authentification -------
   const login = async (credentials) => {
     try {
@@ -413,7 +416,11 @@ export const withAuth = (WrappedComponent, allowedRoles = []) => {
     const { user, authPage } = useAuth();
 
     if (!user) {
-      return authPage === 'forgot-password' ? <ForgotPassword /> : <LoginForm />;
+      return authPage === 'forgot-password' ? (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><Loader2 className="h-8 w-8 animate-spin text-amber-600" /></div>}>
+          <ForgotPassword />
+        </Suspense>
+      ) : <LoginForm />;
     }
 
     if (allowedRoles.length === 0) {
