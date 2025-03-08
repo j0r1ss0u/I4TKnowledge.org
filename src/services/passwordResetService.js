@@ -1,14 +1,6 @@
-// =================================================================
 // passwordResetService.js
-// Service dédié à la gestion des réinitialisations de mots de passe
-// =================================================================
-
-import { auth, db } from './firebase';
-import { 
-  sendPasswordResetEmail,
-  verifyPasswordResetCode,
-  confirmPasswordReset
-} from 'firebase/auth';
+import { auth, db, functions } from './firebase';
+import { httpsCallable } from 'firebase/functions';
 import { 
   collection, 
   doc, 
@@ -20,112 +12,116 @@ import {
 } from 'firebase/firestore';
 
 export const passwordResetService = {
-  // ------- Demande de réinitialisation de mot de passe -------
+  // ------- Password reset request -------
   async requestPasswordReset(email) {
     try {
-      console.log('Début du processus de réinitialisation pour:', email);
+      console.log('Starting password reset process for:', email);
 
-      // 1. Créer une entrée dans la collection passwordResets
+      // 1. Create an entry in the passwordResets collection
       const resetDoc = {
         email: email.toLowerCase(),
         status: 'pending',
         createdAt: serverTimestamp(),
-        expiresAt: Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) // 7 jours
+        expiresAt: Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)) // 24 hours
       };
 
       const resetRef = await addDoc(collection(db, 'passwordResets'), resetDoc);
-      console.log('Document de réinitialisation créé:', resetRef.id);
+      console.log('Reset document created:', resetRef.id);
 
-      // 2. Utiliser la méthode native de Firebase pour envoyer l'email
-      await sendPasswordResetEmail(auth, email, {
-        url: `https://www.i4tknowledge.org/reset-password?resetId=${resetRef.id}`,
-        handleCodeInApp: false // Utiliser le système de gestion de liens de Firebase
+      // 2. Call the Cloud Function to send email via SendGrid
+      // Important: Use the correct endpoint for password reset, NOT the invitation endpoint
+      const response = await fetch('https://sendresetpasswordemailhttp-lwu3dhgpbq-uc.a.run.app', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          resetId: resetRef.id,
+          language: 'en' // Changed to English
+        })
       });
 
-      // 3. Mettre à jour le document avec l'information d'envoi
-      await updateDoc(resetRef, {
-        emailSent: true,
-        emailSentAt: serverTimestamp()
-      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Failed to send reset email: ${errorData.error}`);
+      }
 
-      console.log('Email de réinitialisation envoyé avec succès');
+      console.log('Reset email sent successfully');
       return {
         success: true,
         id: resetRef.id
       };
     } catch (error) {
-      console.error('Erreur lors de la demande de réinitialisation:', error);
+      console.error('Error during password reset request:', error);
       throw error;
     }
   },
 
-  // ------- Vérification du code de réinitialisation -------
-  async verifyResetCode(oobCode) {
+  // ------- Reset code verification -------
+
+  async verifyResetCode(resetId, code) {
     try {
-      console.log('Vérification du code de réinitialisation');
-      const email = await verifyPasswordResetCode(auth, oobCode);
+      console.log(`Calling validateResetCode with resetId="${resetId}" and code="${code}"`);
+      const validateResetCode = httpsCallable(functions, 'validateResetCode');
+
+      // S'assurer que le format correspond exactement à ce que la fonction attend
+      const result = await validateResetCode({
+        resetId,
+        code
+      });
+
+      console.log('Result from validateResetCode:', result.data);
+
       return {
-        valid: true,
-        email
+        valid: result.data.success === true,
+        email: result.data.email
       };
     } catch (error) {
-      console.error('Code de réinitialisation invalide:', error);
+      console.error('Error calling validateResetCode:', error);
       return {
         valid: false,
         error: error.message
       };
     }
   },
-
-  // ------- Confirmation de la réinitialisation du mot de passe -------
-  async confirmReset(oobCode, newPassword, resetId) {
+  
+  // ------- Confirm password reset -------
+  async confirmReset(resetId, newPassword) {
     try {
-      console.log('Confirmation de la réinitialisation du mot de passe');
+      console.log('Confirming password reset');
 
-      // 1. Confirmer la réinitialisation avec Firebase Auth
-      await confirmPasswordReset(auth, oobCode, newPassword);
+      const completePasswordReset = httpsCallable(functions, 'completePasswordReset');
+      await completePasswordReset({ resetId, password: newPassword });
 
-      // 2. Mettre à jour le document de réinitialisation si un ID est fourni
-      if (resetId) {
-        const resetRef = doc(db, 'passwordResets', resetId);
-        const resetDoc = await getDoc(resetRef);
-
-        if (resetDoc.exists()) {
-          await updateDoc(resetRef, {
-            status: 'completed',
-            completedAt: serverTimestamp()
-          });
-        }
-      }
-
-      console.log('Réinitialisation du mot de passe complétée avec succès');
+      console.log('Password reset completed successfully');
       return {
         success: true
       };
     } catch (error) {
-      console.error('Erreur lors de la confirmation de la réinitialisation:', error);
+      console.error('Error during password reset confirmation:', error);
       throw error;
     }
   },
 
-  // ------- Récupération d'un document de réinitialisation -------
+  // ------- Get reset document -------
   async getResetDocument(resetId) {
     try {
-      console.log('Récupération du document de réinitialisation:', resetId);
+      console.log('Retrieving reset document:', resetId);
       const resetRef = doc(db, 'passwordResets', resetId);
       const resetDoc = await getDoc(resetRef);
 
       if (!resetDoc.exists()) {
-        console.log('Document de réinitialisation non trouvé');
+        console.log('Reset document not found');
         return null;
       }
 
       const data = resetDoc.data();
 
-      // Vérifier l'expiration
+      // Check expiration
       if (data.expiresAt && data.expiresAt.toDate() < new Date()) {
         await updateDoc(resetRef, { status: 'expired' });
-        console.log('Document de réinitialisation expiré');
+        console.log('Reset document expired');
         return null;
       }
 
@@ -134,26 +130,7 @@ export const passwordResetService = {
         ...data
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération du document de réinitialisation:', error);
-      throw error;
-    }
-  },
-
-  // ------- Mise à jour du statut d'un document de réinitialisation -------
-  async updateResetStatus(resetId, status, additionalData = {}) {
-    try {
-      console.log(`Mise à jour du statut de réinitialisation ${resetId} à ${status}`);
-      const resetRef = doc(db, 'passwordResets', resetId);
-
-      await updateDoc(resetRef, {
-        status,
-        updatedAt: serverTimestamp(),
-        ...additionalData
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Erreur lors de la mise à jour du statut de réinitialisation:', error);
+      console.error('Error retrieving reset document:', error);
       throw error;
     }
   }
