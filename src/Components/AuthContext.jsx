@@ -1,7 +1,7 @@
 // =================================================================
 // AuthContext.jsx
-// Contexte d'authentification principal de l'application
-// Gère l'état de connexion et fournit les fonctionnalités d'auth
+// Authentication context for the application
+// Manages connection state and provides auth functionalities
 // =================================================================
 
 import { 
@@ -16,19 +16,108 @@ import {
 } from 'firebase/firestore';
 import { db } from '../services/firebase';
 import React, { createContext, useState, useContext, useEffect, lazy, Suspense } from 'react';
-import { User, LogIn, LogOut, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, LogIn, LogOut, AlertTriangle, CheckCircle2, Loader2, Globe } from 'lucide-react';
 import { auth } from "../services/firebase";
 import { firebaseAuthService } from "../services/firebaseAuthService";
 import { passwordResetService } from "../services/passwordResetService";
 import { invitationsService } from "../services/invitationsService";
 import { usersService } from "../services/usersService";
 
-// Utiliser l'importation dynamique pour éviter l'importation circulaire
-// ForgotPassword sera chargé uniquement quand nécessaire
+// Dynamic import to avoid circular import
+// ForgotPassword will only be loaded when needed
 const ForgotPassword = lazy(() => import('./Members/ForgotPassword'));
 
 // =================================================================
-// Création et export du Context et Hook personnalisé
+// Translations
+// =================================================================
+
+const translations = {
+  en: {
+    // Notifications
+    adminConnected: "Connected as administrator",
+    inactiveAccount: "Your account is inactive. Please contact the administrator.",
+    welcomeValidator: "Welcome validator",
+    welcomeMember: "Welcome member",
+    welcomeOf: "of",
+    profileError: "Error initializing profile. Please contact the administrator.",
+    incompleteProfile: "Your user profile is incomplete. Please contact the administrator.",
+    connectionError: "Error during login",
+    logoutSuccess: "You have been successfully logged out",
+    loginError: "Login failed. Check your credentials.",
+    verifyEmail: "Please verify your email before logging in.",
+    verificationSent: "Verification email sent. Check your inbox.",
+    verificationError: "Error sending verification email.",
+    passwordUpdated: "Password updated successfully",
+    passwordUpdateError: "Failed to update password",
+
+    // Pending invitations
+    pendingInvitation: "An invitation has been pending since",
+    checkEmail: "Check the email sent by noreply@i4tk.org",
+
+    // Password reset
+    resetPasswordInstructions: "If an account is associated with this email address, reset instructions will be sent.",
+    resetPasswordSent: "Password reset instructions sent by email. Please check your inbox and spam folder.",
+
+    // Access denied
+    accessDenied: "Access denied",
+    noPermission: "You don't have the necessary permissions to access this page.",
+
+    // Login form
+    login: "Login",
+    email: "Email",
+    password: "Password",
+    forgotPassword: "Forgot password?",
+    sendVerification: "Send verification email",
+    loading: "Loading...",
+
+    // Account deactivated
+    accountDeactivated: "This account has been deactivated. Please contact the administrator."
+  },
+  fr: {
+    // Notifications
+    adminConnected: "Connecté en tant qu'administrateur",
+    inactiveAccount: "Votre compte est inactif. Veuillez contacter l'administrateur.",
+    welcomeValidator: "Bienvenue validateur",
+    welcomeMember: "Bienvenue membre",
+    welcomeOf: "de",
+    profileError: "Erreur lors de l'initialisation du profil. Veuillez contacter l'administrateur.",
+    incompleteProfile: "Votre profil utilisateur est incomplet. Veuillez contacter l'administrateur.",
+    connectionError: "Erreur lors de la connexion",
+    logoutSuccess: "Vous avez été déconnecté avec succès",
+    loginError: "Échec de la connexion. Vérifiez vos identifiants.",
+    verifyEmail: "Veuillez vérifier votre email avant de vous connecter.",
+    verificationSent: "Email de vérification envoyé. Vérifiez votre boîte de réception.",
+    verificationError: "Erreur lors de l'envoi de l'email de vérification.",
+    passwordUpdated: "Mot de passe mis à jour avec succès",
+    passwordUpdateError: "Échec de la mise à jour du mot de passe",
+
+    // Pending invitations
+    pendingInvitation: "Une invitation est en attente depuis le",
+    checkEmail: "Vérifiez l'email envoyé par noreply@i4tk.org",
+
+    // Password reset
+    resetPasswordInstructions: "Si un compte est associé à cette adresse email, des instructions de réinitialisation vous seront envoyées.",
+    resetPasswordSent: "Instructions de réinitialisation envoyées par email. Veuillez vérifier votre boîte de réception et vos spams.",
+
+    // Access denied
+    accessDenied: "Accès refusé",
+    noPermission: "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
+
+    // Login form
+    login: "Connexion",
+    email: "Email",
+    password: "Mot de passe",
+    forgotPassword: "Mot de passe oublié ?",
+    sendVerification: "Envoyer l'email de vérification",
+    loading: "Chargement...",
+
+    // Account deactivated
+    accountDeactivated: "Ce compte a été désactivé. Veuillez contacter l'administrateur."
+  }
+};
+
+// =================================================================
+// Context creation and custom Hook export
 // =================================================================
 
 const AuthContext = createContext(null);
@@ -36,7 +125,7 @@ const AuthContext = createContext(null);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth doit être utilisé à l\'intérieur d\'un AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
@@ -46,47 +135,60 @@ export const useAuth = () => {
 // =================================================================
 
 export const AuthProvider = ({ children }) => {
-  // ------- État local -------
+  // ------- Local state -------
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
   const [authPage, setAuthPage] = useState('login');
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('preferredLanguage') || 'en';
+  });
 
-  // ------- Gestionnaire de notifications -------
+  // Get translations for current language
+  const t = translations[language] || translations.en;
+
+  // Toggle language
+  const toggleLanguage = () => {
+    const newLanguage = language === 'en' ? 'fr' : 'en';
+    setLanguage(newLanguage);
+    localStorage.setItem('preferredLanguage', newLanguage);
+  };
+
+  // ------- Notification handler -------
   const showNotification = (message, type = 'success', duration = 3000) => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), duration);
   };
 
-  // ------- Observer Firebase Auth -------
+  // ------- Firebase Auth Observer -------
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      console.log('[DEBUG] Changement d\'état d\'authentification:', firebaseUser?.email);
+      console.log('[DEBUG] Authentication state change:', firebaseUser?.email);
       try {
         if (firebaseUser) {
-          // Cas spécial pour l'administrateur
+          // Special case for administrator
           if (firebaseUser.email === 'admin@i4tk.org' || firebaseUser.email === 'joris.galea@i4tknowledge.net') {
             setUser({ uid: firebaseUser.uid, role: 'admin', email: firebaseUser.email });
-            showNotification('Connecté en tant qu\'administrateur');
+            showNotification(t.adminConnected);
             setLoading(false);
             return;
           }
 
-          // Vérifier si nous sommes en train de finaliser une invitation
+          // Check if we're finalizing an invitation
           const isProcessingInvitation = window.location.pathname.includes('finalize-invitation') || 
                                         window.location.hash === '#finalize-invitation';
           const currentInvitationId = localStorage.getItem('currentInvitationId');
 
-          // Permet de traiter correctement le processus d'invitation en cours
+          // Handle invitation process correctly
           if (isProcessingInvitation && currentInvitationId) {
-            console.log('[DEBUG] Finalisation d\'invitation en cours, traitement spécial');
+            console.log('[DEBUG] Invitation finalization in progress, special handling');
 
-            // Définir un état utilisateur temporaire pendant la finalisation
+            // Set temporary user state during finalization
             const pendingUserData = {
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               emailVerified: firebaseUser.emailVerified,
-              role: 'member', // Rôle temporaire
+              role: 'member', // Temporary role
               isCompletingInvitation: true
             };
 
@@ -95,21 +197,21 @@ export const AuthProvider = ({ children }) => {
             return;
           }
 
-          // Rechercher l'utilisateur par email
+          // Search user by email
           const usersRef = collection(db, 'users');
           const q = query(usersRef, where('email', '==', firebaseUser.email));
           const querySnapshot = await getDocs(q);
 
-          // Utilisateur trouvé par email dans Firestore
+          // User found by email in Firestore
           if (!querySnapshot.empty) {
-            // Utilisateur trouvé par email
+            // User found by email
             const userDoc = querySnapshot.docs[0];
             const userData = userDoc.data();
 
-            console.log(`[DEBUG] Utilisateur trouvé par email dans Firestore: ${userDoc.id}, statut: ${userData.status}`);
+            console.log(`[DEBUG] User found by email in Firestore: ${userDoc.id}, status: ${userData.status}`);
 
             if (userData.status === 'active') {
-              // Utilisateur actif trouvé, continuer normalement
+              // Active user found, continue normally
               setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
@@ -119,31 +221,31 @@ export const AuthProvider = ({ children }) => {
                 ...userData
               });
 
-              showNotification(`Bienvenue ${
-                userData.role === 'validator' ? 'validateur' : 'membre'
-              }${userData.organization ? ` de ${userData.organization}` : ''}`);
+              const welcomeMessage = userData.role === 'validator' ? t.welcomeValidator : t.welcomeMember;
+              const organizationText = userData.organization ? ` ${t.welcomeOf} ${userData.organization}` : '';
+              showNotification(`${welcomeMessage}${organizationText}`);
 
               setLoading(false);
               return;
             } else {
-              // Utilisateur trouvé mais inactif
-              console.log('[DEBUG] Compte utilisateur inactif, déconnexion');
+              // User found but inactive
+              console.log('[DEBUG] Inactive user account, logging out');
               await firebaseAuthService.logoutUser();
               setUser(null);
-              showNotification('Votre compte est inactif. Veuillez contacter l\'administrateur.', 'error');
+              showNotification(t.inactiveAccount, 'error');
               setLoading(false);
               return;
             }
           }
 
-          // Vérifier aussi l'utilisateur par UID au cas où l'email aurait changé
+          // Also check user by UID in case email changed
           const userRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userRef);
 
           if (userDoc.exists()) {
             const userData = userDoc.data();
 
-            console.log(`[DEBUG] Utilisateur trouvé par UID dans Firestore: ${firebaseUser.uid}`);
+            console.log(`[DEBUG] User found by UID in Firestore: ${firebaseUser.uid}`);
 
             if (userData.status === 'active') {
               setUser({
@@ -155,37 +257,37 @@ export const AuthProvider = ({ children }) => {
                 ...userData
               });
 
-              showNotification(`Bienvenue ${
-                userData.role === 'validator' ? 'validateur' : 'membre'
-              }${userData.organization ? ` de ${userData.organization}` : ''}`);
+              const welcomeMessage = userData.role === 'validator' ? t.welcomeValidator : t.welcomeMember;
+              const organizationText = userData.organization ? ` ${t.welcomeOf} ${userData.organization}` : '';
+              showNotification(`${welcomeMessage}${organizationText}`);
 
               setLoading(false);
               return;
             } else {
-              console.log('[DEBUG] Compte utilisateur inactif, déconnexion');
+              console.log('[DEBUG] Inactive user account, logging out');
               await firebaseAuthService.logoutUser();
               setUser(null);
-              showNotification('Votre compte est inactif. Veuillez contacter l\'administrateur.', 'error');
+              showNotification(t.inactiveAccount, 'error');
               setLoading(false);
               return;
             }
           }
 
-          // Si nous arrivons ici, l'utilisateur n'existe pas dans Firestore
-          // Vérifier s'il existe une invitation en attente pour cet email
+          // If we get here, the user doesn't exist in Firestore
+          // Check if there's a pending invitation for this email
           const invitationsRef = collection(db, 'invitations');
           const invitationQuery = query(invitationsRef, where('email', '==', firebaseUser.email), where('status', '==', 'pending'));
           const invitationSnapshot = await getDocs(invitationQuery);
 
           if (!invitationSnapshot.empty) {
-            console.log(`[DEBUG] Invitation en attente trouvée pour ${firebaseUser.email}, continuer le processus`);
+            console.log(`[DEBUG] Pending invitation found for ${firebaseUser.email}, continuing process`);
 
-            // Définir un état utilisateur temporaire
+            // Set temporary user state
             setUser({
               uid: firebaseUser.uid,
               email: firebaseUser.email,
               emailVerified: firebaseUser.emailVerified,
-              role: 'member', // Rôle par défaut temporaire
+              role: 'member', // Default temporary role
               isCompletingInvitation: true
             });
 
@@ -193,15 +295,15 @@ export const AuthProvider = ({ children }) => {
             return;
           }
 
-          // Vérifier s'il y a des données d'invitation en attente
+          // Check if there's pending invitation data
           const pendingInvitationData = localStorage.getItem('pendingInvitationData');
 
           if (pendingInvitationData) {
-            console.log('[DEBUG] Données d\'invitation trouvées:', pendingInvitationData);
+            console.log('[DEBUG] Invitation data found:', pendingInvitationData);
             const invitationData = JSON.parse(pendingInvitationData);
 
             try {
-              // Initialiser le rôle de l'utilisateur avec les données d'invitation
+              // Initialize user role with invitation data
               const userDoc = await firebaseAuthService.initializeUserRole(
                 firebaseUser.uid, 
                 firebaseUser.email,
@@ -209,9 +311,9 @@ export const AuthProvider = ({ children }) => {
               );
 
               localStorage.removeItem('pendingInvitationData');
-              localStorage.removeItem('currentInvitationId'); // Nettoyer aussi cette clé
+              localStorage.removeItem('currentInvitationId'); // Clean this key too
 
-              // Définir l'état utilisateur final
+              // Set final user state
               setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
@@ -221,74 +323,73 @@ export const AuthProvider = ({ children }) => {
                 ...userDoc
               });
 
-              showNotification(`Bienvenue ${
-                invitationData.role === 'validator' ? 'validateur' : 'membre'
-              } de ${invitationData.organization}`);
+              const welcomeMessage = invitationData.role === 'validator' ? t.welcomeValidator : t.welcomeMember;
+              showNotification(`${welcomeMessage} ${t.welcomeOf} ${invitationData.organization}`);
 
             } catch (initError) {
-              console.error('[DEBUG] Erreur lors de l\'initialisation du rôle:', initError);
+              console.error('[DEBUG] Error initializing role:', initError);
 
-              // En cas d'erreur, afficher une notification mais ne pas déconnecter
-              showNotification('Erreur lors de l\'initialisation du profil. Veuillez contacter l\'administrateur.', 'error');
+              // In case of error, show notification but don't disconnect
+              showNotification(t.profileError, 'error');
 
-              // Définir un état utilisateur minimal
+              // Set minimal user state
               setUser({
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 emailVerified: firebaseUser.emailVerified,
-                role: 'member', // Rôle par défaut
+                role: 'member', // Default role
                 error: true
               });
             }
           } else {
-            // Si nous arrivons ici, l'utilisateur n'existe nulle part
-            console.log('[DEBUG] Utilisateur non trouvé dans Firestore, déconnexion');
+            // If we get here, the user doesn't exist anywhere
+            console.log('[DEBUG] User not found in Firestore, logging out');
             await firebaseAuthService.logoutUser();
             setUser(null);
-            showNotification('Votre profil utilisateur est incomplet. Veuillez contacter l\'administrateur.', 'error');
+            showNotification(t.incompleteProfile, 'error');
           }
         } else {
-          console.log('[DEBUG] Déconnexion détectée');
+          console.log('[DEBUG] Logout detected');
           setUser(null);
           localStorage.removeItem('pendingInvitationData');
-          // Ne pas supprimer currentInvitationId lors d'une déconnexion normale
-          // car cela peut interrompre le processus d'invitation
+          // Don't remove currentInvitationId during normal logout
+          // as it can interrupt the invitation process
         }
       } catch (error) {
-        console.error('[DEBUG] Erreur lors du changement d\'état d\'auth:', error);
+        console.error('[DEBUG] Error during auth state change:', error);
         setUser(null);
-        showNotification('Erreur lors de la connexion', 'error');
+        showNotification(t.connectionError, 'error');
       } finally {
         setLoading(false);
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [language, t]);
 
-  // ------- Méthodes d'authentification -------
+  // ------- Authentication methods -------
   const login = async (credentials) => {
     try {
       if (credentials.email === 'admin@i4tk.org' && credentials.password === 'admin') {
         const user = await firebaseAuthService.loginUser(credentials.email, credentials.password);
         setUser({ role: 'admin', email: credentials.email });
-        showNotification('Connecté en tant qu\'administrateur');
+        showNotification(t.adminConnected);
         return user;
       } 
 
-      // Vérifier si l'utilisateur n'a pas été supprimé
+      // Check if the user hasn't been deleted
       const isDeleted = await usersService.checkIfUserDeleted(null, credentials.email);
       if (isDeleted) {
-        throw new Error('Ce compte a été désactivé. Veuillez contacter l\'administrateur.');
+        throw new Error(t.accountDeactivated);
       }
 
       const user = await firebaseAuthService.loginUser(credentials.email, credentials.password);
-      showNotification(`Bienvenue${user.role === 'admin' ? ' administrateur' : ''} !`);
+      showNotification(`${user.role === 'admin' ? t.adminConnected : `${t.welcomeMember}`}`);
       return user;
     } catch (error) {
-      let message = 'Échec de la connexion. Vérifiez vos identifiants.';
+      let message = t.loginError;
       if (error.message.includes('verify your email')) {
-        message = 'Veuillez vérifier votre email avant de vous connecter.';
+        message = t.verifyEmail;
       }
       showNotification(message, 'error');
       throw error;
@@ -299,63 +400,63 @@ export const AuthProvider = ({ children }) => {
     try {
       await firebaseAuthService.logoutUser();
       setUser(null);
-      showNotification('Vous avez été déconnecté avec succès');
+      showNotification(t.logoutSuccess);
     } catch (error) {
-      showNotification('Échec de la déconnexion', 'error');
+      showNotification(t.logoutError, 'error');
       throw error;
     }
   };
 
   const resetPassword = async (email) => {
     try {
-      // Vérifier si une invitation est en attente
+      // Check if there's a pending invitation
       const invitation = await invitationsService.getInvitationByEmail(email);
       if (invitation?.status === 'pending') {
         const invitationDate = invitation.createdAt.toDate();
         showNotification(
-          `Une invitation est en attente depuis le ${invitationDate.toLocaleDateString()} (${invitationDate.toLocaleTimeString()}) - Vérifiez l'email envoyé par noreply@i4tk.org`,
+          `${t.pendingInvitation} ${invitationDate.toLocaleDateString()} (${invitationDate.toLocaleTimeString()}) - ${t.checkEmail}`,
           'info',
-          6000 // Durée plus longue pour cette notification importante
+          6000 // Longer duration for this important notification
         );
         return;
       }
 
-      // Vérifier si un compte existe
+      // Check if account exists
       const userExists = await usersService.getUserByEmail(email);
       if (!userExists || userExists.deleted) {
-        // Pour des raisons de sécurité, ne pas divulguer cette information
-        // Simuler un succès même si l'utilisateur n'existe pas
-        showNotification('Si un compte est associé à cette adresse email, des instructions de réinitialisation vous seront envoyées.', 'success', 5000);
+        // For security reasons, don't disclose this information
+        // Simulate success even if user doesn't exist
+        showNotification(t.resetPasswordInstructions, 'success', 5000);
         return true;
       }
 
-      // Utiliser le nouveau service de réinitialisation
+      // Use the new reset service
       await passwordResetService.requestPasswordReset(email);
       showNotification(
-        'Instructions de réinitialisation envoyées par email. Veuillez vérifier votre boîte de réception et vos spams.',
+        t.resetPasswordSent,
         'success',
-        5000 // Durée plus longue pour cette notification importante
+        5000 // Longer duration for this important notification
       );
       setAuthPage('login');
       return true;
     } catch (error) {
-      console.error('Erreur resetPassword:', error);
-      // Pour des raisons de sécurité, ne pas divulguer d'informations spécifiques
+      console.error('Error resetPassword:', error);
+      // For security reasons, don't disclose specific information
       showNotification(
-        'Si un compte est associé à cette adresse email, des instructions de réinitialisation vous seront envoyées.',
+        t.resetPasswordInstructions,
         'success',
         5000
       );
-      return true; // Retourner un succès même en cas d'erreur
+      return true; // Return success even in case of error
     }
   };
 
   const changePassword = async (newPassword) => {
     try {
       await firebaseAuthService.updatePassword(newPassword);
-      showNotification('Mot de passe mis à jour avec succès', 'success');
+      showNotification(t.passwordUpdated, 'success');
     } catch (error) {
-      showNotification('Échec de la mise à jour du mot de passe', 'error');
+      showNotification(t.passwordUpdateError, 'error');
       throw error;
     }
   };
@@ -363,14 +464,14 @@ export const AuthProvider = ({ children }) => {
   const resendVerificationEmail = async () => {
     try {
       await firebaseAuthService.resendVerificationEmail();
-      showNotification('Email de vérification envoyé', 'success');
+      showNotification(t.verificationSent, 'success');
     } catch (error) {
-      showNotification('Échec de l\'envoi de l\'email de vérification', 'error');
+      showNotification(t.verificationError, 'error');
       throw error;
     }
   };
 
-  // ------- Rendu du Provider -------
+  // ------- Provider Rendering -------
   return (
     <AuthContext.Provider value={{
       user,
@@ -382,7 +483,9 @@ export const AuthProvider = ({ children }) => {
       resendVerificationEmail,
       showNotification,
       authPage,
-      setAuthPage
+      setAuthPage,
+      language,
+      toggleLanguage
     }}>
       {notification && (
         <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
@@ -402,7 +505,7 @@ export const AuthProvider = ({ children }) => {
 };
 
 // =================================================================
-// HOC de protection des routes et logique de rôles
+// HOC for route protection and role logic
 // =================================================================
 
 const ROLE_HIERARCHY = {
@@ -413,7 +516,8 @@ const ROLE_HIERARCHY = {
 
 export const withAuth = (WrappedComponent, allowedRoles = []) => {
   return function ProtectedComponent(props) {
-    const { user, authPage } = useAuth();
+    const { user, authPage, language } = useAuth();
+    const t = translations[language] || translations.en;
 
     if (!user) {
       return authPage === 'forgot-password' ? (
@@ -434,9 +538,9 @@ export const withAuth = (WrappedComponent, allowedRoles = []) => {
       return (
         <div className="text-center py-12">
           <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Accès refusé</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.accessDenied}</h2>
           <p className="text-gray-600">
-            Vous n'avez pas les permissions nécessaires pour accéder à cette page.
+            {t.noPermission}
           </p>
         </div>
       );
@@ -447,13 +551,15 @@ export const withAuth = (WrappedComponent, allowedRoles = []) => {
 };
 
 // =================================================================
-// Composant UserProfile
+// UserProfile Component
 // =================================================================
 
 export const UserProfile = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, language } = useAuth();
 
   if (!user) return null;
+
+  const t = translations[language] || translations.en;
 
   return (
     <div className="flex items-center space-x-4">
@@ -466,14 +572,14 @@ export const UserProfile = () => {
         className="flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
       >
         <LogOut className="h-4 w-4 mr-1" />
-        Déconnexion
+        {language === 'fr' ? 'Déconnexion' : 'Logout'}
       </button>
     </div>
   );
 };
 
 // =================================================================
-// Composant LoginForm
+// LoginForm Component
 // =================================================================
 
 export const LoginForm = () => {
@@ -481,7 +587,9 @@ export const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
-  const { login, setAuthPage, showNotification } = useAuth();
+  const { login, setAuthPage, showNotification, language, toggleLanguage } = useAuth();
+
+  const t = translations[language] || translations.en;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -489,7 +597,7 @@ export const LoginForm = () => {
     try {
       await login({ email, password });
     } catch (error) {
-      console.error('Erreur de connexion:', error);
+      console.error('Connection error:', error);
       if (error.code === 'auth/email-not-verified') {
         setNeedsVerification(true);
       }
@@ -501,40 +609,50 @@ export const LoginForm = () => {
   const handleResendVerification = async () => {
     try {
       await firebaseAuthService.resendVerificationEmail();
-      showNotification('Email de vérification envoyé. Vérifiez votre boîte de réception.', 'success');
+      showNotification(t.verificationSent, 'success');
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de l\'email:', error);
-      showNotification('Erreur lors de l\'envoi de l\'email de vérification.', 'error');
+      console.error('Error sending verification email:', error);
+      showNotification(t.verificationError, 'error');
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg">
+    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg relative">
+      <button 
+        type="button" 
+        onClick={toggleLanguage}
+        className="absolute top-3 right-3 p-2 text-gray-500 hover:text-amber-600"
+        aria-label={language === 'en' ? 'Switch to French' : 'Switch to English'}
+      >
+        <Globe className="h-5 w-5" />
+        <span className="ml-1 text-xs">{language.toUpperCase()}</span>
+      </button>
+
       <div className="flex items-center justify-center mb-6">
         <User className="h-12 w-12 text-gray-400" />
       </div>
       <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
-        Connexion
+        {t.login}
       </h2>
 
       {needsVerification && (
         <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded">
           <p className="text-sm text-yellow-800">
-            Veuillez vérifier votre email avant de vous connecter.
+            {t.verifyEmail}
           </p>
           <button
             type="button"
             onClick={handleResendVerification}
             className="mt-2 text-sm text-yellow-600 hover:text-yellow-500 underline"
           >
-            Envoyer l'email de vérification
+            {t.sendVerification}
           </button>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Email</label>
+          <label className="block text-sm font-medium text-gray-700">{t.email}</label>
           <input
             type="email"
             value={email}
@@ -545,7 +663,7 @@ export const LoginForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Mot de passe</label>
+          <label className="block text-sm font-medium text-gray-700">{t.password}</label>
           <input
             type="password"
             value={password}
@@ -564,7 +682,7 @@ export const LoginForm = () => {
             }}
             className="text-sm text-amber-600 hover:text-amber-500"
           >
-            Mot de passe oublié ?
+            {t.forgotPassword}
           </button>
         </div>
 
@@ -581,7 +699,7 @@ export const LoginForm = () => {
           ) : (
             <>
               <LogIn className="h-5 w-5 mr-2" />
-              Connexion
+              {t.login}
             </>
           )}
         </button>

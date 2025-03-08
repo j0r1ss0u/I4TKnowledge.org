@@ -1,87 +1,128 @@
-// Components/Members/PasswordForm.jsx
+// PasswordForm.jsx
 import React, { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { EyeIcon, EyeOffIcon, Loader2 } from 'lucide-react';
 
-const PasswordForm = ({ onSubmit, buttonText = 'Complete Registration' }) => {
+const translations = {
+  en: {
+    passwordLabel: "Password",
+    passwordPlaceholder: "Enter your password (min. 8 characters)",
+    confirmLabel: "Confirm Password",
+    confirmPlaceholder: "Confirm your password",
+    passwordsNotMatch: "Passwords do not match",
+    passwordTooShort: "Password must be at least 8 characters long",
+    passwordRequirements: "Password must include at least 8 characters",
+  },
+  fr: {
+    passwordLabel: "Mot de passe",
+    passwordPlaceholder: "Entrez votre mot de passe (min. 8 caractères)",
+    confirmLabel: "Confirmer le mot de passe",
+    confirmPlaceholder: "Confirmez votre mot de passe",
+    passwordsNotMatch: "Les mots de passe ne correspondent pas",
+    passwordTooShort: "Le mot de passe doit comporter au moins 8 caractères",
+    passwordRequirements: "Le mot de passe doit comporter au moins 8 caractères",
+  }
+};
+
+const PasswordForm = ({ onSubmit, buttonText = 'Complete Registration', loading = false, language = 'en' }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const t = translations[language] || translations.en;
+
+  const validatePasswords = () => {
+    if (password.length < 8) {
+      setError(t.passwordTooShort);
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      setError(t.passwordsNotMatch);
+      return false;
+    }
+
     setError(null);
-    setIsSubmitting(true);
+    return true;
+  };
 
-    try {
-      if (password !== confirmPassword) {
-        throw new Error('Passwords do not match');
-      }
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-      await onSubmit({ password });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsSubmitting(false);
+    if (validatePasswords()) {
+      onSubmit({ password });
     }
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">
-        Set Your Password
-      </h2>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {t.passwordLabel}
+        </label>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent pr-10"
+            placeholder={t.passwordPlaceholder}
+            minLength={8}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500"
+          >
+            {showPassword ? (
+              <EyeOffIcon className="h-5 w-5" />
+            ) : (
+              <EyeIcon className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">{t.passwordRequirements}</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {t.confirmLabel}
+        </label>
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent pr-10"
+            placeholder={t.confirmPlaceholder}
+            minLength={8}
+            required
+          />
+        </div>
+      </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-sm text-red-800">{error}</p>
+        <div className="text-red-500 text-sm">
+          {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <input
-            type="password"
-            placeholder="Choose a password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
-            minLength={8}
-          />
-          <p className="text-xs text-gray-500">
-            Password must be at least 8 characters long and contain at least one uppercase letter, 
-            one lowercase letter, and one number.
-          </p>
-        </div>
-
-        <div>
-          <input
-            type="password"
-            placeholder="Confirm password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-            required
-          />
-        </div>
-
-        <button 
-          type="submit" 
-          className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md disabled:opacity-50"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <div className="flex items-center justify-center">
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              <span>Processing...</span>
-            </div>
-          ) : (
-            buttonText
-          )}
-        </button>
-      </form>
-    </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-amber-600 text-white py-2 px-4 rounded-md hover:bg-amber-700 disabled:opacity-50 transition-colors"
+      >
+        {loading ? (
+          <div className="flex items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            <span>Processing...</span>
+          </div>
+        ) : (
+          buttonText
+        )}
+      </button>
+    </form>
   );
 };
 

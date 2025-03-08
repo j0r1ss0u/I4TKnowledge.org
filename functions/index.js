@@ -38,19 +38,19 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
       const subject = language === 'fr' 
         ? `Invitation à rejoindre ${organizationName || 'notre organisation'}`
         : `Invitation to join ${organizationName || 'our organization'}`;
+
       const htmlContent = language === 'fr'
         ? `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>Vous avez été invité(e) à rejoindre ${organizationName || 'notre organisation'}</h2>
-            <p>Pour accepter cette invitation, veuillez utiliser le code suivant :</p>
-            <div style="padding: 15px; background-color: #f5f5f5; font-size: 20px; text-align: center; margin: 20px 0; font-family: monospace; letter-spacing: 2px;">
-              ${code}
-            </div>
-            <p>Ou cliquez directement sur ce lien :</p>
-            <a href="https://i4tknowledge.org/?email=${encodeURIComponent(email)}&code=${code}#register"
+            <p>Vous avez reçu cette invitation pour rejoindre notre plateforme collaborative.</p>
+            <p>Cliquez sur le bouton ci-dessous pour accepter cette invitation :</p>
+            <a href="${invitationLink}"
                style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
               Accepter l'invitation
             </a>
+            <p style="margin-top: 20px;">Si le bouton ci-dessus ne fonctionne pas, vous pouvez copier et coller ce lien dans votre navigateur :</p>
+            <p style="word-break: break-all; color: #333;">${invitationLink}</p>
             <p>Cette invitation expirera dans 7 jours.</p>
             <p style="font-size: 12px; color: #666; margin-top: 30px;">
               Si vous rencontrez des problèmes pour vous connecter après avoir accepté l'invitation, 
@@ -61,15 +61,14 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
         : `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>You have been invited to join ${organizationName || 'our organization'}</h2>
-            <p>To accept this invitation, please use the following code:</p>
-            <div style="padding: 15px; background-color: #f5f5f5; font-size: 20px; text-align: center; margin: 20px 0; font-family: monospace; letter-spacing: 2px;">
-              ${code}
-            </div>
-            <p>Or click directly on this link:</p>
-            <a href="https://i4tknowledge.org/?email=${encodeURIComponent(email)}&code=${code}#register"
+            <p>You have received this invitation to join our collaborative platform.</p>
+            <p>Click the button below to accept this invitation:</p>
+            <a href="${invitationLink}"
                style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
               Accept invitation
             </a>
+            <p style="margin-top: 20px;">If the above button doesn't work, you can copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #333;">${invitationLink}</p>
             <p>This invitation will expire in 7 days.</p>
             <p style="font-size: 12px; color: #666; margin-top: 30px;">
               If you encounter any issues logging in after accepting the invitation, 
@@ -78,12 +77,13 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
           </div>
         `;
 
+
       // Créer le message
       const msg = {
         to: email,
         from: {
           email: 'noreply@i4tknowledge.org',
-          name: 'I4TK'
+          name: 'I4T Knowledge operation team'
         },
         subject: subject,
         html: htmlContent,
@@ -187,35 +187,42 @@ exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
       const subject = language === 'fr' 
         ? `Réinitialisation de votre mot de passe I4TK`
         : `Reset your I4TK password`;
+
+      const resetLink = `https://i4tknowledge.org/?resetId=${resetId}&code=${code}#reset-password`;
+
       const htmlContent = language === 'fr'
         ? `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>Réinitialisation de votre mot de passe</h2>
-            <p>Vous avez demandé la réinitialisation de votre mot de passe. Utilisez le code suivant pour confirmer :</p>
-            <div style="padding: 15px; background-color: #f5f5f5; font-size: 20px; text-align: center; margin: 20px 0; font-family: monospace; letter-spacing: 2px;">
-              ${code}
-            </div>
-            <p>Ou cliquez directement sur ce lien :</p>
-            <a href="https://i4tknowledge.org/?resetId=${resetId}&code=${code}#reset-password"
+            <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
+            <p>Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :</p>
+            <a href="${resetLink}"
                style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
               Réinitialiser mon mot de passe
             </a>
+            <p style="margin-top: 20px;">Si le bouton ci-dessus ne fonctionne pas, vous pouvez copier et coller ce lien dans votre navigateur :</p>
+            <p style="word-break: break-all; color: #333;">${resetLink}</p>
             <p>Cette demande expirera dans 24 heures.</p>
+            <p style="font-size: 12px; color: #666; margin-top: 30px;">
+              Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.
+            </p>
           </div>
         `
         : `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2>Password Reset Request</h2>
-            <p>You have requested to reset your password. Use the following code to confirm:</p>
-            <div style="padding: 15px; background-color: #f5f5f5; font-size: 20px; text-align: center; margin: 20px 0; font-family: monospace; letter-spacing: 2px;">
-              ${code}
-            </div>
-            <p>Or click directly on this link:</p>
-            <a href="https://i4tknowledge.org/?resetId=${resetId}&code=${code}#reset-password"
+            <p>You have requested to reset your password.</p>
+            <p>Click the button below to set a new password:</p>
+            <a href="${resetLink}"
                style="display: inline-block; background-color: #e6a210; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin-top: 10px;">
               Reset my password
             </a>
+            <p style="margin-top: 20px;">If the above button doesn't work, you can copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; color: #333;">${resetLink}</p>
             <p>This request will expire in 24 hours.</p>
+            <p style="font-size: 12px; color: #666; margin-top: 30px;">
+              If you did not request this reset, you can safely ignore this email.
+            </p>
           </div>
         `;
 
@@ -224,7 +231,7 @@ exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
         to: email,
         from: {
           email: 'noreply@i4tknowledge.org',
-          name: 'I4TK'
+          name: 'I4T Knowledge operation team'
         },
         subject: subject,
         html: htmlContent,
