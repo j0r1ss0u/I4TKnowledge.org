@@ -29,7 +29,7 @@ const DocumentGenealogy = ({ tokenId }) => {
     ...contractConfig,
     abi: I4TKTokenABI,
     functionName: 'uri',
-    args: [BigInt(tokenId)],
+    args: [tokenId ? BigInt(tokenId) : null], // Ajout de la vérification ici
     enabled: !!tokenId,
   });
 
@@ -60,16 +60,16 @@ const DocumentGenealogy = ({ tokenId }) => {
   // 2.4 Data Fetching
   // -----------------------------------------------------------------------------
   const buildGenealogyTree = async (id, depth = 0, processedIds = new Set()) => {
-    if (processedIds.has(id)) return null;
+    if (!id || processedIds.has(id)) return null; // Vérification supplémentaire pour id
 
     try {
       const docData = await documentsService.getDocumentByTokenId(id.toString());
       if (!docData) return null;
 
       processedIds.add(id);
-      const references = docData.references ? docData.references.split(',').map(ref => ref.trim()) : [];
+      const references = docData.references ? docData.references.split(',').map(ref => ref.trim()).filter(Boolean) : []; // Filtrage des références vides
       const childrenData = await Promise.all(
-        references.map(refId => buildGenealogyTree(refId, depth + 1, new Set([...processedIds])))
+        references.map(refId => refId ? buildGenealogyTree(refId, depth + 1, new Set([...processedIds])) : null) // Vérification pour refId
       );
 
       return {
@@ -90,25 +90,56 @@ const DocumentGenealogy = ({ tokenId }) => {
   // -----------------------------------------------------------------------------
   // 2.5 Effects
   // -----------------------------------------------------------------------------
+  // Fonction fetchGenealogy extraite pour être réutilisable
+  const fetchGenealogy = async (id) => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log("Fetching genealogy for tokenId:", id);
+      const genealogyData = await buildGenealogyTree(id);
+      const d3TreeData = transformToD3Tree(genealogyData);
+      setTreeData(d3TreeData);
+    } catch (error) {
+      console.error("Error in fetchGenealogy:", error);
+      setError('Error fetching genealogy: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Effet pour extraire le tokenId de l'URL si nécessaire
   useEffect(() => {
-    const fetchGenealogy = async () => {
-      if (!tokenId) return;
+    // Si tokenId est null, essayer de l'extraire de l'URL
+    if (!tokenId) {
+      const hash = window.location.hash.slice(1);
+      const parts = hash.split('?');
+      if (parts[0] === 'genealogy' && parts.length > 1) {
+        const urlParams = new URLSearchParams(parts[1]);
+        const urlTokenId = urlParams.get('tokenId');
 
-      setLoading(true);
-      setError(null);
-
-      try {
-        const genealogyData = await buildGenealogyTree(tokenId);
-        const d3TreeData = transformToD3Tree(genealogyData);
-        setTreeData(d3TreeData);
-      } catch (error) {
-        setError('Error fetching genealogy: ' + error.message);
-      } finally {
-        setLoading(false);
+        if (urlTokenId) {
+          console.log("Found tokenId in URL:", urlTokenId);
+          fetchGenealogy(urlTokenId);
+        } else {
+          console.log("No tokenId found in URL parameters");
+          setError('Token ID non fourni');
+        }
       }
-    };
+    }
+  }, []);
 
-    fetchGenealogy();
+  // Effet qui s'exécute lorsque tokenId change via les props
+  useEffect(() => {
+    if (tokenId) {
+      console.log("TokenId provided via props:", tokenId);
+      fetchGenealogy(tokenId);
+    }
   }, [tokenId]);
 
   // -----------------------------------------------------------------------------
@@ -118,6 +149,11 @@ const DocumentGenealogy = ({ tokenId }) => {
     try {
       setLoading(true);
       const tokenId = nodeData.attributes.tokenId;
+      if (!tokenId) {
+        console.warn('No token ID found for node');
+        return;
+      }
+
       const docData = await documentsService.getDocumentByTokenId(tokenId);
 
       if (docData) {
@@ -127,7 +163,7 @@ const DocumentGenealogy = ({ tokenId }) => {
             tokenId: tokenId,
             author: docData.authors || docData.author,
             description: docData.description,
-            citations: docData.references ? docData.references.split(',').map(ref => ref.trim()) : [],
+            citations: docData.references ? docData.references.split(',').map(ref => ref.trim()).filter(Boolean) : [], // Filtrage des références vides
             ipfsCid: docData.ipfsCid
           }
         });

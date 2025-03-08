@@ -234,7 +234,9 @@ const NetworkPublications = ({
                     <ExternalLink className="w-4 h-4" />
                     Read content
                   </button>
+                  
                   {/* Nouveau bouton pour la généalogie */}
+                  {isWebAdmin || isWeb3Admin ? (
                   <button
                     onClick={() => handleViewGenealogy(doc)}
                     disabled={!doc.tokenId}
@@ -247,6 +249,7 @@ const NetworkPublications = ({
                     <GitFork className="w-4 h-4" />
                     Document Genealogy
                   </button>
+            ) : null}
                 </div>
 
                 {/* Validation si autorisé */}

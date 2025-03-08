@@ -77,6 +77,10 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
   // =============== NAVIGATION HANDLERS ===============
   const handleGenealogyNavigation = (tokenId) => {
     setSelectedTokenId(tokenId);
+    // Mise à jour de l'état local
+    updateSelectedTokenId(tokenId);
+    // Ajouter le tokenId dans l'URL
+    window.location.hash = `genealogy?tokenId=${tokenId}`;
     handlePageChange('genealogy');
   };
 

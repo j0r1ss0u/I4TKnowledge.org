@@ -276,17 +276,52 @@ function AppContent() {
 
   // ===== Hash Navigation Effect =====
   useEffect(() => {
+    // Fonction pour extraire la page et les paramètres du hash
+    const parseHash = (hash) => {
+      if (!hash) return { page: 'home', params: {} };
+
+      // Séparer la page des paramètres
+      const [pagePart, paramsPart] = hash.split('?');
+
+      // Extraire les paramètres
+      const params = {};
+      if (paramsPart) {
+        const searchParams = new URLSearchParams(`?${paramsPart}`);
+        searchParams.forEach((value, key) => {
+          params[key] = value;
+        });
+      }
+
+      return { page: pagePart, params };
+    };
+
     // Vérifier le hash au chargement
     const hash = window.location.hash.slice(1);
-    if (hash && VALID_PAGES.includes(hash)) {
-      setCurrentPage(hash);
+    const { page, params } = parseHash(hash);
+
+    if (page && VALID_PAGES.includes(page)) {
+      setCurrentPage(page);
+
+      // Traiter les paramètres spécifiques à la page
+      if (page === 'genealogy' && params.tokenId) {
+        console.log("Setting tokenId from URL:", params.tokenId);
+        setSelectedTokenId(params.tokenId);
+      }
     }
 
     // Écouter les changements de hash
     const handleHashChange = () => {
       const newHash = window.location.hash.slice(1);
-      if (newHash && VALID_PAGES.includes(newHash)) {
-        setCurrentPage(newHash);
+      const { page, params } = parseHash(newHash);
+
+      if (page && VALID_PAGES.includes(page)) {
+        setCurrentPage(page);
+
+        // Traiter les paramètres spécifiques à la page
+        if (page === 'genealogy' && params.tokenId) {
+          console.log("Setting tokenId from URL on hash change:", params.tokenId);
+          setSelectedTokenId(params.tokenId);
+        }
       } else {
         setCurrentPage('home');
       }
@@ -602,11 +637,14 @@ function AppContent() {
             <Pressrelease currentLang={currentLang} />
           )}
           {currentPage === "genealogy" && (
-            <GenealogyPage 
-              currentLang={currentLang}
-              tokenId={selectedTokenId}
-              onBack={() => handlePageChange("library")}
-            />
+            <>
+              {console.log("Rendering GenealogyPage with tokenId:", selectedTokenId)}
+              <GenealogyPage 
+                currentLang={currentLang}
+                tokenId={selectedTokenId}
+                onBack={() => handlePageChange("library")}
+              />
+            </>
           )}
           {currentPage === "forum" && <ProtectedForumPage currentLang={currentLang} />}
         </main>

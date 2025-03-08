@@ -8,6 +8,20 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
   const [error, setError] = useState(null);
   const [documentTitle, setDocumentTitle] = useState('');
 
+  // Au début du composant GenealogyPage, juste après la déclaration de fonction
+  console.log("GenealogyPage - Current URL:", window.location.href);
+  console.log("GenealogyPage - Hash:", window.location.hash);
+  console.log("GenealogyPage - Received tokenId prop:", tokenId);
+  
+  // Tentative d'extraction du tokenId de l'URL
+  const hash = window.location.hash.slice(1);
+  const parts = hash.split('?');
+  if (parts.length > 1) {
+    const urlParams = new URLSearchParams(parts[1]);
+    const urlTokenId = urlParams.get('tokenId');
+    console.log("GenealogyPage - TokenId from URL:", urlTokenId);
+  }
+  
   useEffect(() => {
     const fetchDocumentTitle = async () => {
       if (!tokenId) {
