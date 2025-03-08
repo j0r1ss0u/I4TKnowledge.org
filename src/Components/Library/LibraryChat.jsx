@@ -13,13 +13,13 @@ const suggestedPrompts = {
     'What is the I4TK Network?',
     'What are the UNESCO guidelines?',
     'What are the priorities for regulating platforms?',
-    'What are I4T regulatory priorities?'
+    'What is Trump\'s election impact on digital platforms governance ?',     
   ],
   fr: [
     'Qu\'est-ce que le réseau I4TK ?',
     'Quelles sont les directives de l\'UNESCO ?',
     'Quelles sont les priorités pour réguler les plateformes ?',
-    'Quelles sont les priorités réglementaires d\'I4T ?'
+    'En quoi l\'élection de Trump impacte t\'elle la gouvernance des plateformes numériques ?'
   ]
 };
 

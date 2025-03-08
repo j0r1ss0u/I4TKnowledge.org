@@ -28,17 +28,26 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
       // Récupérer les données
       const { email, invitationId, organizationName, code, language = 'fr' } = req.body;
 
+      // Vérifier que les données requises sont présentes
+      if (!email || !invitationId || !code) {
+        console.log('Missing required data:', { email, invitationId, code });
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+      }
+
       // Utiliser directement une clé en dur
       const SENDGRID_API_KEY = "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";
 
       // Configurer SendGrid avec la clé
       sgMail.setApiKey(SENDGRID_API_KEY);
 
+      // Construire le lien d'invitation - IMPORTANT : définir cette variable avant de l'utiliser
+      const invitationLink = `https://i4tknowledge.org/?email=${encodeURIComponent(email)}&code=${code}#register`;
+
       // Construire le contenu HTML en fonction de la langue
       const subject = language === 'fr' 
         ? `Invitation à rejoindre ${organizationName || 'notre organisation'}`
         : `Invitation to join ${organizationName || 'our organization'}`;
-
       const htmlContent = language === 'fr'
         ? `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -77,7 +86,6 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
           </div>
         `;
 
-
       // Créer le message
       const msg = {
         to: email,
@@ -103,16 +111,10 @@ exports.sendInvitationEmailHttp = functions.https.onRequest((req, res) => {
 
       console.log('Preparing to send email to:', email);
 
-      // Variable pour éviter le double envoi
-      let emailSent = false;
-
       try {
-        // Envoyer l'email seulement si pas déjà envoyé
-        if (!emailSent) {
-          const result = await sgMail.send(msg);
-          emailSent = true;
-          console.log('Email sent successfully:', JSON.stringify(result));
-        }
+        // Envoyer l'email
+        const result = await sgMail.send(msg);
+        console.log('Email sent successfully:', JSON.stringify(result));
 
         // Répondre avec succès
         res.status(200).json({
@@ -149,8 +151,7 @@ exports.handlePasswordReset = passwordReset.handlePasswordReset;
 exports.confirmPasswordReset = passwordReset.confirmPasswordReset;
 
 
-// Dans functions/index.js, ajoutez cette fonction
-
+// Fonction pour l'envoi d'emails de réinitialisation de mot de passe
 exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
   return cors(req, res, async () => {
     console.log('Reset password function called with data:', JSON.stringify(req.body, null, 2));
@@ -165,6 +166,13 @@ exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
 
       // Récupérer les données
       const { email, resetId, language = 'fr' } = req.body;
+
+      // Vérifier que les données requises sont présentes
+      if (!email || !resetId) {
+        console.log('Missing required data:', { email, resetId });
+        res.status(400).json({ error: 'Missing required parameters' });
+        return;
+      }
 
       // Utiliser directement une clé en dur (même clé que pour les invitations)
       const SENDGRID_API_KEY = "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";
@@ -183,12 +191,13 @@ exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
         codeGeneratedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
+      // Construire le lien de réinitialisation
+      const resetLink = `https://i4tknowledge.org/?resetId=${resetId}&code=${code}#reset-password`;
+
       // Construire le contenu HTML en fonction de la langue
       const subject = language === 'fr' 
         ? `Réinitialisation de votre mot de passe I4TK`
         : `Reset your I4TK password`;
-
-      const resetLink = `https://i4tknowledge.org/?resetId=${resetId}&code=${code}#reset-password`;
 
       const htmlContent = language === 'fr'
         ? `
@@ -251,16 +260,10 @@ exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
 
       console.log('Preparing to send reset password email to:', email);
 
-      // Variable pour éviter le double envoi
-      let emailSent = false;
-
       try {
-        // Envoyer l'email seulement si pas déjà envoyé
-        if (!emailSent) {
-          const result = await sgMail.send(msg);
-          emailSent = true;
-          console.log('Reset password email sent successfully:', JSON.stringify(result));
-        }
+        // Envoyer l'email
+        const result = await sgMail.send(msg);
+        console.log('Reset password email sent successfully:', JSON.stringify(result));
 
         // Répondre avec succès
         res.status(200).json({
@@ -291,10 +294,11 @@ exports.sendResetPasswordEmailHttp = functions.https.onRequest((req, res) => {
 });
 
 // Cloud Function pour la validation du code
-
 exports.validateResetCodeHttp = functions.https.onRequest((req, res) => {
   return cors(req, res, async () => {
     try {
+      console.log('validateResetCodeHttp called with body:', JSON.stringify(req.body, null, 2));
+
       if (req.method !== 'POST') {
         return res.status(405).send('Method Not Allowed');
       }
@@ -302,6 +306,7 @@ exports.validateResetCodeHttp = functions.https.onRequest((req, res) => {
       const { resetId, code } = req.body;
 
       if (!resetId || !code) {
+        console.error('Missing required parameters:', JSON.stringify(req.body, null, 2));
         return res.status(400).json({ success: false, error: 'Missing required parameters' });
       }
 
@@ -310,13 +315,23 @@ exports.validateResetCodeHttp = functions.https.onRequest((req, res) => {
       const resetDoc = await resetRef.get();
 
       if (!resetDoc.exists) {
+        console.error('Reset document not found:', resetId);
         return res.status(404).json({ success: false, error: 'Invalid reset request' });
       }
 
       const resetData = resetDoc.data();
+      console.log('Reset data:', JSON.stringify(resetData, null, 2));
 
       if (resetData.resetCode !== code) {
+        console.error('Code mismatch - Expected:', resetData.resetCode, 'Received:', code);
         return res.status(403).json({ success: false, error: 'Invalid reset code' });
+      }
+
+      // Vérifier l'expiration
+      if (resetData.expiresAt && resetData.expiresAt.toDate() < new Date()) {
+        console.log('Reset request expired');
+        await resetRef.update({ status: 'expired' });
+        return res.status(410).json({ success: false, error: 'Reset link expired' });
       }
 
       // Mise à jour du statut
@@ -325,6 +340,7 @@ exports.validateResetCodeHttp = functions.https.onRequest((req, res) => {
         validatedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
+      console.log('Reset code validated successfully');
       return res.status(200).json({ 
         success: true, 
         email: resetData.email 
@@ -339,8 +355,7 @@ exports.validateResetCodeHttp = functions.https.onRequest((req, res) => {
   });
 });
 
-// Cloud Function pour la réinitialisation du mot de passe
-// Fonction HTTP pour compléter la réinitialisation du mot de passe
+// Cloud Function pour compléter la réinitialisation du mot de passe
 exports.completePasswordResetHttp = functions.https.onRequest((req, res) => {
   return cors(req, res, async () => {
     try {
@@ -353,6 +368,7 @@ exports.completePasswordResetHttp = functions.https.onRequest((req, res) => {
       const { resetId, password } = req.body;
 
       if (!resetId || !password) {
+        console.error('Missing required parameters:', JSON.stringify(req.body, null, 2));
         return res.status(400).json({ success: false, error: 'Missing required parameters' });
       }
 
@@ -361,26 +377,32 @@ exports.completePasswordResetHttp = functions.https.onRequest((req, res) => {
       const resetDoc = await resetRef.get();
 
       if (!resetDoc.exists) {
+        console.error('Reset document not found:', resetId);
         return res.status(404).json({ success: false, error: 'Invalid reset request' });
       }
 
       const resetData = resetDoc.data();
+      console.log('Reset data:', JSON.stringify(resetData, null, 2));
 
       // Vérifier que le statut est validé
       if (resetData.status !== 'validated') {
+        console.error('Reset request not validated. Current status:', resetData.status);
         return res.status(400).json({ success: false, error: 'Reset request not validated' });
       }
 
       // Vérifier l'expiration
-      if (resetData.expiresAt.toDate() < new Date()) {
+      if (resetData.expiresAt && resetData.expiresAt.toDate() < new Date()) {
+        console.log('Reset request expired');
         await resetRef.update({ status: 'expired' });
         return res.status(410).json({ success: false, error: 'Reset link expired' });
       }
 
       // Trouver l'utilisateur par email
+      console.log('Finding user by email:', resetData.email);
       const userRecord = await admin.auth().getUserByEmail(resetData.email);
 
       // Mettre à jour le mot de passe
+      console.log('Updating password for user:', userRecord.uid);
       await admin.auth().updateUser(userRecord.uid, {
         password: password
       });
@@ -391,12 +413,14 @@ exports.completePasswordResetHttp = functions.https.onRequest((req, res) => {
         completedAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
+      console.log('Password reset completed successfully');
       return res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error completing password reset:', error);
       return res.status(500).json({ 
         success: false, 
-        error: 'Internal server error' 
+        error: 'Internal server error',
+        details: error.message
       });
     }
   });
