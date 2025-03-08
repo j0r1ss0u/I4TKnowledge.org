@@ -134,3 +134,4 @@ dist
 .env.development
 .env.production
 
+/functions/index.js
