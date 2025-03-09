@@ -89,38 +89,47 @@ export default function SubmitContribution() {
   // =============== EXTRACTION FUNCTION ===============
   const extractTokenIdFromEvent = (logs) => {
     console.log('=== Starting TokenID Extraction ===');
-    console.log('Available logs:', logs);  // Pour debug
+    console.log('Available logs:', logs);
 
-    // Chercher l'événement contentProposed
-    const proposedEvent = logs.find(log => 
-      log.address.toLowerCase() === contractConfig.address.toLowerCase() &&
-      log.topics[0].includes('contentProposed')  // L'event signature est dans topics[0]
-    );
+    // Afficher les topics pour chaque log
+    logs.forEach((log, index) => {
+      console.log(`Log ${index} topics:`, log.topics);
+    });
 
-    if (proposedEvent) {
-      // Le tokenId est le second paramètre indexé (topics[2])
-      const tokenId = parseInt(proposedEvent.topics[2], 16);
-      console.log('TokenId extracted from contentProposed:', tokenId);
-      return tokenId;
+    // Chercher dans les topics - beaucoup de TokenIds sont dans topics[2]
+    for (const log of logs) {
+      if (log.topics && log.topics.length >= 3) {
+        const potentialId = parseInt(log.topics[2], 16);
+        if (!isNaN(potentialId) && potentialId > 0) {
+          console.log('TokenId found in topics[2]:', potentialId);
+          return potentialId;
+        }
+      }
     }
 
-    // Fallback: chercher dans les Transfer events
-    const transferEvent = logs.find(log => 
-      log.address.toLowerCase() === contractConfig.address.toLowerCase() &&
-      log.topics[0].includes('Transfer')  // L'event Transfer standard ERC721
-    );
-
-    if (transferEvent) {
-      // Pour un Transfer, le tokenId est dans le dernier topic
-      const tokenId = parseInt(transferEvent.topics[3], 16);
-      console.log('TokenId extracted from Transfer:', tokenId);
-      return tokenId;
+    // Chercher spécifiquement dans le champ data du log qui contient souvent le tokenId
+    for (const log of logs) {
+      if (log.data && log.data.length >= 66) {  // Au moins les 32 premiers octets (64 chars + '0x')
+        // Extraire les 32 premiers octets après '0x'
+        const potentialIdHex = log.data.substring(2, 66);
+        const potentialId = parseInt(potentialIdHex, 16);
+        if (!isNaN(potentialId) && potentialId > 0 && potentialId < 1000) {
+          console.log('TokenId found in data field:', potentialId);
+          return potentialId;
+        }
+      }
     }
 
-    console.error('Available logs:', logs);
-    throw new Error('Événement de création de token non trouvé');
+    // Inspection détaillée des logs
+    console.log('Detailed log inspection:');
+    logs.forEach((log, index) => {
+      console.log(`Log ${index}:`, log);
+      if (log.data) {
+        console.log(`Log ${index} data:`, log.data);
+      }
+    });
+
   };
-
   // =============== RECEIPT PROCESSING ===============
   useEffect(() => {
     const processTransactionReceipt = async () => {
