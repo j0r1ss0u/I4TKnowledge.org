@@ -7,7 +7,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
 const GATEWAY = 'https://nftstorage.link/ipfs/';
 const FALLBACK_GATEWAY = 'https://cloudflare-ipfs.com/ipfs/';
 
-const LargeDocumentViewer = ({ documentCid }) => {
+const LargeDocumentViewer = ({ documentCid, currentLang }) => {
   const [state, setState] = useState({
     loading: true,
     error: null,
@@ -19,6 +19,27 @@ const LargeDocumentViewer = ({ documentCid }) => {
   const canvasRef = React.useRef(null);
   const pdfDocRef = React.useRef(null);
   const renderTaskRef = React.useRef(null);
+
+  // Messages d'erreur bilingues
+  const errorMessages = {
+    en: "The thumbnail display failed but you can open the document using the link below",
+    fr: "L'affichage de la miniature a échoué mais vous pouvez ouvrir le document avec le lien ci-dessous"
+  };
+
+  const openDocumentText = {
+    en: "Open the document",
+    fr: "Ouvrir le document"
+  };
+
+  const pageText = {
+    en: "Page",
+    fr: "Page"
+  };
+
+  const ofText = {
+    en: "of",
+    fr: "sur"
+  };
 
   const cancelCurrentRender = () => {
     if (renderTaskRef.current && renderTaskRef.current.cancel) {
@@ -130,6 +151,10 @@ const LargeDocumentViewer = ({ documentCid }) => {
     }
   };
 
+  // La langue doit être exactement 'en' (minuscules) pour être considérée comme anglais
+  // Sinon on utilise le français par défaut
+  const lang = currentLang && currentLang.toLowerCase() === 'en' ? 'en' : 'fr';
+
   return (
     <div className="w-full bg-white rounded-lg border border-gray-200">
       <div className="w-full overflow-hidden p-4">
@@ -140,8 +165,15 @@ const LargeDocumentViewer = ({ documentCid }) => {
         )}
 
         {state.error && !state.pdfLoaded && (
-          <div className="flex justify-center items-center h-[600px] text-red-500">
-            Error generating the preview - please open the document
+          <div className="flex flex-col justify-center items-center h-[600px]">
+            <img 
+              src="/assets/logos/I4TK logo.jpg"
+              alt="I4TK Logo"
+              className="w-48 h-48 object-contain mb-6"
+            />
+            <p className="text-red-500 text-center max-w-md">
+              {errorMessages[lang]}
+            </p>
           </div>
         )}
 
@@ -167,7 +199,7 @@ const LargeDocumentViewer = ({ documentCid }) => {
           </button>
 
           <span className="text-sm text-gray-600">
-            Page {state.currentPage} sur {state.numPages}
+            {pageText[lang]} {state.currentPage} {ofText[lang]} {state.numPages}
           </span>
 
           <button
@@ -188,7 +220,7 @@ const LargeDocumentViewer = ({ documentCid }) => {
           className="text-blue-600 hover:underline text-sm flex items-center group"
         >
           <ExternalLink className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" />
-          Open the document
+          {openDocumentText[lang]}
         </a>
       </div>
     </div>

@@ -77,7 +77,7 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
   const showWalletConnect = user && userAccess.includes('member');
 
   return (
-    <div className={`${isMobile ? 'flex flex-col space-y-4' : 'flex items-center space-x-8'}`}>
+    <div className={`${isMobile ? 'flex flex-col space-y-4' : 'flex items-center space-x-6'}`}>
       <nav className={`${isMobile ? 'flex flex-col space-y-2' : 'flex space-x-4'}`}>
         {visibleItems.map((item) => (
           <button
@@ -118,8 +118,10 @@ const Header = ({ currentPage, handlePageChange, currentLang }) => {
     <header className="bg-white bg-opacity-90 border-b" role="banner">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center py-4">
+          {/* Première rangée: Logo et Navigation */}
           <div className="flex justify-between items-center w-full">
-            <div className="flex items-center">
+            {/* Conteneur du logo avec taille fixe */}
+            <div className="flex-shrink-0 w-48 md:w-64">
               <button 
                 onClick={() => handlePageChange("home")}
                 className="focus:outline-none hover:opacity-80 transition-opacity"
@@ -127,12 +129,13 @@ const Header = ({ currentPage, handlePageChange, currentLang }) => {
                 <img
                   src="/assets/logos/I4TK logo.jpg"
                   alt="I4TK Logo"
-                  className="h-16 md:h-24"
+                  className="h-16 md:h-24 object-contain"
                 />
               </button>
             </div>
 
-            <div className="hidden md:block">
+            {/* Navigation sur desktop */}
+            <div className="hidden md:flex flex-grow justify-end">
               <Navigation 
                 currentPage={currentPage} 
                 handlePageChange={handlePageChange}
@@ -140,6 +143,7 @@ const Header = ({ currentPage, handlePageChange, currentLang }) => {
               />
             </div>
 
+            {/* Bouton menu sur mobile */}
             <button
               className="md:hidden p-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -153,6 +157,7 @@ const Header = ({ currentPage, handlePageChange, currentLang }) => {
             </button>
           </div>
 
+          {/* Menu mobile déroulant */}
           {isMenuOpen && (
             <div className="md:hidden w-full mt-4">
               <Navigation 
@@ -164,6 +169,7 @@ const Header = ({ currentPage, handlePageChange, currentLang }) => {
             </div>
           )}
 
+          {/* Deuxième rangée: Tagline */}
           <div className="text-center mt-4 max-w-3xl w-full">
             <p className="font-serif text-lg md:text-2xl font-bold mb-6">
               {currentLang === 'en' 
