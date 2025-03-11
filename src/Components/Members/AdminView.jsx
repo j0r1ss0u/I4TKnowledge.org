@@ -106,8 +106,38 @@ const AdminView = () => {
  
   // Chargement initial des données
   useEffect(() => {
+    // Charge les données de l'onglet actif
     loadData();
-  }, [activeTab]);
+
+    // Pour les admins, chargez aussi les statistiques des autres onglets
+    if (isAdmin) {
+      if (activeTab !== 'organizations') {
+        reloadMembers();
+      }
+      if (activeTab !== 'users') {
+        const loadUsers = async () => {
+          try {
+            const loadedUsers = await usersService.getAllUsers();
+            setUsers(loadedUsers);
+          } catch (error) {
+            console.error('Error loading users for stats:', error);
+          }
+        };
+        loadUsers();
+      }
+      if (activeTab !== 'invitations') {
+        const loadInvitations = async () => {
+          try {
+            const pendingInvites = await invitationsService.getAllPendingInvitations();
+            setPendingInvitations(pendingInvites);
+          } catch (error) {
+            console.error('Error loading invitations for stats:', error);
+          }
+        };
+        loadInvitations();
+      }
+    }
+  }, [activeTab, isAdmin]);
 
   useEffect(() => {
     console.log('Current notification state:', notification);
@@ -499,51 +529,49 @@ const AdminView = () => {
 
       ) : activeTab === 'invitations' ? (
         // Table des invitations
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organization</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <table className="min-w-full divide-y divide-gray-200 table-fixed">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Email</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Organization</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Role</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Sent Date</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {getFilteredData().map((invitation) => (
+            <tr key={invitation.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 truncate">
+                <div className="text-sm text-gray-900 truncate hover:text-clip hover:overflow-visible" title={invitation.email}>
+                  {invitation.email}
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="text-sm text-gray-900 break-words">
+                  {invitation.organization || 'Unknown'}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                  {invitation.role}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {invitation.createdAt?.toDate().toLocaleDateString()}
+              </td>
+              <td className="px-6 py-4 text-right text-sm font-medium">
+                <button
+                  onClick={() => handleCancelInvitation(invitation.id)}
+                  className="text-red-600 hover:text-red-900"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {pendingInvitations.map((invitation) => (
-              <tr key={invitation.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{invitation.email}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">
-                    {invitation.organization || 'Unknown'}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
-                    {invitation.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {invitation.createdAt?.toDate().toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {invitation.expiresAt?.toDate().toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleCancelInvitation(invitation.id)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          ))}
+        </tbody>
+      </table>
       ) : (
           // Table des utilisateurs
           <table className="min-w-full divide-y divide-gray-200">
