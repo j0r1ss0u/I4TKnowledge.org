@@ -9,18 +9,6 @@ import LibraryRAG from './LibraryRAG';
 import LibraryChat from '../Library/LibraryChat';
 
 // ================ SUB-COMPONENTS ================
-const CTACard = ({ title }) => (
-  <div className="text-center p-4">
-    <h3 className="text-lg font-semibold mb-3">{title}</h3>
-    <p className="text-gray-600 text-sm">
-      Contact us at{" "}
-      <a href="mailto:general.secretary@i4tknowledge.net" 
-         className="text-blue-600 hover:underline hover:text-blue-800 transition-colors">
-        general.secretary@i4tknowledge.net
-      </a>
-    </p>
-  </div>
-);
 
 const StatCard = ({ onClick, textColor, value, label }) => (
   <div 
@@ -184,12 +172,24 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
         </div>
       </div>
 
-      {/* Call to Action Section */}
-      <div className="bg-white rounded-lg p-6 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <CTACard title={currentLang === 'en' ? 'Join the Network' : 'Rejoindre le Réseau'} />
-          <CTACard title={currentLang === 'en' ? 'Share Knowledge' : 'Partager les Connaissances'} />
-          <CTACard title={currentLang === 'en' ? 'Stay Updated' : 'Restez Informé'} />
+      {/* Call to Action Section with single centered form */}
+      <div className="py-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-transparent rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-center text-blue-800 mb-4">
+              {currentLang === 'en' ? 'Join Our Network Today!' : 'Rejoignez Notre Réseau Aujourd\'hui !'}
+            </h2>
+            <p className="text-center text-gray-600 mb-6">
+              {currentLang === 'en' 
+                ? 'Fill out the form below to become part of our global knowledge community' 
+                : 'Remplissez le formulaire ci-dessous pour faire partie de notre communauté mondiale de connaissances'}
+            </p>
+            <iframe 
+              src="https://i4tknowledge.fillout.com/t/e63gkAQohAus" 
+              className="w-full border-none h-96 overflow-hidden rounded"
+              title="Inscription"
+            ></iframe>
+          </div>
         </div>
       </div>
     </div>
