@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, ExternalLink, Globe, Users } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, Globe, Users, PlusCircle } from 'lucide-react';
 import { eventsManagementService } from '../../services/eventsManagement';
 import { projetManagementService } from '../../services/projectManagement';
 import { useAuth } from '../AuthContext';
 
-// TimelineEvent component for rendering individual events
-const TimelineEvent = ({ date, title, location, organizer, url, isProject = false }) => {
+// composant TimelineEvent
+
+const TimelineEvent = ({ date, title, location, organizer, url, isProject = false, projectId = null }) => {
+  const { user } = useAuth();  // Assurez-vous d'importer useAuth
+
+  // Vérifier si l'utilisateur peut accéder au forum (admin, validator ou member)
+  const canAccessForum = user && (user.role === 'admin' || user.role === 'validator' || user.role === 'member');
+
   // Ensure date is properly formatted
   let formattedDate = 'Date undefined';
 
@@ -23,6 +29,25 @@ const TimelineEvent = ({ date, title, location, organizer, url, isProject = fals
       }
     }
   }
+
+  // Handle project click to view project details
+  const handleProjectClick = () => {
+    if (isProject && projectId) {
+      // Vérifier si l'utilisateur a les permissions nécessaires
+      if (canAccessForum) {
+        // Si oui, permettre la navigation vers le projet
+        window.location.hash = `forum?project=${projectId}`;
+        sessionStorage.setItem('selectedProjectId', projectId);
+      } else {
+        // Si l'utilisateur n'a pas les permissions, ne rien faire
+        // Optionnel: Vous pouvez ajouter une notification ici si vous le souhaitez
+        console.log("User does not have permission to access projects");
+      }
+    }
+  };
+
+  // Déterminer si le style de curseur doit être "pointer" ou "default"
+  const cursorStyle = (isProject && !canAccessForum) ? "default" : "pointer";
 
   return (
     <div className="flex items-center min-h-[80px] group relative">
@@ -74,7 +99,11 @@ const TimelineEvent = ({ date, title, location, organizer, url, isProject = fals
             </div>
           </div>
           <div className="w-[45%] pl-8">
-            <div className="group-hover:transform group-hover:scale-105 transition-transform">
+            <div 
+              className={`${canAccessForum ? 'group-hover:transform group-hover:scale-105 transition-transform' : ''}`}
+              style={{ cursor: cursorStyle }}
+              onClick={handleProjectClick}
+            >
               <p className="text-base font-medium text-emerald-600">{formattedDate}</p>
               <p className="font-semibold text-xl">{title}</p>
               {location && (
@@ -87,6 +116,11 @@ const TimelineEvent = ({ date, title, location, organizer, url, isProject = fals
                 <span className="px-2 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-800">
                   Community Project
                 </span>
+                {!canAccessForum && (
+                  <span className="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                    Login required
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -405,6 +439,9 @@ const Events = ({ isAdmin = false }) => {
   // Check if user is admin
   const userIsAdmin = isAdmin || (user && user.role === 'admin');
 
+  // Check if user is member or validator (can access Forum)
+  const canAccessForum = user && (user.role === 'member' || user.role === 'validator' || user.role === 'admin');
+
   useEffect(() => {
     if (view === 'timeline') {
       fetchTimelineData();
@@ -482,6 +519,7 @@ const Events = ({ isAdmin = false }) => {
           date: endDate, // Use only endDate for the timeline
           location: project.location || "",
           isProject: true,
+          projectId: project.id,
           status: project.status?.current
         };
       }) : [])
@@ -522,27 +560,63 @@ const Events = ({ isAdmin = false }) => {
     setView(view === 'timeline' ? 'manage' : 'timeline');
   };
 
+  const goToForum = () => {
+    // Use hash-based navigation to go to forum
+    window.location.hash = 'forum';
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
-      {userIsAdmin && (
-        <div className="mb-6 flex justify-end">
-          <button 
-            onClick={toggleView}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            {view === 'timeline' ? 'Manage Events' : 'View Timeline'}
-          </button>
+      <div className="mb-12 mt-8">
+        <h2 className="text-2xl font-serif font-bold text-gray-900 text-center mb-6">
+          Our Journey & Milestones
+        </h2>
+
+        <div className="flex justify-between">
+          <div className="flex-1">
+            {userIsAdmin && (
+              <div className="flex justify-start">
+                <button 
+                  onClick={toggleView}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-1"
+                >
+                  {view === 'timeline' ? (
+                    <>
+                      <PlusCircle className="h-4 w-4 mr-1" />
+                      <span>Manage Events</span>
+                    </>
+                  ) : (
+                    <span>View Timeline</span>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 text-center">
+            {/* Empty center column for spacing */}
+          </div>
+
+          <div className="flex-1">
+            {canAccessForum && (
+              <div className="flex justify-end">
+                <button 
+                  onClick={goToForum}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex items-center space-x-1"
+                >
+                  <PlusCircle className="h-4 w-4 mr-1" />
+                  <span>Add Project</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      )}
+      </div>
 
       {view === 'manage' && userIsAdmin ? (
         <EventManagement />
       ) : (
         <div>
-          <h2 className="text-2xl font-serif font-bold text-gray-900 mb-12 text-center">
-            Our Journey & Milestones
-          </h2>
-
           {isLoading ? (
             <div className="flex justify-center items-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -559,6 +633,7 @@ const Events = ({ isAdmin = false }) => {
                     organizer={event.organizer}
                     url={event.url}
                     isProject={event.isProject}
+                    projectId={event.projectId}
                   />
                 ))
               ) : (

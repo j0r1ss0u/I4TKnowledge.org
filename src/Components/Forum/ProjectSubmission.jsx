@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { projetManagementService } from '../../services/projectManagement';
 import { projectNotificationService } from '../../services/projectNotificationService';
 import { torService } from '../../services/torService';
 import { motion } from 'framer-motion';
 
-const ProjectSubmission = ({ onSubmit }) => {
+const ProjectSubmission = ({ projectId, onSubmit }) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
+  // État initial du formulaire
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -28,13 +31,70 @@ const ProjectSubmission = ({ onSubmit }) => {
     visibility: 'members'
   });
 
+  // Effet pour charger les données du projet lors de l'édition
+  useEffect(() => {
+    const fetchProjectData = async () => {
+      if (!projectId) return;
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        console.log('Fetching project for editing:', projectId);
+
+        // Récupérer tous les projets (ou utilisez getProjetById si disponible)
+        const projects = await projetManagementService.getProjets();
+        const projectToEdit = projects.find(p => p.id === projectId);
+
+        if (!projectToEdit) {
+          throw new Error('Project not found');
+        }
+
+        // Préparer les données pour le formulaire
+        const normalizedProject = {
+          title: projectToEdit.title || '',
+          description: projectToEdit.description || '',
+          objectives: projectToEdit.objectives || [''],
+          budget: {
+            amount: projectToEdit.budget?.amount || '',
+            currency: projectToEdit.budget?.currency || 'EUR',
+            fundingType: projectToEdit.budget?.fundingType || 'fiat',
+          },
+          timeline: {
+            startDate: projectToEdit.timeline?.startDate || '',
+            endDate: projectToEdit.timeline?.endDate || '',
+            milestones: projectToEdit.timeline?.milestones && projectToEdit.timeline.milestones.length > 0 
+              ? projectToEdit.timeline.milestones 
+              : [{ title: '', date: '', description: '' }]
+          },
+          requiredSkills: projectToEdit.requiredSkills?.length > 0 
+            ? projectToEdit.requiredSkills 
+            : [''],
+          visibility: projectToEdit.visibility || 'members',
+          // Conserver d'autres champs si nécessaire
+          status: projectToEdit.status || { current: 'draft' }
+        };
+
+        // Mettre à jour le formulaire
+        setFormData(normalizedProject);
+        setIsEditMode(true);
+        console.log('Project data loaded for editing', normalizedProject);
+      } catch (err) {
+        console.error('Error loading project for edit:', err);
+        setError('Failed to load project data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProjectData();
+  }, [projectId]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
     try {
-      console.log('Starting project creation...');
       const projectData = {
         ...formData,
         creator: {
@@ -44,36 +104,45 @@ const ProjectSubmission = ({ onSubmit }) => {
         }
       };
 
-      // 1. Créer le projet
-      console.log('Creating project with data:', projectData);
-      const newProject = await projetManagementService.ajouterProjet(projectData);
-      console.log('Project created:', newProject);
+      if (isEditMode) {
+        // Mise à jour d'un projet existant
+        console.log('Updating existing project:', projectId);
+        await projetManagementService.updateProjet(projectId, projectData);
+        console.log('Project updated successfully');
+      } else {
+        // Création d'un nouveau projet
+        console.log('Creating new project with data:', projectData);
+        const newProject = await projetManagementService.ajouterProjet(projectData);
+        console.log('Project created:', newProject);
 
-      // 2. Essayer d'envoyer les notifications, mais ne pas bloquer si ça échoue
-      try {
-        if (projectData.id) {
-          console.log('Attempting to send notifications...');
-          await projectNotificationService.notifyNewProject({
-            ...projectData,
-            id: newProject.id
-          });
-          console.log('Notifications sent successfully');
+        // Essayer d'envoyer les notifications pour un nouveau projet
+        try {
+          if (newProject && newProject.id) {
+            console.log('Attempting to send notifications...');
+            await projectNotificationService.notifyNewProject({
+              ...projectData,
+              id: newProject.id
+            });
+            console.log('Notifications sent successfully');
+          }
+        } catch (notifError) {
+          console.error('Error sending notifications:', notifError);
+          // On continue même si la notification échoue
         }
-      } catch (notifError) {
-        console.error('Error sending notifications:', notifError);
-        // On continue même si la notification échoue
       }
 
-      // 3. Retourner à la liste des projets
+      // Retourner à la liste des projets
       onSubmit();
     } catch (error) {
       console.error('Error in project submission:', error);
-      setError('Une erreur est survenue lors de la création du projet.');
+      setError(isEditMode 
+        ? 'Une erreur est survenue lors de la mise à jour du projet.' 
+        : 'Une erreur est survenue lors de la création du projet.');
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   const handleSkillAdd = () => {
     setFormData({
       ...formData,
@@ -132,6 +201,16 @@ const ProjectSubmission = ({ onSubmit }) => {
     });
   };
 
+  // Affichage d'un spinner pendant le chargement des données du projet
+  if (isLoading) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading project data...</p>
+      </div>
+    );
+  }
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -140,9 +219,13 @@ const ProjectSubmission = ({ onSubmit }) => {
     >
       {/* === HEADER SECTION === */}
       <div className="border-b border-gray-200 pb-4 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Create New Project</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          {isEditMode ? 'Edit Project' : 'Create New Project'}
+        </h2>
         <p className="mt-1 text-sm text-gray-500">
-          Fill in the details below to create a new project. All ToR signatories will be notified.
+          {isEditMode 
+            ? 'Update the project details below.' 
+            : 'Fill in the details below to create a new project. All ToR signatories will be notified.'}
         </p>
       </div>
 
@@ -368,7 +451,9 @@ const ProjectSubmission = ({ onSubmit }) => {
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
-              {isSubmitting ? 'Creating...' : 'Create Project'}
+              {isSubmitting 
+                ? (isEditMode ? 'Updating...' : 'Creating...') 
+                : (isEditMode ? 'Update Project' : 'Create Project')}
             </button>
           </div>
         </section>

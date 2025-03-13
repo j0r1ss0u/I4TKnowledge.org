@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { projetManagementService } from '../../services/projectManagement';
 import { useAuth } from '../AuthContext';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit } from 'lucide-react';
 
-// Composant ProjectCard séparé pour plus de clarté
-const ProjectCard = ({ project, onClick, onDelete }) => {
+// Composant ProjectCard avec accès d'édition correct
+const ProjectCard = ({ project, onClick, onDelete, onEdit }) => {
   const { user } = useAuth();
-  const isCreatorOrAdmin = user && (user.uid === project.creator?.uid || user.role === 'admin');
+
+  // Vérifier si l'utilisateur est le créateur ou un administrateur
+  const isCreatorOrAdmin = user && (
+    user.role === 'admin' || 
+    user.email === project.creator?.email
+  );
 
   const handleDelete = (e) => {
     e.stopPropagation(); // Empêcher le onClick du parent
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
       onDelete(project.id);
     }
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation(); // Empêcher le onClick du parent
+
+    // Passer l'objet projet complet à la fonction onEdit
+    onEdit(project);
   };
 
   if (!project) {
@@ -41,7 +53,18 @@ const ProjectCard = ({ project, onClick, onDelete }) => {
           <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(project.status?.current)}`}>
             {project.status?.current || 'draft'}
           </span>
+
           {isCreatorOrAdmin && (
+            <button
+              onClick={handleEdit}
+              className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
+              title="Modifier le projet"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+          )}
+
+          {user && user.role === 'admin' && (
             <button
               onClick={handleDelete}
               className="p-1 text-red-600 hover:text-red-800 transition-colors"
@@ -75,7 +98,7 @@ const ProjectCard = ({ project, onClick, onDelete }) => {
 };
 
 // Composant ProjectList principal
-const ProjectList = ({ onProjectSelect }) => {
+const ProjectList = ({ onProjectSelect, onProjectEdit }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -91,6 +114,25 @@ const ProjectList = ({ onProjectSelect }) => {
     } catch (error) {
       console.error('Error deleting project:', error);
       setError('Failed to delete project. Please try again.');
+    }
+  };
+
+  const handleEditProject = (project) => {
+    if (onProjectEdit) {
+      // Option 1: Utiliser la fonction de callback si disponible
+      // C'est la méthode préférée car elle reste dans la même instance React
+      onProjectEdit(project);
+    } else {
+      // Option 2: Navigation via hash avec paramètres
+      window.location.hash = `forum?project=${project.id}&edit=true`;
+
+      // Option 3: Utiliser sessionStorage comme solution de secours
+      sessionStorage.setItem('selectedProjectId', project.id);
+      sessionStorage.setItem('editProjectMode', 'true');
+
+      // NE PAS utiliser ces approches qui causent la latence et l'écran blanc:
+      // window.location.reload(); // À éviter
+      // localStorage.setItem('selectedProjectId', project.id); // Trop persistant
     }
   };
 
@@ -168,6 +210,7 @@ const ProjectList = ({ onProjectSelect }) => {
               project={project}
               onClick={() => onProjectSelect(project.id)}
               onDelete={handleDeleteProject}
+              onEdit={() => handleEditProject(project)}
             />
           ))}
         </div>
