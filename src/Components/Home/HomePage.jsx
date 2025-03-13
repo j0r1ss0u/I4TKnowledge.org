@@ -51,6 +51,8 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
   };
 
   // ===== EFFECTS =====
+  // Modification à apporter dans la fonction fetchStats de votre composant HomePage
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -72,7 +74,15 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
         const documentsRef = collection(db, 'web3IP');
         const publishedDocsQuery = query(documentsRef, where('validationStatus', '==', 'PUBLISHED'));
         const publishedDocsSnapshot = await getDocs(publishedDocsQuery);
-        const projectsSnapshot = await getDocs(collection(db, 'projects'));
+
+        // Modification pour filtrer les projets actifs uniquement
+        const projectsRef = collection(db, 'projects');
+        // Exclure les projets avec status.current = 'draft' ou 'completed'
+        const activeProjectsQuery = query(
+          projectsRef,
+          where('status.current', 'not-in', ['draft', 'completed'])
+        );
+        const projectsSnapshot = await getDocs(activeProjectsQuery);
 
         const total = visibleMembers.length;
         const southPercent = Math.round((regionCounts.south / total) * 100);
