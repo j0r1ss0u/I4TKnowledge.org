@@ -39,7 +39,7 @@ const ViewSelector = ({ viewMode, setViewMode, userRole }) => {
           Admin View
         </button>
       )}
-      {(userRole === 'admin' || userRole === 'member') && (
+      {(userRole === 'admin' || userRole === 'validator'|| userRole === 'member') && (
         <button
           onClick={() => setViewMode('governance')}
           className={`w-full sm:w-auto px-3 py-2 rounded ${viewMode === 'governance' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100'}`}
@@ -69,7 +69,7 @@ const MembersPageWrapper = ({ initialView }) => {
         </div>
         {viewMode === 'members' && <MapView />}
         {viewMode === 'admin' && (user?.role === 'admin' || user?.role === 'validator') && <AdminView />}
-        {viewMode === 'governance' && (user?.role === 'admin' || user?.role === 'member') && <GovernanceView />}
+        {viewMode === 'governance' && (user?.role === 'admin' || user?.role === 'member' || user?.role === 'validator') && <GovernanceView />}
       </div>
     </MembersProvider>
   );

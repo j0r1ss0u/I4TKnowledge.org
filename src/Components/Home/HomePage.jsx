@@ -4,7 +4,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useMembers } from '../Members/MembersContext';
 import { useAuth } from '../AuthContext';
-import NewsComponent from './NewsComponent';
+import NewsBlur from './NewsBlur'; // Remplacé par notre nouveau composant NewsBlur
 import LibraryRAG from './LibraryRAG';
 import LibraryChat from '../Library/LibraryChat';
 
@@ -51,8 +51,6 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
   };
 
   // ===== EFFECTS =====
-  // Modification à apporter dans la fonction fetchStats de votre composant HomePage
-
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -175,10 +173,13 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
         </div>
       </div>
 
-      {/* News Section */}
+      {/* News Section - Remplacé par notre composant NewsBlur */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
-        <div className="p-2">
-          <NewsComponent currentLang={currentLang} />
+        <div className="p-4">
+          <h2 className="font-serif text-2xl font-bold text-blue-800 mb-4">
+            {currentLang === 'en' ? 'Latest News' : 'Actualités Récentes'}
+          </h2>
+          <NewsBlur currentLang={currentLang} />
         </div>
       </div>
 

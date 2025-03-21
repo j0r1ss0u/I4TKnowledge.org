@@ -1,6 +1,7 @@
 // =================================================================
 // FinalizeInvitation.jsx
 // Component to accept Terms of Reference and create user account
+// Composant pour accepter les conditions d'utilisation et créer un compte utilisateur
 // =================================================================
 
 import React, { useState, useEffect } from 'react';
@@ -13,7 +14,7 @@ import { auth } from '../../services/firebase';
 import { useAuth } from '../../Components/AuthContext';
 
 // =================================================================
-// CONSTANTS
+// CONSTANTS / CONSTANTES
 // =================================================================
 const STEPS = {
   LOADING: 'loading',
@@ -26,7 +27,7 @@ const STEPS = {
 };
 
 // =================================================================
-// PASSWORD FORM COMPONENT
+// PASSWORD FORM COMPONENT / COMPOSANT DE FORMULAIRE DE MOT DE PASSE
 // =================================================================
 const PasswordForm = ({ onSubmit, password, setPassword, confirmPassword, setConfirmPassword, error, currentLang }) => {
   return (
@@ -72,10 +73,10 @@ const PasswordForm = ({ onSubmit, password, setPassword, confirmPassword, setCon
 };
 
 // =================================================================
-// MAIN COMPONENT
+// MAIN COMPONENT / COMPOSANT PRINCIPAL
 // =================================================================
 const FinalizeInvitation = ({ handlePageChange }) => {
-  // Context and local state
+  // Context and local state / Contexte et état local
   const { showNotification } = useAuth();
   const [step, setStep] = useState(STEPS.LOADING);
   const [loading, setLoading] = useState(true);
@@ -84,34 +85,35 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   const [torDocument, setTorDocument] = useState(null);
   const [acceptTor, setAcceptTor] = useState(false);
 
-  // Password state
+  // Password state / État du mot de passe
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Language state
+  // Language state / État de la langue
   const [currentLang, setCurrentLang] = useState(() => {
     return localStorage.getItem('preferredLanguage') || 'en';
   });
 
   // =================================================================
-  // INITIALIZATION EFFECT - Version mise à jour pour FinalizeInvitation.jsx
+  // INITIALIZATION EFFECT - VERSION MISE À JOUR AVEC RETRY
   // Load invitation data and ToR document with support for URL parameters
+  // Chargement des données d'invitation et du document des conditions d'utilisation avec support pour les paramètres d'URL
   // =================================================================
   useEffect(() => {
     const loadInvitation = async () => {
       try {
         setLoading(true);
 
-        // Vérifier d'abord les paramètres de l'URL
+        // Check URL parameters first / Vérifier d'abord les paramètres de l'URL
         const params = new URLSearchParams(window.location.search);
         const emailParam = params.get('email');
         const codeParam = params.get('code');
 
-        // Si les paramètres sont présents dans l'URL, valider directement
+        // If parameters are present in URL, validate directly / Si les paramètres sont présents dans l'URL, valider directement
         if (emailParam && codeParam) {
-          console.log('Validation directe du code:', codeParam, 'pour:', emailParam);
+          console.log('Direct validation of code / Validation directe du code:', codeParam, 'for / pour:', emailParam);
 
-          // Valider le code d'invitation
+          // Validate invitation code / Valider le code d'invitation
           const validationResult = await invitationsService.validateInvitationCode(emailParam, codeParam);
 
           if (!validationResult.valid) {
@@ -120,41 +122,65 @@ const FinalizeInvitation = ({ handlePageChange }) => {
               : 'Invalid invitation code'));
           }
 
-          // Stocker l'ID d'invitation si valide
+          // Store invitation ID if valid / Stocker l'ID d'invitation si valide
           localStorage.setItem('currentInvitationId', validationResult.invitation.id);
-          console.log('Code d\'invitation validé avec succès');
+          console.log('Invitation code successfully validated / Code d\'invitation validé avec succès');
 
-          // Nettoyer l'URL pour éviter les problèmes de rafraîchissement
+          // Clean URL to avoid refresh issues / Nettoyer l'URL pour éviter les problèmes de rafraîchissement
           window.history.replaceState({}, '', '/#finalize-invitation');
         }
 
-        // Vérifier si des paramètres d'invitation ont été passés via localStorage
-        // (depuis RegisterComponent)
+        // Check if invitation parameters were passed via localStorage / Vérifier si des paramètres d'invitation ont été passés via localStorage
+        // (from RegisterComponent / depuis RegisterComponent)
         const pendingEmail = localStorage.getItem('pendingInvitationEmail');
         const pendingCode = localStorage.getItem('pendingInvitationCode');
 
         if (pendingEmail && pendingCode) {
-          console.log('Traitement des paramètres d\'invitation stockés:', pendingCode, 'pour', pendingEmail);
+          console.log('Processing stored invitation parameters / Traitement des paramètres d\'invitation stockés:', pendingCode, 'for / pour', pendingEmail);
 
-          // Nettoyer ces valeurs immédiatement pour éviter les doublons
+          // Clean these values immediately to avoid duplicates / Nettoyer ces valeurs immédiatement pour éviter les doublons
           localStorage.removeItem('pendingInvitationEmail');
           localStorage.removeItem('pendingInvitationCode');
 
-          // Nous n'avons pas besoin de revalider - RegisterComponent l'a déjà fait
-          // et a stocké l'ID d'invitation dans currentInvitationId
+          // No need to revalidate - RegisterComponent already did it / Nous n'avons pas besoin de revalider - RegisterComponent l'a déjà fait
+          // and stored the invitation ID in currentInvitationId / et a stocké l'ID d'invitation dans currentInvitationId
         }
 
-        // Récupérer l'ID d'invitation du localStorage 
-        const invitationId = localStorage.getItem('currentInvitationId');
+        // Try to recover invitationId from pendingInvitationId if not in currentInvitationId
+        // Essayer de récupérer invitationId depuis pendingInvitationId s'il n'est pas dans currentInvitationId
+        let invitationId = localStorage.getItem('currentInvitationId');
+        if (!invitationId) {
+          invitationId = localStorage.getItem('pendingInvitationId');
+          if (invitationId) {
+            console.log('Recovered invitation ID from pendingInvitationId / ID d\'invitation récupéré depuis pendingInvitationId:', invitationId);
+            localStorage.setItem('currentInvitationId', invitationId);
+            localStorage.removeItem('pendingInvitationId');
+          }
+        }
+
+        // Check if current user's email has a pending invitation if no ID found
+        // Vérifier si l'email de l'utilisateur actuel a une invitation en attente si aucun ID n'est trouvé
+        if (!invitationId && auth.currentUser) {
+          const userEmail = auth.currentUser.email;
+          console.log('Trying to find invitation by user email / Tentative de recherche d\'invitation par email utilisateur:', userEmail);
+          const emailInvitation = await invitationsService.getInvitationByEmail(userEmail);
+          if (emailInvitation) {
+            invitationId = emailInvitation.id;
+            console.log('Found invitation by email / Invitation trouvée par email:', invitationId);
+            localStorage.setItem('currentInvitationId', invitationId);
+          }
+        }
+
+        // Get invitation ID from localStorage / Récupérer l'ID d'invitation du localStorage 
         if (!invitationId) {
           throw new Error(currentLang === 'fr' 
             ? 'Invitation non trouvée. Veuillez valider votre invitation d\'abord.' 
             : 'Invitation not found. Please validate your invitation first.');
         }
 
-        // Valider l'invitation
-        console.log('Récupération de l\'invitation:', invitationId);
-        const invitationResult = await invitationsService.validateInvitation(invitationId);
+        // Validate invitation with retry / Valider l'invitation avec retry
+        console.log('Retrieving invitation / Récupération de l\'invitation:', invitationId);
+        const invitationResult = await invitationsService.validateInvitationWithRetry(invitationId);
 
         if (!invitationResult.valid) {
           throw new Error(invitationResult.message || (currentLang === 'fr' ? 'Invitation invalide' : 'Invalid invitation'));
@@ -162,7 +188,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
 
         const invitationData = invitationResult.invitation;
 
-        // Récupérer le document des conditions d'utilisation
+        // Get Terms of Reference document / Récupérer le document des conditions d'utilisation
         const torResults = await documentsService.semanticSearch('TERMS OF REFERENCE');
         if (!torResults || torResults.length === 0) {
           throw new Error(currentLang === 'fr' 
@@ -170,12 +196,12 @@ const FinalizeInvitation = ({ handlePageChange }) => {
             : 'Terms of Reference document not found');
         }
 
-        // Mettre à jour l'état
+        // Update state / Mettre à jour l'état
         setInvitation(invitationData);
         setTorDocument(torResults[0]);
         setStep(STEPS.TOR);
       } catch (err) {
-        console.error('Error loading invitation:', err);
+        console.error('Error loading invitation / Erreur lors du chargement de l\'invitation:', err);
         setError(err.message);
         setStep(STEPS.ERROR);
       } finally {
@@ -187,8 +213,9 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   }, [currentLang]);
 
   // =================================================================
-  // TOR ACCEPTANCE HANDLER
+  // TOR ACCEPTANCE HANDLER / GESTIONNAIRE D'ACCEPTATION DES CONDITIONS
   // Handle user accepting the Terms of Reference
+  // Gérer l'acceptation des conditions d'utilisation par l'utilisateur
   // =================================================================
   const handleTorAccept = async () => {
     if (!acceptTor) {
@@ -201,20 +228,20 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     try {
       setStep(STEPS.PROCESSING);
 
-      // Move to password step
+      // Move to password step / Passer à l'étape du mot de passe
       setStep(STEPS.PASSWORD);
       setError(null);
 
     } catch (err) {
-      console.error('Error accepting Terms of Reference:', err);
+      console.error('Error accepting Terms of Reference / Erreur lors de l\'acceptation des conditions d\'utilisation:', err);
       setError(err.message);
-      setStep(STEPS.TOR); // Return to ToR step
+      setStep(STEPS.TOR); // Return to ToR step / Retour à l'étape des conditions
     }
   };
 
   // =================================================================
-  // PASSWORD VALIDATION
-  // Validate password meets requirements
+  // PASSWORD VALIDATION / VALIDATION DU MOT DE PASSE
+  // Validate password meets requirements / Valider que le mot de passe répond aux exigences
   // =================================================================
   const validatePassword = () => {
     if (password !== confirmPassword) {
@@ -235,12 +262,12 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   };
 
   // =================================================================
-  // ACCOUNT CREATION
-  // Create user account and finalize invitation
+  // ACCOUNT CREATION / CRÉATION DE COMPTE
+  // Create user account and finalize invitation / Créer le compte utilisateur et finaliser l'invitation
   // =================================================================
- 
+
   const handleCreateAccount = async (e) => {
-    e?.preventDefault(); // Make optional if called programmatically
+    e?.preventDefault(); // Make optional if called programmatically / Optionnel si appelé programmatiquement
 
     if (!validatePassword()) {
       return;
@@ -253,77 +280,77 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         throw new Error(currentLang === 'fr' ? 'Données d\'invitation manquantes' : 'Invitation data missing');
       }
 
-      // 1. Create user account
-      console.log('[DEBUG] Creating user account with invitation', invitation.id);
+      // 1. Create user account / Créer le compte utilisateur
+      console.log('[DEBUG] Creating user account with invitation / Création du compte utilisateur avec l\'invitation', invitation.id);
       const result = await invitationsService.createUserFromInvitation(invitation.id, { 
         password: password 
       });
 
-      // 2. Store credentials for potential reconnection
+      // 2. Store credentials for potential reconnection / Stocker les identifiants pour une reconnexion potentielle
       localStorage.setItem('finalizationEmail', invitation.email);
       localStorage.setItem('pendingPassword', password);
       localStorage.setItem('finalizationCompleted', 'true');
 
-      // 3. Wait for authentication to be effective
-      console.log('[DEBUG] Waiting for authentication propagation...');
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Augmenté à 2 secondes
+      // 3. Wait for authentication to be effective / Attendre que l'authentification soit effective
+      console.log('[DEBUG] Waiting for authentication propagation / En attente de la propagation de l\'authentification...');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Increased to 2 seconds / Augmenté à 2 secondes
 
-      // 4. Check if user is logged in (attempt login if not)
+      // 4. Check if user is logged in (attempt login if not) / Vérifier si l'utilisateur est connecté (tenter de se connecter sinon)
       if (!auth.currentUser) {
-        console.log('[DEBUG] User not logged in, attempting login...');
+        console.log('[DEBUG] User not logged in, attempting login / Utilisateur non connecté, tentative de connexion...');
         try {
           await firebaseAuthService.loginUser(invitation.email, password);
-          console.log('[DEBUG] Login successful');
+          console.log('[DEBUG] Login successful / Connexion réussie');
         } catch (loginError) {
-          console.error('[DEBUG] Login failed:', loginError);
-          // Continue with the process even if login fails
+          console.error('[DEBUG] Login failed / Échec de la connexion:', loginError);
+          // Continue with the process even if login fails / Continuer le processus même si la connexion échoue
         }
       }
 
-      // 5. Register ToR acceptance
-      console.log('[DEBUG] Recording Terms of Reference acceptance...');
+      // 5. Register ToR acceptance / Enregistrer l'acceptation des conditions
+      console.log('[DEBUG] Recording Terms of Reference acceptance / Enregistrement de l\'acceptation des conditions d\'utilisation...');
       await torService.acceptToR(invitation.email, torDocument.id);
 
-      // 6. Update user account activation status
-      console.log('[DEBUG] Ensuring user account is active...');
+      // 6. Update user account activation status / Mettre à jour le statut d'activation du compte utilisateur
+      console.log('[DEBUG] Ensuring user account is active / Garantir que le compte utilisateur est actif...');
       try {
         await invitationsService.activateUserAccount(result.uid || auth.currentUser?.uid);
       } catch (activationError) {
-        console.error('[DEBUG] Activation error:', activationError);
-        // Continue even if activation fails - we'll try again later
+        console.error('[DEBUG] Activation error / Erreur d\'activation:', activationError);
+        // Continue even if activation fails - we'll try again later / Continuer même si l'activation échoue - nous réessaierons plus tard
       }
 
-      // 7. Show success message
-      console.log('[DEBUG] Account created successfully');
+      // 7. Show success message / Afficher le message de succès
+      console.log('[DEBUG] Account created successfully / Compte créé avec succès');
       setStep(STEPS.SUCCESS);
       showNotification(currentLang === 'fr' 
         ? 'Votre compte a été créé avec succès!' 
         : 'Your account has been created successfully!', 'success', 5000);
 
-      // 8. Clean localStorage (except data needed for reconnection)
+      // 8. Clean localStorage (except data needed for reconnection) / Nettoyer localStorage (sauf les données nécessaires pour la reconnexion)
       localStorage.removeItem('currentInvitationId');
 
-      // 9. Redirect to home page after a short delay
+      // 9. Redirect to home page after a short delay / Rediriger vers la page d'accueil après un court délai
       setTimeout(() => {
-        // Force complete reload rather than SPA navigation
+        // Force complete reload rather than SPA navigation / Forcer un rechargement complet plutôt qu'une navigation SPA
         window.location.href = '/'; 
       }, 3000);
     } catch (err) {
-      console.error('[DEBUG] Error finalizing invitation:', err);
+      console.error('[DEBUG] Error finalizing invitation / Erreur lors de la finalisation de l\'invitation:', err);
       setError(err.message);
       setStep(STEPS.PASSWORD);
 
-      // Clean sensitive data in case of error
+      // Clean sensitive data in case of error / Nettoyer les données sensibles en cas d'erreur
       localStorage.removeItem('pendingPassword');
       localStorage.removeItem('finalizationCompleted');
     }
   };
 
   // =================================================================
-  // CONDITIONAL RENDERING
+  // CONDITIONAL RENDERING / RENDU CONDITIONNEL
   // =================================================================
 
-  // Loading state
+  // Loading state / État de chargement
   if (step === STEPS.LOADING || step === STEPS.PROCESSING) {
     return (
       <div className="flex flex-col justify-center items-center min-h-[60vh]">
@@ -337,7 +364,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     );
   }
 
-  // Error state
+  // Error state / État d'erreur
   if (step === STEPS.ERROR) {
     return (
       <div className="container mx-auto max-w-md p-6">
@@ -358,7 +385,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     );
   }
 
-  // Success state
+  // Success state / État de succès
   if (step === STEPS.SUCCESS) {
     return (
       <div className="container mx-auto max-w-md p-6">
@@ -382,7 +409,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     );
   }
 
-  // ToR acceptance state
+  // ToR acceptance state / État d'acceptation des conditions
   if (step === STEPS.TOR) {
     return (
       <div className="container mx-auto max-w-2xl p-6">
@@ -451,7 +478,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     );
   }
 
-  // Password creation state (default for STEPS.PASSWORD)
+  // Password creation state (default for STEPS.PASSWORD) / État de création de mot de passe (par défaut pour STEPS.PASSWORD)
   return (
     <div className="container mx-auto max-w-md p-6">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
