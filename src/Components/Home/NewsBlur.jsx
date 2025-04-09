@@ -242,23 +242,23 @@ const NewsBlur = ({ currentLang = 'en' }) => {
     return [
       {
         id: 'fallback1',
-        title: 'EU Advances Historic AI Act for Regulation of Artificial Intelligence',
-        description: 'The European Union has formally adopted the AI Act, establishing the world\'s first comprehensive legal framework for artificial intelligence regulation. The act introduces a risk-based approach, with stricter rules for high-risk AI applications.',
+        title: 'UN Global Digital Compact: Final Draft Released for Review',
+        description: 'The United Nations has released the final draft of the Global Digital Compact for stakeholder review. The document outlines key principles for an open, free, and secure digital future, emphasizing digital inclusion and human rights.',
         pubDate: today,
-        source: 'EU Digital Rights',
-        sourceId: 'eudigitalrights',
-        url: 'https://digital-strategy.ec.europa.eu/en/policies/european-approach-artificial-intelligence',
+        source: 'United Nations Digital Updates',
+        sourceId: 'undigital',
+        url: 'https://www.un.org/techenvoy/global-digital-compact',
         imageUrl: null,
         isFallback: true
       },
       {
         id: 'fallback2',
-        title: 'Global South Voices Critical of Global Digital Compact Draft',
-        description: 'Representatives from civil society organizations across the Global South have raised concerns about the latest draft of the UN Global Digital Compact, arguing it fails to adequately address digital sovereignty and equitable access issues.',
+        title: 'Data Governance Act Implementation Begins in EU Member States',
+        description: 'European Union member states have begun implementing the Data Governance Act, establishing new frameworks for data sharing and reuse. The legislation aims to create trusted mechanisms for personal and non-personal data sharing.',
         pubDate: yesterday,
-        source: 'IT for Change',
-        sourceId: 'itforchange',
-        url: 'https://itforchange.net',
+        source: 'EU Tech Policy',
+        sourceId: 'eutechpolicy',
+        url: 'https://digital-strategy.ec.europa.eu/en/policies/data-governance-act',
         imageUrl: null,
         isFallback: true
       },
