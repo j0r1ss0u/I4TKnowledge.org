@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../AuthContext'; // Importation depuis le dossier parent
+import { useAuth } from '../AuthContext';
 
 const NewsBlur = ({ currentLang = 'en' }) => {
+  // États pour gérer les données et le chargement
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState(null);
   const [usingFallback, setUsingFallback] = useState(false);
   const [diagnosticInfo, setDiagnosticInfo] = useState(null);
@@ -17,93 +17,33 @@ const NewsBlur = ({ currentLang = 'en' }) => {
   const REFRESH_INTERVAL = 2 * 60 * 60 * 1000; // 2 heures
   const NEWS_COUNT = 6; // Nombre d'articles à afficher
 
-  // Fonction pour s'authentifier à NewsBlur avec de meilleures options CORS
-  const authenticateNewsBlur = async () => {
-    try {
-      console.log('NewsBlur: Tentative d\'authentification...');
+  const getApiUrl = () => {
+    const hostname = window.location.hostname;
+    console.log('NewsBlur: Hostname détecté:', hostname);
 
-      // Essayer différentes options pour contourner les problèmes CORS
-      const fetchOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: new URLSearchParams({
-          username: 'I4TKnowledge',
-          password: 'Shady$Outpour$Lyricist6$Monorail'
-        }),
-        credentials: 'include',
-        mode: 'cors' // Explicitement définir le mode CORS
-      };
+    // Liste explicite des domaines
+    const allowedDomains = [
+      'i4tk.replit.app', 
+      'i4tknowledge.org', 
+      'www.i4tknowledge.org',
+      'replit.dev',
+      'localhost'  // Ajout de localhost pour le développement
+    ];
 
-      setDiagnosticInfo(prev => ({
-        ...prev,
-        authAttempt: new Date().toISOString(),
-        authOptions: JSON.stringify(fetchOptions)
-      }));
+    // Vérification du domaine
+    const isDomainAllowed = allowedDomains.some(domain => hostname.includes(domain));
+    console.log('NewsBlur: Domaine autorisé ?', isDomainAllowed);
 
-      const response = await fetch('https://newsblur.com/api/login', fetchOptions);
+    // Construction de l'URL avec timestamp pour éviter le cache
+    const apiUrl = '/api/newsblur';
+    const urlWithTimestamp = `${apiUrl}?t=${Date.now()}`;
 
-      // Capturer tous les headers pour diagnostic
-      const headers = {};
-      response.headers.forEach((value, key) => {
-        headers[key] = value;
-      });
-
-      setDiagnosticInfo(prev => ({
-        ...prev,
-        responseStatus: response.status,
-        responseHeaders: headers
-      }));
-
-      // Vérification simple de la réponse
-      if (!response.ok) {
-        throw new Error(`Erreur de serveur: ${response.status}`);
-      }
-
-      try {
-        const data = await response.json();
-
-        setDiagnosticInfo(prev => ({
-          ...prev,
-          authResponse: JSON.stringify(data).slice(0, 500),
-          authenticated: data.authenticated
-        }));
-
-        if (data.authenticated) {
-          console.log('NewsBlur: Authentification réussie');
-          setIsAuthenticated(true);
-          return true;
-        } else {
-          console.error('NewsBlur: Échec de l\'authentification', data);
-          setError('Échec de l\'authentification NewsBlur');
-          return false;
-        }
-      } catch (jsonError) {
-        console.error('NewsBlur: Erreur de parsing JSON', jsonError);
-        setDiagnosticInfo(prev => ({
-          ...prev,
-          jsonError: jsonError.message
-        }));
-        throw new Error('Réponse invalide du serveur');
-      }
-    } catch (err) {
-      console.error('NewsBlur: Erreur d\'authentification', err);
-      setError(`Erreur d'authentification: ${err.message}`);
-      setDiagnosticInfo(prev => ({
-        ...prev,
-        authError: err.message,
-        authErrorType: err.name,
-        authErrorStack: err.stack
-      }));
-      return false;
-    }
+    console.log('NewsBlur: URL API construite:', urlWithTimestamp);
+    return urlWithTimestamp;
   };
 
-  // Fonction pour tester plusieurs méthodes de récupération des articles
-  const fetchAllSiteStories = async (forceRefresh = false) => {
+  // Fonction pour récupérer les articles via notre proxy
+  const fetchNews = async (forceRefresh = false) => {
     try {
       // Si ce n'est pas un rafraîchissement forcé et que nous avons récupéré des données récemment, ne pas rafraîchir
       const now = Date.now();
@@ -113,24 +53,139 @@ const NewsBlur = ({ currentLang = 'en' }) => {
       }
 
       setLoading(true);
-      setUsingFallback(false);
+      setError(null);
+      setDiagnosticInfo(prev => ({
+        ...prev,
+        fetchStarted: new Date().toISOString(),
+        fetchType: forceRefresh ? 'forced' : 'normal',
+        apiUrl: getApiUrl()
+      }));
 
-      // S'assurer que nous sommes authentifiés
-      if (!isAuthenticated) {
-        const authSuccess = await authenticateNewsBlur();
-        if (!authSuccess) {
-          setLoading(false);
-          return;
-        }
+      // Appeler notre API proxy
+      console.log('NewsBlur: Appel au proxy pour récupérer les articles...');
+
+      // Essayer d'abord de vérifier si l'API est en vie
+      try {
+        const healthResponse = await fetch('/api/health');
+        const healthData = await healthResponse.json();
+        setDiagnosticInfo(prev => ({
+          ...prev,
+          healthCheck: {
+            status: healthResponse.status,
+            data: healthData
+          }
+        }));
+      } catch (healthError) {
+        console.error('NewsBlur: Erreur lors de la vérification de santé de l\'API:', healthError);
+        setDiagnosticInfo(prev => ({
+          ...prev,
+          healthCheck: {
+            error: healthError.message
+          }
+        }));
       }
 
-      // Ajouter un timestamp pour éviter la mise en cache côté client
-      console.log('NewsBlur: Récupération de toutes les histoires du site...');
-      const timestamp = new Date().getTime();
+      // Maintenant, récupérer les articles
+      const response = await fetch(getApiUrl());
 
-      // Essayer plusieurs méthodes de récupération
-      await tryMultipleFetchMethods(timestamp);
+      // Vérifier si la requête a réussi
+      if (!response.ok) {
+        const errorText = await response.text();
+        setDiagnosticInfo(prev => ({
+          ...prev,
+          responseStatus: response.status,
+          responseStatusText: response.statusText,
+          responseText: errorText.substring(0, 500)
+        }));
+        throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
+      }
 
+      const responseText = await response.text();
+      setDiagnosticInfo(prev => ({
+        ...prev,
+        responseTextPreview: responseText.substring(0, 200),
+        responseContentType: response.headers.get('content-type')
+      }));
+
+      // Essayer de parser la réponse comme JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        setDiagnosticInfo(prev => ({
+          ...prev,
+          jsonParseError: parseError.message
+        }));
+        throw new Error(`Erreur de parsing JSON: ${parseError.message}`);
+      }
+
+      setDiagnosticInfo(prev => ({
+        ...prev,
+        dataReceived: true,
+        dataSize: responseText.length,
+        dataPreview: JSON.stringify(data).slice(0, 500) + '...'
+      }));
+
+      // Vérifier si nous avons des articles
+      if (data.stories && Array.isArray(data.stories)) {
+        console.log('NewsBlur: Articles récupérés', data.stories.length);
+
+        // Vérifier si nous avons des données réelles
+        if (data.stories.length > 0) {
+          // Transformer les données pour notre affichage
+          const transformedStories = data.stories
+            .filter(story => story && story.story_title) // Filtrer les entrées invalides
+            .map(story => ({
+              id: story.id || story.story_hash || `story-${Math.random()}`,
+              title: story.story_title || 'Sans titre',
+              description: story.story_content || '',
+              pubDate: new Date((story.story_timestamp || story.published_date || Date.now()/1000) * 1000),
+              source: story.story_feed_title || 'Source inconnue',
+              sourceId: story.story_feed_id,
+              url: story.story_permalink || '#',
+              imageUrl: getImageUrl(story),
+              isFallback: false
+            }))
+            // Trier par date de publication, du plus récent au plus ancien
+            .sort((a, b) => b.pubDate - a.pubDate)
+            // Limiter au nombre voulu après le tri
+            .slice(0, NEWS_COUNT);
+
+          setDiagnosticInfo(prev => ({
+            ...prev,
+            articlesCount: transformedStories.length,
+            articlesPreview: transformedStories.slice(0, 2).map(a => ({
+              title: a.title.substring(0, 30),
+              date: a.pubDate.toISOString()
+            }))
+          }));
+
+          // Vérifier si nous avons réellement des nouveaux articles
+          if (transformedStories.length > 0) {
+            // Mettre à jour l'état avec les nouveaux articles
+            setNews(transformedStories);
+            setUsingFallback(false);
+          } else {
+            // Aucun nouvel article trouvé, utiliser les fallbacks mais ne rien changer si nous avons déjà des articles
+            if (news.length === 0) {
+              setNews(getFallbackStories());
+              setUsingFallback(true);
+            }
+          }
+        } else {
+          // Pas de données récupérées, utiliser les fallbacks mais ne rien changer si nous avons déjà des articles
+          if (news.length === 0) {
+            setNews(getFallbackStories());
+            setUsingFallback(true);
+          }
+        }
+
+        // Enregistrer le moment de la récupération
+        setLastFetchTime(Date.now());
+      } else {
+        console.error('NewsBlur: Format de réponse d\'articles inattendu', data);
+        throw new Error('Format de réponse d\'articles inattendu');
+      }
     } catch (err) {
       console.error('NewsBlur: Erreur lors de la récupération des articles', err);
 
@@ -148,6 +203,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         ...prev,
         fetchError: err.message,
         fetchErrorType: err.name,
+        fetchErrorStack: err.stack,
         online: navigator.onLine,
         readyState: document.readyState
       }));
@@ -160,201 +216,6 @@ const NewsBlur = ({ currentLang = 'en' }) => {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  // Fonction pour essayer plusieurs méthodes de récupération des données
-  const tryMultipleFetchMethods = async (timestamp) => {
-    const methods = [
-      { name: 'standard', mode: 'cors', credentials: 'include' },
-      { name: 'no-cors', mode: 'no-cors', credentials: 'include' },
-      { name: 'same-origin', mode: 'same-origin', credentials: 'include' },
-      { name: 'omit-credentials', mode: 'cors', credentials: 'omit' },
-      { name: 'jsonp', type: 'jsonp' }
-    ];
-
-    let succeeded = false;
-    let error = null;
-
-    // Essayer chaque méthode jusqu'à ce qu'une réussisse
-    for (const method of methods) {
-      if (succeeded) break;
-
-      try {
-        console.log(`NewsBlur: Essai de la méthode ${method.name}`);
-
-        if (method.type === 'jsonp') {
-          // Tentative JSONP (nécessite une fonction de rappel globale)
-          await fetchStoriesJSONP(timestamp);
-        } else {
-          // Tentative fetch standard avec différentes options
-          await fetchStoriesWithOptions(timestamp, method);
-        }
-
-        succeeded = true;
-        console.log(`NewsBlur: Méthode ${method.name} réussie`);
-
-        setDiagnosticInfo(prev => ({
-          ...prev,
-          successMethod: method.name
-        }));
-
-      } catch (err) {
-        console.log(`NewsBlur: Méthode ${method.name} a échoué:`, err.message);
-        error = err;
-      }
-    }
-
-    if (!succeeded) {
-      throw error || new Error('Toutes les méthodes de récupération ont échoué');
-    }
-  };
-
-  // Méthode de récupération standard avec options personnalisables
-  const fetchStoriesWithOptions = async (timestamp, options) => {
-    const fetchOptions = {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'X-Requested-With': 'XMLHttpRequest'
-      },
-      mode: options.mode,
-      credentials: options.credentials
-    };
-
-    setDiagnosticInfo(prev => ({
-      ...prev,
-      fetchMethod: options.name,
-      fetchOptions: JSON.stringify(fetchOptions)
-    }));
-
-    const response = await fetch(`https://newsblur.com/reader/feed/0?limit=50&_=${timestamp}`, fetchOptions);
-
-    if (options.mode === 'no-cors') {
-      // En mode no-cors, nous ne pouvons pas lire la réponse
-      // On teste juste si une réponse existe
-      if (response) {
-        // Simuler une réponse valide puisqu'on ne peut pas lire le contenu en no-cors
-        setNews(getFallbackStories());
-        setUsingFallback(true);
-        setLastFetchTime(Date.now());
-        return;
-      }
-    } else {
-      // Traitement normal pour les autres modes
-      if (!response.ok) {
-        throw new Error(`Erreur de serveur: ${response.status}`);
-      }
-
-      const data = await response.json();
-      processStoriesData(data, timestamp);
-    }
-  };
-
-  // Méthode de récupération par JSONP (via script)
-  const fetchStoriesJSONP = async (timestamp) => {
-    return new Promise((resolve, reject) => {
-      // Créer une fonction de rappel globale
-      const callbackName = `newsblur_callback_${timestamp}`;
-      window[callbackName] = (data) => {
-        try {
-          processStoriesData(data, timestamp);
-          delete window[callbackName]; // Nettoyer
-          resolve();
-        } catch (err) {
-          delete window[callbackName]; // Nettoyer
-          reject(err);
-        }
-      };
-
-      // Créer et ajouter le script
-      const script = document.createElement('script');
-      script.src = `https://newsblur.com/reader/feed/0?limit=50&callback=${callbackName}&_=${timestamp}`;
-      script.onerror = () => {
-        delete window[callbackName];
-        reject(new Error('Erreur de chargement JSONP'));
-      };
-      document.head.appendChild(script);
-
-      // Timeout de sécurité
-      setTimeout(() => {
-        if (window[callbackName]) {
-          delete window[callbackName];
-          reject(new Error('Timeout JSONP'));
-        }
-      }, 10000);
-    });
-  };
-
-  // Traiter les données des articles récupérés
-  const processStoriesData = (data, timestamp) => {
-    setDiagnosticInfo(prev => ({
-      ...prev,
-      dataReceived: true,
-      dataSize: JSON.stringify(data).length,
-      dataPreview: JSON.stringify(data).slice(0, 500) + '...'
-    }));
-
-    if (data.stories && Array.isArray(data.stories)) {
-      console.log('NewsBlur: Articles récupérés', data.stories.length);
-
-      // Vérifier si nous avons des données réelles
-      if (data.stories.length > 0) {
-        // Transformer les données pour notre affichage
-        const transformedStories = data.stories
-          .filter(story => story && story.story_title) // Filtrer les entrées invalides
-          .map(story => ({
-            id: story.id || story.story_hash || `story-${Math.random()}`,
-            title: story.story_title || 'Sans titre',
-            description: story.story_content || '',
-            pubDate: new Date(story.story_timestamp * 1000 || Date.now()),
-            source: story.story_feed_title || 'Source inconnue',
-            sourceId: story.story_feed_id,
-            url: story.story_permalink || '#',
-            imageUrl: getImageUrl(story),
-            isFallback: false
-          }))
-          // Trier par date de publication, du plus récent au plus ancien
-          .sort((a, b) => b.pubDate - a.pubDate)
-          // Limiter au nombre voulu après le tri
-          .slice(0, NEWS_COUNT);
-
-        setDiagnosticInfo(prev => ({
-          ...prev,
-          articlesCount: transformedStories.length,
-          articlesPreview: transformedStories.slice(0, 2).map(a => ({
-            title: a.title.substring(0, 30),
-            date: a.pubDate.toISOString()
-          }))
-        }));
-
-        // Vérifier si nous avons réellement des nouveaux articles
-        if (transformedStories.length > 0) {
-          // Mettre à jour l'état avec les nouveaux articles
-          setNews(transformedStories);
-          setUsingFallback(false);
-        } else {
-          // Aucun nouvel article trouvé, utiliser les fallbacks mais ne rien changer si nous avons déjà des articles
-          if (news.length === 0) {
-            setNews(getFallbackStories());
-            setUsingFallback(true);
-          }
-        }
-      } else {
-        // Pas de données récupérées, utiliser les fallbacks mais ne rien changer si nous avons déjà des articles
-        if (news.length === 0) {
-          setNews(getFallbackStories());
-          setUsingFallback(true);
-        }
-      }
-
-      // Enregistrer le moment de la récupération
-      setLastFetchTime(Date.now());
-      setError(null);
-    } else {
-      console.error('NewsBlur: Format de réponse d\'articles inattendu', data);
-      throw new Error('Format de réponse d\'articles inattendu');
     }
   };
 
@@ -387,7 +248,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         source: 'EU Digital Rights',
         sourceId: 'eudigitalrights',
         url: 'https://digital-strategy.ec.europa.eu/en/policies/european-approach-artificial-intelligence',
-        imageUrl: '/api/placeholder/800/400',
+        imageUrl: null,
         isFallback: true
       },
       {
@@ -398,7 +259,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         source: 'IT for Change',
         sourceId: 'itforchange',
         url: 'https://itforchange.net',
-        imageUrl: '/api/placeholder/800/400',
+        imageUrl: null,
         isFallback: true
       },
       {
@@ -409,7 +270,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         source: 'Privacy International',
         sourceId: 'privacyinternational',
         url: 'https://privacyinternational.org',
-        imageUrl: '/api/placeholder/800/400',
+        imageUrl: null,
         isFallback: true
       },
       {
@@ -420,7 +281,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         source: 'Digital Rights Monitor',
         sourceId: 'digitalrights',
         url: 'https://digitalrightsmonitor.org',
-        imageUrl: '/api/placeholder/800/400',
+        imageUrl: null,
         isFallback: true
       },
       {
@@ -431,7 +292,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         source: 'Open Future Foundation',
         sourceId: 'openfuture',
         url: 'https://openfuture.org',
-        imageUrl: '/api/placeholder/800/400',
+        imageUrl: null,
         isFallback: true
       },
       {
@@ -442,7 +303,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         source: 'Digital Public Goods Alliance',
         sourceId: 'dpga',
         url: 'https://digitalpublicgoods.net',
-        imageUrl: '/api/placeholder/800/400',
+        imageUrl: null,
         isFallback: true
       }
     ];
@@ -483,10 +344,11 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         lastRefreshAttempt: null,
         userAgent: navigator.userAgent,
         platform: navigator.platform,
-        onLine: navigator.onLine
+        onLine: navigator.onLine,
+        baseUrl: window.location.origin
       });
 
-      await fetchAllSiteStories(true); // Forcer le premier chargement
+      await fetchNews(true); // Forcer le premier chargement
     };
 
     initializeNewsBlur();
@@ -499,7 +361,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         lastRefreshAttempt: new Date().toISOString(),
         refreshType: 'interval'
       }));
-      fetchAllSiteStories(true); // Forcer le rafraîchissement périodique
+      fetchNews(true); // Forcer le rafraîchissement périodique
     }, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);
@@ -515,7 +377,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
           lastRefreshAttempt: new Date().toISOString(),
           refreshType: 'visibility_change'
         }));
-        fetchAllSiteStories(true);
+        fetchNews(false); // Ne pas forcer le rafraîchissement si les données sont récentes
       }
     };
 
@@ -559,7 +421,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
       lastRefreshAttempt: new Date().toISOString(),
       refreshType: 'manual'
     }));
-    fetchAllSiteStories(true);
+    fetchNews(true); // Forcer le rafraîchissement
   };
 
   // Rendu du spinner de chargement
@@ -589,7 +451,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">
-            {currentLang === 'en' ? '' : ''}
+            {currentLang === 'en' ? 'News' : 'Actualités'}
           </h2>
           {/* Afficher l'indicateur de fallback uniquement pour les admins */}
           {isAdmin && loading && (

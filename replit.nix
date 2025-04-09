@@ -1,10 +1,7 @@
 { pkgs }: {
   deps = [
-    pkgs.nodejs-18_x
+    pkgs.nodejs_20
     pkgs.yarn
     pkgs.lsof
   ];
-  env = {
-    REPLIT_NPM_PACKAGE_PATH = ".";
-  };
 }

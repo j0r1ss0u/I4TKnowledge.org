@@ -1,79 +1,29 @@
-run = "npm run dev"
+run = "npm run start"
+entrypoint = "server.js"
 modules = ["nodejs-20", "python-3.11"]
 hidden = [".config", "package-lock.json"]
-entrypoint = "index.html"
 
 [nix]
 channel = "stable-24_05"
 
+[env]
+PORT = "8080"
+NODE_ENV = "production"
+
+[packager]
+language = "nodejs"
+
+[packager.features]
+packageSearch = true
+guessImports = true
+
 [unitTest]
 language = "nodejs"
 
-[deployment]
-deploymentTarget = "static"
-build = ["npm", "run", "build"]
-publicDir = "dist"
-
 [[ports]]
-localPort = 3000
-externalPort = 3001
+localPort = 8080
+externalPort = 80
 
 [[ports]]
 localPort = 3001
 externalPort = 3002
-
-[[ports]]
-localPort = 5173
-externalPort = 80
-
-[[ports]]
-localPort = 5174
-externalPort = 3000
-
-[[ports]]
-localPort = 8031
-externalPort = 9000
-
-[[ports]]
-localPort = 8060
-externalPort = 6000
-
-[[ports]]
-localPort = 8356
-externalPort = 5000
-
-[[ports]]
-localPort = 8370
-externalPort = 8000
-
-[[ports]]
-localPort = 8392
-externalPort = 5173
-
-[[ports]]
-localPort = 8532
-externalPort = 8080
-
-[[ports]]
-localPort = 8676
-externalPort = 8099
-
-[[ports]]
-localPort = 8684
-externalPort = 4200
-
-[[ports]]
-localPort = 8687
-externalPort = 3003
-
-[[ports]]
-localPort = 8868
-externalPort = 8081
-
-[[ports]]
-localPort = 8902
-externalPort = 6800
-
-[[ports]]
-localPort = 8965
-externalPort = 8008
