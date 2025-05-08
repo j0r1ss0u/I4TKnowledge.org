@@ -17,28 +17,26 @@ const NewsBlur = ({ currentLang = 'en' }) => {
   const REFRESH_INTERVAL = 2 * 60 * 60 * 1000; // 2 heures
   const NEWS_COUNT = 6; // Nombre d'articles à afficher
 
+  // Cette fonction doit pointer vers l'URL où votre serveur proxy est réellement déployé
   const getApiUrl = () => {
     const hostname = window.location.hostname;
     console.log('NewsBlur: Hostname détecté:', hostname);
 
-    // Liste explicite des domaines
-    const allowedDomains = [
-      'i4tk.replit.app', 
-      'i4tknowledge.org', 
-      'www.i4tknowledge.org',
-      'replit.dev',
-      'localhost'  // Ajout de localhost pour le développement
-    ];
+    // Si nous sommes sur i4tknowledge.org ou www.i4tknowledge.org
+    if (hostname.includes('i4tknowledge.org')) {
+      // Pointer vers l'URL du serveur proxy sur i4tk.replit.app
+      // Assurez-vous que cette URL est correcte
+      const apiUrl = 'https://i4tk.replit.app/api/newsblur';
+      const urlWithTimestamp = `${apiUrl}?t=${Date.now()}`;
+      console.log('NewsBlur: URL API construite (prod):', urlWithTimestamp);
+      return urlWithTimestamp;
+    }
 
-    // Vérification du domaine
-    const isDomainAllowed = allowedDomains.some(domain => hostname.includes(domain));
-    console.log('NewsBlur: Domaine autorisé ?', isDomainAllowed);
-
-    // Construction de l'URL avec timestamp pour éviter le cache
+    // Si nous sommes sur i4tk.replit.app ou en développement
+    // Utiliser l'API locale
     const apiUrl = '/api/newsblur';
     const urlWithTimestamp = `${apiUrl}?t=${Date.now()}`;
-
-    console.log('NewsBlur: URL API construite:', urlWithTimestamp);
+    console.log('NewsBlur: URL API construite (dev):', urlWithTimestamp);
     return urlWithTimestamp;
   };
 
@@ -86,7 +84,9 @@ const NewsBlur = ({ currentLang = 'en' }) => {
       }
 
       // Maintenant, récupérer les articles
-      const response = await fetch(getApiUrl());
+      const apiUrl = getApiUrl();
+      console.log('NewsBlur: Appel à l\'API avec URL:', apiUrl);
+      const response = await fetch(apiUrl);
 
       // Vérifier si la requête a réussi
       if (!response.ok) {
@@ -189,6 +189,27 @@ const NewsBlur = ({ currentLang = 'en' }) => {
     } catch (err) {
       console.error('NewsBlur: Erreur lors de la récupération des articles', err);
 
+      // Informations détaillées sur l'erreur
+      let errorMessage = `Erreur: ${err.message}`;
+
+      if (err.message === 'Failed to fetch') {
+        // Probablement une erreur CORS ou réseau
+        const currentDomain = window.location.hostname;
+        let apiDomain;
+        try {
+          apiDomain = new URL(getApiUrl()).hostname;
+        } catch (e) {
+          apiDomain = window.location.hostname; // Pour les URL relatives
+        }
+
+        if (currentDomain !== apiDomain && apiDomain !== '') {
+          errorMessage = `Erreur de connexion entre ${currentDomain} et ${apiDomain}. Problème de CORS possible.`;
+          console.error('NewsBlur: Erreur CORS probable entre', currentDomain, 'et', apiDomain);
+        } else {
+          errorMessage = "Erreur de connexion à l'API. Vérifiez que le backend est accessible.";
+        }
+      }
+
       // Journaliser des informations détaillées sur l'erreur
       console.error('NewsBlur: Informations supplémentaires sur l\'erreur:', {
         message: err.message,
@@ -198,14 +219,17 @@ const NewsBlur = ({ currentLang = 'en' }) => {
         readyState: document.readyState
       });
 
-      setError(`Erreur: ${err.message}`);
+      setError(errorMessage);
       setDiagnosticInfo(prev => ({
         ...prev,
         fetchError: err.message,
         fetchErrorType: err.name,
         fetchErrorStack: err.stack,
         online: navigator.onLine,
-        readyState: document.readyState
+        readyState: document.readyState,
+        corsIssue: err.message === 'Failed to fetch',
+        currentDomain: window.location.hostname,
+        targetApiUrl: getApiUrl()
       }));
 
       // Utiliser des données de secours en cas d'erreur, mais seulement si nous n'avons pas déjà des articles
@@ -219,7 +243,7 @@ const NewsBlur = ({ currentLang = 'en' }) => {
     }
   };
 
-  // Fonction pour obtenir des articles simulés en cas d'échec de l'API
+  // Fonction mise à jour pour obtenir des articles fallback plus pertinents
   const getFallbackStories = () => {
     // Si nous avons déjà des articles, les utiliser comme fallback
     if (news.length > 0) {
@@ -242,67 +266,67 @@ const NewsBlur = ({ currentLang = 'en' }) => {
     return [
       {
         id: 'fallback1',
-        title: 'UN Global Digital Compact: Final Draft Released for Review',
-        description: 'The United Nations has released the final draft of the Global Digital Compact for stakeholder review. The document outlines key principles for an open, free, and secure digital future, emphasizing digital inclusion and human rights.',
+        title: 'The Future of the Media in Montenegro - Facts and Trends',
+        description: 'MORE MEDIA RISING CHALLENGES FOR JOURNALISTS - A comprehensive overview of the current media landscape in Montenegro, highlighting the challenges journalists face and future trends expected to impact digital rights and press freedom.',
         pubDate: today,
-        source: 'United Nations Digital Updates',
-        sourceId: 'undigital',
-        url: 'https://www.un.org/techenvoy/global-digital-compact',
+        source: 'Media Research',
+        sourceId: 'mediaresearch',
+        url: 'https://i4tknowledge.org/media/montenegro-trends',
         imageUrl: null,
         isFallback: true
       },
       {
         id: 'fallback2',
-        title: 'Data Governance Act Implementation Begins in EU Member States',
-        description: 'European Union member states have begun implementing the Data Governance Act, establishing new frameworks for data sharing and reuse. The legislation aims to create trusted mechanisms for personal and non-personal data sharing.',
+        title: 'The Pandemic and the Platformization of Education',
+        description: 'An analysis of how the pandemic accelerated digital transformation in education, with special focus on risks created by increased dependence on commercial platforms and implications for digital rights.',
         pubDate: yesterday,
-        source: 'EU Tech Policy',
-        sourceId: 'eutechpolicy',
-        url: 'https://digital-strategy.ec.europa.eu/en/policies/data-governance-act',
+        source: 'IT for Change',
+        sourceId: 'itforchange',
+        url: 'https://i4tknowledge.org/education/platformization',
         imageUrl: null,
         isFallback: true
       },
       {
         id: 'fallback3',
-        title: 'New Study Reveals Alarming Growth in Digital Surveillance Technologies',
-        description: 'A comprehensive study released today by Privacy International documents a 47% increase in government procurement of surveillance technologies in the past year, with facial recognition and predictive policing systems leading the trend.',
+        title: 'Response to the USTR Call for Comments on Unfair and Non-Reciprocal Trade Practices',
+        description: 'IT for Change\'s response to the United States Trade Representative (USTR) on unfair and non-reciprocal trade practices in the digital economy, focusing on implications for developing nations.',
         pubDate: twoDaysAgo,
-        source: 'Privacy International',
-        sourceId: 'privacyinternational',
-        url: 'https://privacyinternational.org',
+        source: 'IT for Change',
+        sourceId: 'itforchange',
+        url: 'https://i4tknowledge.org/trade/ustr-comments',
         imageUrl: null,
         isFallback: true
       },
       {
         id: 'fallback4',
-        title: 'Platform Workers Launch Global Coalition for Digital Labor Rights',
-        description: 'Gig workers from across six continents have formed the first global federation dedicated to advancing digital labor rights. The coalition aims to address algorithmic management issues and push for consistent standards across jurisdictions.',
+        title: 'Everyone is talking about Adolescence - why?',
+        description: 'The manosphere explained: How online echo chambers and algorithmic systems are amplifying toxic content about adolescence. An investigation into the network of misogynistic communities and their impact on youth online culture.',
         pubDate: threeDaysAgo,
-        source: 'Digital Rights Monitor',
-        sourceId: 'digitalrights',
-        url: 'https://digitalrightsmonitor.org',
+        source: 'Center for Countering Digital Hate',
+        sourceId: 'ccdh',
+        url: 'https://i4tknowledge.org/research/adolescence-online',
         imageUrl: null,
         isFallback: true
       },
       {
         id: 'fallback5',
-        title: 'Open Source AI Models Gain Traction as Alternative to Proprietary Systems',
-        description: 'Community-developed open source AI models are seeing unprecedented adoption among researchers and smaller companies, offering greater transparency and lower deployment costs compared to dominant proprietary systems.',
+        title: 'BIRN in Thirty Days: March Newsletter',
+        description: 'Monthly insights from the Balkan Investigative Reporting Network (BIRN) featuring key stories and developments in digital rights, press freedom and media accountability across Southeast Europe.',
         pubDate: fourDaysAgo,
-        source: 'Open Future Foundation',
-        sourceId: 'openfuture',
-        url: 'https://openfuture.org',
+        source: 'Balkan Investigative Reporting Network',
+        sourceId: 'birn',
+        url: 'https://i4tknowledge.org/newsletters/birn-march',
         imageUrl: null,
         isFallback: true
       },
       {
         id: 'fallback6',
-        title: 'Digital Public Infrastructure: New Framework for Equitable Technology',
-        description: 'A coalition of development organizations has released a comprehensive framework for Digital Public Infrastructure, emphasizing open standards, interoperability, and inclusive governance as keys to avoiding digital colonialism.',
+        title: 'Reporting Democracy Weekly — Parsing the news in Central/Southeast Europe',
+        description: 'Weekly digest covering key digital rights and democracy issues in Central and Southeast Europe, including economic resilience, protests in Hungary, and Slovak government policy changes affecting internet freedoms.',
         pubDate: fiveDaysAgo,
-        source: 'Digital Public Goods Alliance',
-        sourceId: 'dpga',
-        url: 'https://digitalpublicgoods.net',
+        source: 'Balkan Investigative Reporting Network',
+        sourceId: 'birn',
+        url: 'https://i4tknowledge.org/newsletters/reporting-democracy',
         imageUrl: null,
         isFallback: true
       }
