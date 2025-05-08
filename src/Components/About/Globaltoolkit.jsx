@@ -1,7 +1,7 @@
 // src/Components/About/Globaltoolkit.jsx
 import React, { useState, useEffect } from 'react';
 
-// Définition des catégories de couleurs
+// Definition of color categories
 const CATEGORIES = {
   INSTITUTIONAL: { name: 'Institutional framework', color: 'bg-red-600 hover:bg-red-700' },
   LEGISLATING: { name: 'Legislating platforms', color: 'bg-cyan-600 hover:bg-cyan-700' },
@@ -11,57 +11,57 @@ const CATEGORIES = {
   ANTIDISCRIM: { name: 'Anti-discrimination', color: 'bg-orange-500 hover:bg-orange-600' }
 };
 
-// Éléments de la table périodique
+// Elements of the periodic table
 const ELEMENTS = [
-  // Institutional framework (rouge)
-  { id: 'IR', name: 'Independence of regulator', category: 'INSTITUTIONAL', description: 'Garantir l\'indépendance des régulateurs face aux influences politiques et commerciales' },
-  { id: 'IJ', name: 'Independence of judiciary', category: 'INSTITUTIONAL', description: 'Protection de l\'indépendance judiciaire dans les affaires relatives à la régulation des plateformes' },
-  { id: 'HRB', name: 'HR protection bodies', category: 'INSTITUTIONAL', description: 'Organismes de protection des droits humains veillant sur les plateformes numériques' },
-  { id: 'DPB', name: 'Data Protection bodies', category: 'INSTITUTIONAL', description: 'Autorités chargées de protéger les données personnelles et la vie privée' },
-  { id: 'EB', name: 'Electoral bodies', category: 'INSTITUTIONAL', description: 'Institutions électorales veillant à l\'intégrité des processus démocratiques en ligne' },
+  // Institutional framework (red)
+  { id: 'IR', name: 'Independence of regulator', category: 'INSTITUTIONAL', description: 'Ensure the independence of regulators from political and commercial influences' },
+  { id: 'IJ', name: 'Independence of judiciary', category: 'INSTITUTIONAL', description: 'Protection of judicial independence in cases related to platform regulation' },
+  { id: 'HRB', name: 'HR protection bodies', category: 'INSTITUTIONAL', description: 'Human rights protection bodies overseeing digital platforms' },
+  { id: 'DPB', name: 'Data Protection bodies', category: 'INSTITUTIONAL', description: 'Authorities responsible for protecting personal data and privacy' },
+  { id: 'EB', name: 'Electoral bodies', category: 'INSTITUTIONAL', description: 'Electoral institutions ensuring the integrity of democratic processes online' },
 
-  // Legislating platforms (bleu)
-  { id: 'PA', name: 'Platform Accountability', category: 'LEGISLATING', description: 'Mécanismes garantissant la responsabilité des plateformes pour leur contenu et leurs algorithmes' },
-  { id: 'SG', name: 'Standard-based governance', category: 'LEGISLATING', description: 'Gouvernance basée sur des normes techniques et légales communes' },
-  { id: 'PE', name: 'Policy Enforcement', category: 'LEGISLATING', description: 'Application efficace des politiques de modération de contenu' },
-  { id: 'MC', name: 'Must Carry', category: 'LEGISLATING', description: 'Obligations de distribution de certains contenus d\'intérêt public' },
-  { id: 'MF', name: 'Media safety & freedom', category: 'LEGISLATING', description: 'Protection de la liberté et de la sécurité des médias dans l\'environnement numérique' },
-  { id: 'AS', name: 'Algorithmic self-regulation', category: 'LEGISLATING', description: 'Cadres d\'autorégulation pour les systèmes algorithmiques' },
+  // Legislating platforms (blue)
+  { id: 'PA', name: 'Platform Accountability', category: 'LEGISLATING', description: 'Mechanisms ensuring platform accountability for their content and algorithms' },
+  { id: 'SG', name: 'Standard-based governance', category: 'LEGISLATING', description: 'Governance based on common technical and legal standards' },
+  { id: 'PE', name: 'Policy Enforcement', category: 'LEGISLATING', description: 'Effective enforcement of content moderation policies' },
+  { id: 'MC', name: 'Must Carry', category: 'LEGISLATING', description: 'Obligations to distribute certain content of public interest' },
+  { id: 'MF', name: 'Media safety & freedom', category: 'LEGISLATING', description: 'Protection of media freedom and safety in the digital environment' },
+  { id: 'AS', name: 'Algorithmic self-regulation', category: 'LEGISLATING', description: 'Self-regulatory frameworks for algorithmic systems' },
 
-  // Systemic risks (vert)
-  { id: 'MT', name: 'Multi-tier transparency', category: 'SYSTEMIC', description: 'Différents niveaux de transparence adaptés aux divers publics et besoins' },
-  { id: 'DC', name: 'Due diligence during crisis', category: 'SYSTEMIC', description: 'Précautions particulières pendant les périodes de crise' },
-  { id: 'MF', name: 'Media freedom due dil.', category: 'SYSTEMIC', description: 'Obligations de diligence raisonnable concernant la liberté des médias' },
-  { id: 'MB', name: 'Media Bargaining redress', category: 'SYSTEMIC', description: 'Mécanismes de compensation pour les organisations médiatiques' },
-  { id: 'ASR', name: 'Assessing systemic risks', category: 'SYSTEMIC', description: 'Évaluation des risques systémiques posés par les plateformes numériques' },
-  { id: 'HR', name: 'Human rights compliance', category: 'SYSTEMIC', description: 'Conformité aux normes internationales des droits humains' },
+  // Systemic risks (green)
+  { id: 'MT', name: 'Multi-tier transparency', category: 'SYSTEMIC', description: 'Different levels of transparency adapted to various audiences and needs' },
+  { id: 'DC', name: 'Due diligence during crisis', category: 'SYSTEMIC', description: 'Special precautions during crisis periods' },
+  { id: 'MF', name: 'Media freedom due dil.', category: 'SYSTEMIC', description: 'Due diligence obligations regarding media freedom' },
+  { id: 'MB', name: 'Media Bargaining redress', category: 'SYSTEMIC', description: 'Compensation mechanisms for media organizations' },
+  { id: 'ASR', name: 'Assessing systemic risks', category: 'SYSTEMIC', description: 'Assessment of systemic risks posed by digital platforms' },
+  { id: 'HR', name: 'Human rights compliance', category: 'SYSTEMIC', description: 'Compliance with international human rights standards' },
 
-  // Pro-social design (violet)
-  { id: 'PC', name: 'Product Compliance', category: 'PROSOCIAL', description: 'Conformité des produits numériques aux normes de conception sociale responsable' },
-  { id: 'OM', name: 'Oversight mechanisms', category: 'PROSOCIAL', description: 'Mécanismes de surveillance indépendants pour les plateformes' },
-  { id: 'UA', name: 'User Agency', category: 'PROSOCIAL', description: 'Capacité des utilisateurs à exercer un contrôle sur leur expérience numérique' },
-  { id: 'OA', name: 'Open access, interoperability', category: 'PROSOCIAL', description: 'Facilitation de l\'interopérabilité entre différentes plateformes' },
-  { id: 'DM', name: 'Datafication & minimization', category: 'PROSOCIAL', description: 'Réduction de la collecte de données au minimum nécessaire' },
+  // Pro-social design (purple)
+  { id: 'PC', name: 'Product Compliance', category: 'PROSOCIAL', description: 'Compliance of digital products with responsible social design standards' },
+  { id: 'OM', name: 'Oversight mechanisms', category: 'PROSOCIAL', description: 'Independent oversight mechanisms for platforms' },
+  { id: 'UA', name: 'User Agency', category: 'PROSOCIAL', description: 'Users\' ability to exercise control over their digital experience' },
+  { id: 'OA', name: 'Open access, interoperability', category: 'PROSOCIAL', description: 'Facilitation of interoperability between different platforms' },
+  { id: 'DM', name: 'Datafication & minimization', category: 'PROSOCIAL', description: 'Reduction of data collection to the necessary minimum' },
 
-  // Content governance (jaune)
-  { id: 'OS', name: 'Online safety', category: 'CONTENT', description: 'Protections contre les contenus nuisibles' },
-  { id: 'CE', name: 'Content amplification', category: 'CONTENT', description: 'Analyse des mécanismes d\'amplification des contenus' },
-  { id: 'CM', name: 'Content moderation', category: 'CONTENT', description: 'Processus de modération de contenu respectueux des droits' },
-  { id: 'CH', name: 'Counternate escalation', category: 'CONTENT', description: 'Lutte contre l\'escalade de la haine en ligne' },
-  { id: 'EC', name: 'Escalation channels', category: 'CONTENT', description: 'Canaux de signalement et d\'escalade des problèmes' },
-  { id: 'RS', name: 'Recommender system', category: 'CONTENT', description: 'Systèmes de recommandation de contenu équilibrés' },
-  { id: 'MP', name: 'Media prominence', category: 'CONTENT', description: 'Mise en avant des médias fiables et de qualité' },
+  // Content governance (yellow)
+  { id: 'OS', name: 'Online safety', category: 'CONTENT', description: 'Protections against harmful content' },
+  { id: 'CE', name: 'Content amplification', category: 'CONTENT', description: 'Analysis of content amplification mechanisms' },
+  { id: 'CM', name: 'Content moderation', category: 'CONTENT', description: 'Rights-respecting content moderation processes' },
+  { id: 'CH', name: 'Counternate escalation', category: 'CONTENT', description: 'Combating the escalation of online hate' },
+  { id: 'EC', name: 'Escalation channels', category: 'CONTENT', description: 'Reporting and escalation channels for problems' },
+  { id: 'RS', name: 'Recommender system', category: 'CONTENT', description: 'Balanced content recommendation systems' },
+  { id: 'MP', name: 'Media prominence', category: 'CONTENT', description: 'Promoting reliable and quality media' },
 
   // Anti-discrimination (orange)
-  { id: 'OS', name: 'OSINT', category: 'ANTIDISCRIM', description: 'Recherche open source pour lutter contre la discrimination' },
-  { id: 'DF', name: 'Digital Fairness', category: 'ANTIDISCRIM', description: 'Équité dans la conception et le fonctionnement des plateformes' },
-  { id: 'OB', name: 'Obfuscation', category: 'ANTIDISCRIM', description: 'Protection contre le profilage discriminatoire' },
-  { id: 'FB', name: 'Freedom of Beliefs', category: 'ANTIDISCRIM', description: 'Protection de la liberté de croyance dans l\'espace numérique' },
-  { id: 'DC', name: 'Decolonizing', category: 'ANTIDISCRIM', description: 'Décolonisation des approches de conception et de régulation' },
-  { id: 'FG', name: 'Future Generation GDC', category: 'ANTIDISCRIM', description: 'Considération des impacts sur les générations futures' },
-  { id: 'IH', name: 'Independent HR Monitoring', category: 'ANTIDISCRIM', description: 'Surveillance indépendante du respect des droits humains' },
-  { id: 'EB', name: 'Ethical by Design', category: 'ANTIDISCRIM', description: 'Intégration de principes éthiques dès la conception' },
-  { id: 'DP', name: 'Digital Public Infrastructure', category: 'ANTIDISCRIM', description: 'Infrastructures numériques publiques et inclusives' }
+  { id: 'OS', name: 'OSINT', category: 'ANTIDISCRIM', description: 'Open source research to combat discrimination' },
+  { id: 'DF', name: 'Digital Fairness', category: 'ANTIDISCRIM', description: 'Fairness in the design and operation of platforms' },
+  { id: 'OB', name: 'Obfuscation', category: 'ANTIDISCRIM', description: 'Protection against discriminatory profiling' },
+  { id: 'FB', name: 'Freedom of Beliefs', category: 'ANTIDISCRIM', description: 'Protection of freedom of belief in the digital space' },
+  { id: 'DC', name: 'Decolonizing', category: 'ANTIDISCRIM', description: 'Decolonization of design and regulatory approaches' },
+  { id: 'FG', name: 'Future Generation GDC', category: 'ANTIDISCRIM', description: 'Consideration of impacts on future generations' },
+  { id: 'IH', name: 'Independent HR Monitoring', category: 'ANTIDISCRIM', description: 'Independent monitoring of human rights compliance' },
+  { id: 'EB', name: 'Ethical by Design', category: 'ANTIDISCRIM', description: 'Integration of ethical principles from the design stage' },
+  { id: 'DP', name: 'Digital Public Infrastructure', category: 'ANTIDISCRIM', description: 'Public and inclusive digital infrastructures' }
 ];
 
 const Globaltoolkit = () => {
@@ -69,7 +69,7 @@ const Globaltoolkit = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Filtrer les éléments en fonction de la recherche et de la catégorie sélectionnée
+  // Filter elements based on search and selected category
   const filteredElements = ELEMENTS.filter(element => {
     const matchesSearch = element.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           element.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -77,17 +77,17 @@ const Globaltoolkit = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Gérer l'affichage du détail d'un élément
+  // Handle displaying element details
   const handleElementClick = (element) => {
     setSelectedElement(element);
   };
 
-  // Gérer la fermeture du détail
+  // Handle closing details
   const handleCloseDetail = () => {
     setSelectedElement(null);
   };
 
-  // Gérer la sélection d'une catégorie
+  // Handle category selection
   const handleCategoryClick = (category) => {
     setSelectedCategory(category === selectedCategory ? null : category);
   };
@@ -97,23 +97,23 @@ const Globaltoolkit = () => {
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-4">Periodic Table of Platform Regulation</h2>
         <p className="text-gray-700 mb-6">
-          Le Tableau Périodique de la Régulation des Plateformes est un outil visuel qui organise les éléments clés 
-          de la gouvernance des plateformes numériques. Inspiré du tableau périodique des éléments chimiques, 
-          il permet d'explorer et de comprendre les différentes dimensions de la régulation des plateformes.
+          The Periodic Table of Platform Regulation is a visual tool that organizes the key elements
+          of digital platform governance. Inspired by the periodic table of chemical elements,
+          it allows you to explore and understand the different dimensions of platform regulation.
         </p>
 
-        {/* Barre de recherche */}
+        {/* Search bar */}
         <div className="mb-6">
           <input
             type="text"
-            placeholder="Rechercher un élément..."
+            placeholder="Search for an element..."
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        {/* Filtre par catégorie */}
+        {/* Filter by category */}
         <div className="flex flex-wrap gap-2 mb-6">
           {Object.entries(CATEGORIES).map(([key, { name, color }]) => (
             <button
@@ -133,13 +133,13 @@ const Globaltoolkit = () => {
               onClick={() => setSelectedCategory(null)}
               className="px-3 py-1 rounded-md text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
             >
-              Réinitialiser
+              Reset
             </button>
           )}
         </div>
       </div>
 
-      {/* Tableau périodique */}
+      {/* Periodic table */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2 mb-8">
         {filteredElements.map((element) => (
           <button
@@ -153,9 +153,9 @@ const Globaltoolkit = () => {
         ))}
       </div>
 
-      {/* Légende des catégories */}
+      {/* Category legend */}
       <div className="border-t pt-6">
-        <h3 className="text-xl font-semibold mb-4">Légende</h3>
+        <h3 className="text-xl font-semibold mb-4">Legend</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.entries(CATEGORIES).map(([key, { name, color }]) => (
             <div key={key} className="flex items-center">
@@ -166,7 +166,7 @@ const Globaltoolkit = () => {
         </div>
       </div>
 
-      {/* Modal de détail d'un élément */}
+      {/* Element detail modal */}
       {selectedElement && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -194,18 +194,18 @@ const Globaltoolkit = () => {
               </div>
 
               <div className="mb-4">
-                <h4 className="font-semibold mb-2">Contexte</h4>
+                <h4 className="font-semibold mb-2">Context</h4>
                 <p className="text-gray-700">
-                  Cet élément fait partie du cadre global de la régulation des plateformes numériques, 
-                  basé sur les principes directeurs de l'UNESCO pour la gouvernance des plateformes numériques.
+                  This element is part of the global framework for digital platform regulation,
+                  based on UNESCO's guiding principles for digital platform governance.
                 </p>
               </div>
 
               <div>
-                <h4 className="font-semibold mb-2">Exemples d'application</h4>
+                <h4 className="font-semibold mb-2">Application Examples</h4>
                 <ul className="list-disc pl-5 text-gray-700">
-                  <li>Des exemples spécifiques seront ajoutés lors du développement complet de cette section.</li>
-                  <li>Les exemples seront basés sur des cas réels provenant de différentes régions du monde.</li>
+                  <li>Specific examples will be added during the full development of this section.</li>
+                  <li>Examples will be based on real cases from different regions of the world.</li>
                 </ul>
               </div>
             </div>
@@ -213,22 +213,22 @@ const Globaltoolkit = () => {
         </div>
       )}
 
-      {/* Section d'information et références */}
+      {/* Information and references section */}
       <div className="mt-12 bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-2xl font-bold mb-4">À propos de ce projet</h3>
+        <h3 className="text-2xl font-bold mb-4">About this project</h3>
         <p className="mb-4">
-          Ce tableau périodique est un composant du Global Toolkit Methodology, développé pour offrir un cadre de compréhension
-          de la gouvernance des plateformes numériques. Il est structuré autour de six catégories principales qui couvrent
-          les aspects essentiels de la régulation des plateformes.
+          This periodic table is a component of the Global Toolkit Methodology, developed to provide a framework for understanding
+          digital platform governance. It is structured around six main categories that cover
+          the essential aspects of platform regulation.
         </p>
         <p className="mb-4">
-          Ce tableau est en cours de développement et sera enrichi avec des exemples concrets, des ressources et des références
-          supplémentaires. L'objectif est de créer un outil interactif qui aide les régulateurs, les décideurs politiques,
-          les chercheurs et la société civile à naviguer dans la complexité de la régulation des plateformes numériques.
+          This table is under development and will be enriched with concrete examples, resources, and additional
+          references. The goal is to create an interactive tool that helps regulators, policy makers,
+          researchers, and civil society navigate the complexity of digital platform regulation.
         </p>
         <p>
-          Développé dans le cadre de l'initiative I4TKnowledge, ce projet s'appuie sur les lignes directrices de l'UNESCO
-          pour la gouvernance des plateformes numériques et vise à promouvoir une approche fondée sur les droits humains.
+          Developed as part of the I4TKnowledge initiative, this project builds on UNESCO's guidelines
+          for digital platform governance and aims to promote a human rights-based approach.
         </p>
       </div>
     </div>

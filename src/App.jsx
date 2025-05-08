@@ -69,7 +69,8 @@ const VALID_PAGES = [
   'genealogy',
   'finalize-invitation',
   'reset-password',
-  'register'
+  'register',
+  'global-toolkit' // Ajout de l'onglet Global Toolkit Methodology
 ];
 
 // ================ REGISTER COMPONENT ================
@@ -253,7 +254,7 @@ function AppContent() {
   const { address } = useAccount();
   const [selectedTokenId, setSelectedTokenId] = useState(null);
   const [processingAuthLink, setProcessingAuthLink] = useState(false);
-  
+
   // ===== Page Change Handler =====
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
@@ -306,6 +307,12 @@ function AppContent() {
       if (page === 'genealogy' && params.tokenId) {
         console.log("Setting tokenId from URL:", params.tokenId);
         setSelectedTokenId(params.tokenId);
+      }
+
+      // Si on est sur la page about et qu'il y a un paramètre tab
+      if (page === 'about' && params.tab) {
+        // Le tab sera géré par le composant AboutPage
+        console.log("About page with tab parameter:", params.tab);
       }
     }
 
@@ -520,8 +527,8 @@ function AppContent() {
 
     checkAuthAfterRedirect();
   }, [user, showNotification]);
-  
-  
+
+
   // Validation des invitations
   useEffect(() => {
     // Si on est sur la page register, traiter les paramètres d'URL
@@ -544,7 +551,7 @@ function AppContent() {
   }, [currentPage]);
 
 
-  
+
   // ===== Language Handler =====
   const handleLanguageChange = (newLang) => {
     setCurrentLang(newLang);
@@ -600,7 +607,7 @@ function AppContent() {
             />
           )}
           {currentPage === "about" && <AboutPage currentLang={currentLang} />}
-          
+
           {currentPage === "register" && (
             <div className="container mx-auto max-w-md p-6">
               <RegisterComponent 
@@ -610,7 +617,7 @@ function AppContent() {
               />
             </div>
           )}
-          
+
           {currentPage === "finalize-invitation" && (
             <FinalizeInvitation handlePageChange={handlePageChange} />
           )}
@@ -647,6 +654,7 @@ function AppContent() {
             </>
           )}
           {currentPage === "forum" && <ProtectedForumPage currentLang={currentLang} />}
+          {/* Même si global-toolkit est dans VALID_PAGES, cette page sera accessible via l'onglet dans AboutPage */}
         </main>
       </div>
 

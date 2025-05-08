@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { chatService } from '../../services/chatService';
-import NewsBlur from '../Home/NewsBlur';
 
 const formatAuthors = (authors) => {
   if (Array.isArray(authors)) return authors.join(', ');
@@ -29,7 +28,6 @@ const LibraryChat = ({ currentLang = 'en' }) => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showNewsBlur, setShowNewsBlur] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,32 +64,6 @@ const LibraryChat = ({ currentLang = 'en' }) => {
 
   return (
     <div className="container mx-auto max-w-4xl p-4">
-      {/* Bouton pour afficher/masquer NewsBlur */}
-      <div className="mb-4 flex justify-end">
-
-      </div>
-
-      {/* Section NewsBlur conditionnelle */}
-      {showNewsBlur && (
-        <div className="mb-4 bg-white rounded-lg shadow-lg p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">
-              {currentLang === 'en' ? 'Latest News' : 'Dernières actualités'}
-            </h2>
-            <button
-              onClick={() => setShowNewsBlur(false)}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <NewsBlur currentLang={currentLang} />
-        </div>
-      )}
-
-      {/* Chat existant */}
       <div className="flex flex-col min-h-[200px] max-h-[600px] bg-white/80 backdrop-blur-sm rounded-lg shadow-lg">
         {messages.length === 0 && (
           <div className="p-4 space-y-4">

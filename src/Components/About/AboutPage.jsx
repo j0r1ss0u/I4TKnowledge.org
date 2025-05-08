@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Globe2, Users, Shield, Target } from 'lucide-react';
 import FoundersPage from './FoundersPage';
 import Pressrelease from './Pressrelease';
 import Torpage from './Torpage';
 import PRAI from './PRAI';
 import Events from './Events';
+import Globaltoolkit from './Globaltoolkit'; 
 import { useAuth } from '../AuthContext';
 
 const TABS = {
@@ -12,7 +13,8 @@ const TABS = {
   PRESS_RELEASE: 'press-release',
   PRAI_PARTNERSHIP: 'prai-partnership',
   TOR: 'Terms of Reference',
-  FOUNDERS: 'Founding members'
+  FOUNDERS: 'Founding members',
+  GLOBAL_TOOLKIT: 'global-toolkit'
 };
 
 const MissionCard = ({ title, description, icon: Icon, color }) => (
@@ -23,10 +25,37 @@ const MissionCard = ({ title, description, icon: Icon, color }) => (
   </div>
 );
 
-const AboutPage = () => {
+const AboutPage = ({ currentLang }) => {
   const [activeTab, setActiveTab] = useState(TABS.ABOUT);
   const { user } = useAuth();
-  const isAdmin = user && user.role === 'admin';
+
+  // Vérification explicite des emails administrateurs, comme dans votre AuthContext
+  const isAdmin = user && (user.role === 'admin' || user.email === 'admin@i4tk.org' || user.email === 'joris.galea@i4tknowledge.net');
+
+  // Log de débogage pour voir exactement ce qui se passe
+  console.log("User info in AboutPage:", { 
+    user, 
+    isAdmin, 
+    email: user?.email, 
+    role: user?.role,
+    isEmailAdmin: user?.email === 'admin@i4tk.org' || user?.email === 'joris.galea@i4tknowledge.net'
+  });
+
+  // Vérifier les paramètres d'URL au chargement initial
+  useEffect(() => {
+    const checkUrlParams = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab');
+      console.log("URL tab parameter:", tabParam);
+
+      if (tabParam === 'global-toolkit') {
+        console.log("Setting active tab to global-toolkit");
+        setActiveTab(TABS.GLOBAL_TOOLKIT);
+      }
+    };
+
+    checkUrlParams();
+  }, []);
 
   const missionCards = [
     {
@@ -56,6 +85,9 @@ const AboutPage = () => {
   ];
 
   const renderContent = () => {
+    console.log("Rendering content for tab:", activeTab);
+    console.log("User is admin:", isAdmin);
+
     switch (activeTab) {
       case TABS.TOR:
         return <Torpage />;
@@ -65,6 +97,20 @@ const AboutPage = () => {
         return <PRAI />;
       case TABS.FOUNDERS:
         return <FoundersPage />;
+      case TABS.GLOBAL_TOOLKIT:
+        // Pour le débogage, afficher qui a accès et pourquoi
+        console.log("Global Toolkit access check:", { 
+          isAdmin, 
+          email: user?.email, 
+          role: user?.role 
+        });
+
+        return isAdmin ? <Globaltoolkit /> : (
+          <div className="bg-white/50 rounded-xl p-8 text-center mt-12">
+            <h2 className="text-2xl font-bold mb-4">Accès restreint</h2>
+            <p>Cette section est en cours de développement et n'est accessible qu'aux administrateurs.</p>
+          </div>
+        );
       default:
         return (
           <>
@@ -84,6 +130,20 @@ const AboutPage = () => {
     }
   };
 
+  // Créer les onglets de base 
+  const navigationTabs = {
+    [TABS.ABOUT]: 'Events',
+    [TABS.FOUNDERS]: 'Founding members',
+    [TABS.TOR]: 'Terms of reference',
+    [TABS.PRAI_PARTNERSHIP]: 'PRAI Partnership',
+  };
+
+  // Ajouter l'onglet Global Toolkit UNIQUEMENT pour les admins
+  // IMPORTANT: Ne pas ajouter deux fois l'onglet comme avant!
+  if (isAdmin) {
+    navigationTabs[TABS.GLOBAL_TOOLKIT] = 'Global Toolkit Methodology';
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-8 border-b border-gray-200">
@@ -94,24 +154,14 @@ const AboutPage = () => {
               onChange={(e) => setActiveTab(e.target.value)}
               className="w-full p-2 border rounded-md bg-white"
             >
-              {Object.entries({
-                [TABS.ABOUT]: 'Events',
-                [TABS.FOUNDERS]: 'Founding members',
-                [TABS.TOR]: 'Terms of reference',
-                [TABS.PRAI_PARTNERSHIP]: 'PRAI Partnership',
-              }).map(([key, label]) => (
+              {Object.entries(navigationTabs).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>
           </div>
 
           <div className="hidden md:flex space-x-8">
-            {Object.entries({
-              [TABS.ABOUT]: 'Events',
-              [TABS.FOUNDERS]: 'Founding members',
-              [TABS.TOR]: 'Terms of reference',
-              [TABS.PRAI_PARTNERSHIP]: 'PRAI Partnership',
-            }).map(([key, label]) => (
+            {Object.entries(navigationTabs).map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
