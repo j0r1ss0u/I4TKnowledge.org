@@ -6,8 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, UserPlus, Mail, Building2, CheckCircle2, XCircle, 
-  Edit, Trash2, Search, Plus, X, Globe2, Eye, EyeOff,
-  RefreshCw, Clock, AlertTriangle
+  Edit, Trash2, Search, Plus, X, Globe2, Eye, EyeOff 
 } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useMembers } from './MembersContext';
@@ -283,25 +282,6 @@ const AdminView = () => {
     }
   };
   
-  // État pour indiquer le chargement des invitations
-  const [loadingInvitations, setLoadingInvitations] = useState(false);
-
-  // Fonction pour renvoyer une invitation
-  const handleResendInvitation = async (invitationId) => {
-    try {
-      setLoadingInvitations(true);
-      await invitationsService.resendInvitation(invitationId);
-      showNotification('Invitation renvoyée avec succès', 'success');
-      await loadData(); // Recharger les données
-    } catch (error) {
-      console.error('Error resending invitation:', error);
-      showNotification('Erreur lors du renvoi de l\'invitation', 'error');
-    } finally {
-      setLoadingInvitations(false);
-    }
-  };
-  
-    
   // Filtrage des données
   const getFilteredData = () => {
     const searchLower = searchTerm.toLowerCase();
@@ -530,18 +510,7 @@ const AdminView = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
-                      onClick={(e) => {
-                        e.preventDefault(); // Empêcher tout comportement par défaut
-                        e.stopPropagation(); // Empêcher la propagation de l'événement
-
-                        console.log('Edit button clicked for member:', member);
-
-                        // Définir l'élément à éditer
-                        setEditingMember({...member}); // Créer une copie pour éviter les références partagées
-
-                        // Ouvrir le formulaire modal
-                        setShowMemberForm(true);
-                      }}
+                      onClick={() => setEditingMember(member)}
                       className="text-indigo-600 hover:text-indigo-900 mr-3"
                     >
                       <Edit className="h-4 w-4" />
@@ -559,99 +528,48 @@ const AdminView = () => {
           </table>
 
       ) : activeTab === 'invitations' ? (
-      // Table des invitations
+        // Table des invitations
       <table className="min-w-full divide-y divide-gray-200 table-fixed">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Email</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Organization</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">Role</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Expires At</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Actions</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Email</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Organization</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Role</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Sent Date</th>
+            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Actions</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {loadingInvitations ? (
-            <tr>
-              <td colSpan="6" className="px-6 py-4 text-center">
-                <div className="flex justify-center items-center">
-                  <RefreshCw className="h-5 w-5 animate-spin text-amber-600 mr-2" />
-                  Loading invitations...
+          {getFilteredData().map((invitation) => (
+            <tr key={invitation.id} className="hover:bg-gray-50">
+              <td className="px-6 py-4 truncate">
+                <div className="text-sm text-gray-900 truncate hover:text-clip hover:overflow-visible" title={invitation.email}>
+                  {invitation.email}
                 </div>
               </td>
-            </tr>
-          ) : getFilteredData().length === 0 ? (
-            <tr>
-              <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
-                No invitations found
+              <td className="px-6 py-4">
+                <div className="text-sm text-gray-900 break-words">
+                  {invitation.organization || 'Unknown'}
+                </div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap">
+                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                  {invitation.role}
+                </span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {invitation.createdAt?.toDate().toLocaleDateString()}
+              </td>
+              <td className="px-6 py-4 text-right text-sm font-medium">
+                <button
+                  onClick={() => handleCancelInvitation(invitation.id)}
+                  className="text-red-600 hover:text-red-900"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </td>
             </tr>
-          ) : (
-            getFilteredData().map((invitation) => {
-              const isExpired = invitation.expiresAt && invitation.expiresAt.toDate() < new Date();
-              return (
-                <tr key={invitation.id} className={`hover:bg-gray-50 ${
-                  isExpired && invitation.status === 'pending' ? 'bg-red-50' : ''
-                }`}>
-                  <td className="px-6 py-4 truncate">
-                    <div className="text-sm text-gray-900 truncate hover:text-clip hover:overflow-visible" title={invitation.email}>
-                      {invitation.email}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 break-words">
-                      {invitation.organization || 'Unknown'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
-                      {invitation.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${
-                      invitation.status === 'accepted' ? 'bg-green-100 text-green-800' : 
-                      isExpired ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {invitation.status === 'accepted' ? (
-                        <CheckCircle2 className="h-3 w-3 mr-1" />
-                      ) : isExpired ? (
-                        <AlertTriangle className="h-3 w-3 mr-1" />
-                      ) : (
-                        <Clock className="h-3 w-3 mr-1" />
-                      )}
-                      {invitation.status === 'accepted' ? 'Accepted' : 
-                       isExpired ? 'Expired' : 'Pending'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {invitation.expiresAt?.toDate().toLocaleDateString()} {invitation.expiresAt?.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium flex justify-end space-x-2">
-                    {invitation.status === 'pending' && (
-                      isExpired ? (
-                        <button
-                          onClick={() => handleResendInvitation(invitation.id)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Resend Invitation"
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </button>
-                      ) : null
-                    )}
-                    <button
-                      onClick={() => handleCancelInvitation(invitation.id)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Cancel Invitation"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              );
-            })
-          )}
+          ))}
         </tbody>
       </table>
       ) : (

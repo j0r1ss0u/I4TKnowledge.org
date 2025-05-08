@@ -121,7 +121,7 @@ const GovernanceView = () => {
     }
   };
 
-   if (!user || (user.role !== 'admin' && user.role !== 'member' && user.role !== 'validator')) {
+  if (!user || (user.role !== 'admin' && user.role !== 'member')) {
     return (
       <div className="p-4 text-center text-gray-600">
         You need to be logged in as a member or administrator to view this page.
