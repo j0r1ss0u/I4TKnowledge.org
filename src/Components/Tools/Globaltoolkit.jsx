@@ -455,30 +455,7 @@ const Globaltoolkit = () => {
           />
         </div>
 
-        {/* Filter by category */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {Object.entries(CATEGORIES).map(([key, { name, headerColor }]) => (
-            <button
-              key={key}
-              onClick={() => handleCategoryClick(key)}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                selectedCategory === key 
-                  ? headerColor + ' text-gray-900' 
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {name}
-            </button>
-          ))}
-          {selectedCategory && (
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className="px-3 py-1 rounded-md text-xs font-medium bg-gray-200 text-gray-700 hover:bg-gray-300"
-            >
-              Reset
-            </button>
-          )}
-        </div>
+
 
         {/* Zoom controls */}
         <div className="flex items-center justify-end gap-2 mb-3">
