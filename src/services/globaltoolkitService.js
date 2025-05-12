@@ -29,7 +29,8 @@ export const globaltoolkitService = {
       const snapshot = await getDocs(q);
 
       return snapshot.docs.map(doc => ({
-        id: doc.id,
+        id: doc.data().id || doc.id,  // Utiliser le champ id s'il existe, sinon l'ID du document
+        docId: doc.id,  // Stocker l'ID du document Firebase
         ...doc.data()
       }));
     } catch (error) {
@@ -53,7 +54,8 @@ export const globaltoolkitService = {
       const snapshot = await getDocs(q);
 
       return snapshot.docs.map(doc => ({
-        id: doc.id,
+        id: doc.data().id || doc.id,  // Utiliser le champ id s'il existe, sinon l'ID du document
+        docId: doc.id,  // Stocker l'ID du document Firebase
         ...doc.data()
       }));
     } catch (error) {
@@ -67,15 +69,34 @@ export const globaltoolkitService = {
    */
   async getElementById(id) {
     try {
-      const docRef = doc(db, COLLECTION_NAME, id);
-      const docSnap = await getDoc(docRef);
+      console.log("Getting element with ID:", id);
 
+      // D'abord, essayons de récupérer directement le document par son ID
+      const docRef = doc(db, COLLECTION_NAME, id);
+      let docSnap = await getDoc(docRef);
+
+      // Si le document n'existe pas avec cet ID, cherchons par le champ 'id'
       if (!docSnap.exists()) {
-        throw new Error(`Element with ID ${id} not found`);
+        console.log(`Document with ID ${id} not found directly, trying to search by 'id' field`);
+
+        const toolkitRef = collection(db, COLLECTION_NAME);
+        const q = query(toolkitRef, where('id', '==', id));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          console.error(`No element found with id field = ${id}`);
+          throw new Error(`Element with ID ${id} not found`);
+        }
+
+        // Utiliser le premier document trouvé
+        docSnap = await getDoc(doc(db, COLLECTION_NAME, snapshot.docs[0].id));
       }
 
+      console.log("Found document:", docSnap.data());
+
       return {
-        id: docSnap.id,
+        id: docSnap.data().id || docSnap.id,
+        docId: docSnap.id,  // Stocker l'ID du document Firebase
         ...docSnap.data()
       };
     } catch (error) {
@@ -100,7 +121,8 @@ export const globaltoolkitService = {
 
       const docRef = await addDoc(toolkitRef, newElement);
       return {
-        id: docRef.id,
+        id: elementData.id || docRef.id,
+        docId: docRef.id,
         ...newElement
       };
     } catch (error) {
@@ -114,9 +136,33 @@ export const globaltoolkitService = {
    */
   async updateElementInfo(id, updateData) {
     try {
-      const docRef = doc(db, COLLECTION_NAME, id);
+      // Identifier le document à mettre à jour
+      let docRefToUpdate;
 
-      await updateDoc(docRef, {
+      // D'abord, essayons de récupérer directement le document par son ID
+      const directDocRef = doc(db, COLLECTION_NAME, id);
+      let docSnap = await getDoc(directDocRef);
+
+      // Si le document n'existe pas avec cet ID, cherchons par le champ 'id'
+      if (!docSnap.exists()) {
+        console.log(`Document with ID ${id} not found directly, trying to search by 'id' field`);
+
+        const toolkitRef = collection(db, COLLECTION_NAME);
+        const q = query(toolkitRef, where('id', '==', id));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          console.error(`No element found with id field = ${id}`);
+          throw new Error(`Element with ID ${id} not found`);
+        }
+
+        // Utiliser le premier document trouvé
+        docRefToUpdate = doc(db, COLLECTION_NAME, snapshot.docs[0].id);
+      } else {
+        docRefToUpdate = directDocRef;
+      }
+
+      await updateDoc(docRefToUpdate, {
         ...updateData,
         updatedAt: serverTimestamp()
       });
@@ -136,12 +182,32 @@ export const globaltoolkitService = {
     try {
       console.log("Adding example to element", id, exampleData);
 
-      const docRef = doc(db, COLLECTION_NAME, id);
-      const docSnap = await getDoc(docRef);
+      // Identifier le document à mettre à jour
+      let docRefToUpdate;
+      let docSnap;
 
+      // D'abord, essayons de récupérer directement le document par son ID
+      const directDocRef = doc(db, COLLECTION_NAME, id);
+      docSnap = await getDoc(directDocRef);
+
+      // Si le document n'existe pas avec cet ID, cherchons par le champ 'id'
       if (!docSnap.exists()) {
-        console.error(`Element with ID ${id} not found`);
-        throw new Error(`Element with ID ${id} not found`);
+        console.log(`Document with ID ${id} not found directly, trying to search by 'id' field`);
+
+        const toolkitRef = collection(db, COLLECTION_NAME);
+        const q = query(toolkitRef, where('id', '==', id));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          console.error(`No element found with id field = ${id}`);
+          throw new Error(`Element with ID ${id} not found`);
+        }
+
+        // Utiliser le premier document trouvé
+        docRefToUpdate = doc(db, COLLECTION_NAME, snapshot.docs[0].id);
+        docSnap = await getDoc(docRefToUpdate);
+      } else {
+        docRefToUpdate = directDocRef;
       }
 
       const currentData = docSnap.data();
@@ -160,8 +226,9 @@ export const globaltoolkitService = {
       const updatedExamples = [...examples, newExample];
 
       console.log("Updated examples array:", updatedExamples);
+      console.log("Updating document with ref:", docRefToUpdate.id);
 
-      await updateDoc(docRef, {
+      await updateDoc(docRefToUpdate, {
         examples: updatedExamples,
         updatedAt: serverTimestamp()
       });
@@ -181,11 +248,32 @@ export const globaltoolkitService = {
     try {
       console.log("Deleting example", { elementId, exampleId, userId, userRole });
 
-      const docRef = doc(db, COLLECTION_NAME, elementId);
-      const docSnap = await getDoc(docRef);
+      // Identifier le document à mettre à jour
+      let docRefToUpdate;
+      let docSnap;
 
+      // D'abord, essayons de récupérer directement le document par son ID
+      const directDocRef = doc(db, COLLECTION_NAME, elementId);
+      docSnap = await getDoc(directDocRef);
+
+      // Si le document n'existe pas avec cet ID, cherchons par le champ 'id'
       if (!docSnap.exists()) {
-        throw new Error(`Element with ID ${elementId} not found`);
+        console.log(`Document with ID ${elementId} not found directly, trying to search by 'id' field`);
+
+        const toolkitRef = collection(db, COLLECTION_NAME);
+        const q = query(toolkitRef, where('id', '==', elementId));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          console.error(`No element found with id field = ${elementId}`);
+          throw new Error(`Element with ID ${elementId} not found`);
+        }
+
+        // Utiliser le premier document trouvé
+        docRefToUpdate = doc(db, COLLECTION_NAME, snapshot.docs[0].id);
+        docSnap = await getDoc(docRefToUpdate);
+      } else {
+        docRefToUpdate = directDocRef;
       }
 
       const currentData = docSnap.data();
@@ -213,7 +301,7 @@ export const globaltoolkitService = {
       // Supprimer l'exemple
       examples.splice(exampleIndex, 1);
 
-      await updateDoc(docRef, {
+      await updateDoc(docRefToUpdate, {
         examples: examples,
         updatedAt: serverTimestamp()
       });
@@ -231,7 +319,33 @@ export const globaltoolkitService = {
    */
   async deleteElement(id) {
     try {
-      await deleteDoc(doc(db, COLLECTION_NAME, id));
+      // Identifier le document à supprimer
+      let docRefToDelete;
+
+      // D'abord, essayons de récupérer directement le document par son ID
+      const directDocRef = doc(db, COLLECTION_NAME, id);
+      let docSnap = await getDoc(directDocRef);
+
+      // Si le document n'existe pas avec cet ID, cherchons par le champ 'id'
+      if (!docSnap.exists()) {
+        console.log(`Document with ID ${id} not found directly, trying to search by 'id' field`);
+
+        const toolkitRef = collection(db, COLLECTION_NAME);
+        const q = query(toolkitRef, where('id', '==', id));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          console.error(`No element found with id field = ${id}`);
+          throw new Error(`Element with ID ${id} not found`);
+        }
+
+        // Utiliser le premier document trouvé
+        docRefToDelete = doc(db, COLLECTION_NAME, snapshot.docs[0].id);
+      } else {
+        docRefToDelete = directDocRef;
+      }
+
+      await deleteDoc(docRefToDelete);
       return true;
     } catch (error) {
       console.error(`Error deleting element with ID ${id}:`, error);
