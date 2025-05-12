@@ -56,6 +56,7 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
     { id: "library", label: "Library", public: true },
     { id: "press-releases", label: "Press Releases", public: true },
     { id: "forum", label: "Forum", requiredRole: 'member' },
+    { id: "tools", label: "Tools", requiredRole: 'admin' }, // Nouvel élément de navigation
     { id: "chat", label: "Chat", requiredRole: 'admin' }
   ];
 

@@ -47,6 +47,7 @@ import FinalizeInvitation from './Components/Members/FinalizeInvitation';
 import Pressrelease from "./Components/About/Pressrelease";
 import { LoginForm } from "./Components/AuthContext";
 import ForgotPassword from "./Components/Members/ForgotPassword";
+import ToolsPage from "./Components/Tools/ToolsPage"; // Nouvel import
 
 // ================ QUERY CLIENT CONFIGURATION ================
 const queryClient = new QueryClient({
@@ -70,7 +71,8 @@ const VALID_PAGES = [
   'finalize-invitation',
   'reset-password',
   'register',
-  'global-toolkit' // Ajout de l'onglet Global Toolkit Methodology
+  'tools', // Nouvelle page "Tools"
+  'global-toolkit' // On garde pour compatibilité
 ];
 
 // ================ REGISTER COMPONENT ================
@@ -607,6 +609,7 @@ function AppContent() {
             />
           )}
           {currentPage === "about" && <AboutPage currentLang={currentLang} />}
+          {currentPage === "tools" && <ToolsPage currentLang={currentLang} />}
 
           {currentPage === "register" && (
             <div className="container mx-auto max-w-md p-6">
@@ -654,7 +657,6 @@ function AppContent() {
             </>
           )}
           {currentPage === "forum" && <ProtectedForumPage currentLang={currentLang} />}
-          {/* Même si global-toolkit est dans VALID_PAGES, cette page sera accessible via l'onglet dans AboutPage */}
         </main>
       </div>
 
