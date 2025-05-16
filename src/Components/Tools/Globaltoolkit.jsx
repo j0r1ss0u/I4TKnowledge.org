@@ -1,8 +1,18 @@
+// =================================================================
+// GlobalToolkit.jsx - Partie 1/2
+// Composant principal pour le tableau périodique de régulation des plateformes
+// Inclut la configuration, les états et les gestionnaires d'événements
+// =================================================================
+
 import React, { useState, useEffect, useRef } from 'react';
 import { globaltoolkitService } from '../../services/globaltoolkitService';
 import { useAuth } from '../AuthContext';
+import ResolutionPath from './ResolutionPath'; // Importation du composant ResolutionPath
 
-// Définition des catégories basée sur la version précédente
+// =================================================================
+// SECTION 1: CONFIGURATION DES CATÉGORIES
+// =================================================================
+
 const CATEGORIES = {
   INSTITUTIONAL: { 
     name: 'Institutional framework', 
@@ -42,14 +52,24 @@ const CATEGORIES = {
   }
 };
 
+// =================================================================
+// SECTION 2: COMPOSANT PRINCIPAL
+// =================================================================
+
 const Globaltoolkit = () => {
-  // ===== STATE HOOKS =====
+  // =================================================================
+  // SECTION 3: ÉTATS (STATE HOOKS)
+  // =================================================================
+
+  // États pour les éléments et la recherche
   const [elements, setElements] = useState([]);
   const [selectedElement, setSelectedElement] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // États pour l'édition des éléments
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({});
   const [newExample, setNewExample] = useState('');
@@ -57,7 +77,7 @@ const Globaltoolkit = () => {
   const [newExampleTitle, setNewExampleTitle] = useState('');
   const [expandedExampleId, setExpandedExampleId] = useState(null);
 
-  // ===== ENHANCED ZOOM & PAN STATE =====
+  // États pour le zoom et le déplacement
   const [scale, setScale] = useState(1);
   const tableContainerRef = useRef(null);
   const tablePanZoomRef = useRef(null);
@@ -65,19 +85,23 @@ const Globaltoolkit = () => {
   const lastMousePosition = useRef({ x: 0, y: 0 });
   const transform = useRef({ x: 0, y: 0, scale: 1 });
 
-  // ===== AUTH HOOK =====
+  // =================================================================
+  // SECTION 4: AUTHENTIFICATION ET PERMISSIONS
+  // =================================================================
+
+  // Hook d'authentification
   const { user } = useAuth();
   const isAdmin = user && (user.role === 'admin' || user.email === 'admin@i4tk.org' || user.email === 'joris.galea@i4tknowledge.net');
 
-  // ===== EFFECTS =====
+  // =================================================================
+  // SECTION 5: EFFETS (EFFECTS)
+  // =================================================================
+
   // Chargement initial des données
   useEffect(() => {
     const fetchElements = async () => {
       try {
         setLoading(true);
-
-        // Si la collection est vide, initialiser avec les données par défaut
-        // await globaltoolkitService.initializeDefaultData(DEFAULT_ELEMENTS);
 
         // Récupérer tous les éléments
         const fetchedElements = await globaltoolkitService.getAllElements();
@@ -94,7 +118,7 @@ const Globaltoolkit = () => {
     fetchElements();
   }, []);
 
-  // ===== WHEEL ZOOM EFFECT =====
+  // Effet pour le zoom avec la molette de la souris
   useEffect(() => {
     const handleWheel = (e) => {
       if (!tableContainerRef.current || !tablePanZoomRef.current) return;
@@ -145,7 +169,11 @@ const Globaltoolkit = () => {
     };
   }, []);
 
-  // ===== PAN HANDLERS =====
+  // =================================================================
+  // SECTION 6: GESTIONNAIRES POUR LE ZOOM ET LE DÉPLACEMENT
+  // =================================================================
+
+  // Gestionnaire pour le début du déplacement
   const handleMouseDown = (e) => {
     // Only start panning on middle mouse button (wheel) or with Alt/Option key
     if (e.button === 1 || e.altKey) {
@@ -160,6 +188,7 @@ const Globaltoolkit = () => {
     }
   };
 
+  // Gestionnaire pour le déplacement
   const handleMouseMove = (e) => {
     if (isPanning.current) {
       const dx = e.clientX - lastMousePosition.current.x;
@@ -174,6 +203,7 @@ const Globaltoolkit = () => {
     }
   };
 
+  // Gestionnaire pour la fin du déplacement
   const handleMouseUp = () => {
     if (isPanning.current) {
       isPanning.current = false;
@@ -185,7 +215,7 @@ const Globaltoolkit = () => {
     }
   };
 
-  // Apply transform to the element
+  // Appliquer la transformation
   const updateTransform = () => {
     if (tablePanZoomRef.current) {
       tablePanZoomRef.current.style.transform = 
@@ -193,14 +223,14 @@ const Globaltoolkit = () => {
     }
   };
 
-  // Reset zoom and position
+  // Réinitialiser la vue
   const resetView = () => {
     transform.current = { x: 0, y: 0, scale: 1 };
     updateTransform();
     setScale(1);
   };
 
-  // Zoom in
+  // Zoom avant
   const zoomIn = () => {
     const newScale = Math.min(transform.current.scale + 0.1, 2);
     transform.current.scale = newScale;
@@ -208,7 +238,7 @@ const Globaltoolkit = () => {
     setScale(newScale);
   };
 
-  // Zoom out
+  // Zoom arrière
   const zoomOut = () => {
     const newScale = Math.max(transform.current.scale - 0.1, 0.5);
     transform.current.scale = newScale;
@@ -216,7 +246,11 @@ const Globaltoolkit = () => {
     setScale(newScale);
   };
 
-  // ===== FILTER FUNCTIONS =====
+  // =================================================================
+  // SECTION 7: FILTRAGE DES ÉLÉMENTS
+  // =================================================================
+
+  // Filtre les éléments en fonction de la recherche et de la catégorie
   const filteredElements = elements.filter(element => {
     const matchesSearch = 
       element.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -226,7 +260,11 @@ const Globaltoolkit = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // ===== HANDLERS =====
+  // =================================================================
+  // SECTION 8: GESTIONNAIRES D'ÉVÉNEMENTS
+  // =================================================================
+
+  // Gestionnaire pour le clic sur un élément
   const handleElementClick = (element) => {
     if (isPanning.current) return; // Don't select elements while panning
 
@@ -244,6 +282,7 @@ const Globaltoolkit = () => {
     setExpandedExampleId(null);
   };
 
+  // Gestionnaire pour fermer les détails d'un élément
   const handleCloseDetail = () => {
     setSelectedElement(null);
     setEditMode(false);
@@ -254,14 +293,17 @@ const Globaltoolkit = () => {
     setExpandedExampleId(null);
   };
 
+  // Gestionnaire pour le clic sur une catégorie
   const handleCategoryClick = (category) => {
     setSelectedCategory(category === selectedCategory ? null : category);
   };
 
+  // Gestionnaire pour activer/désactiver le mode édition
   const handleEditToggle = () => {
     setEditMode(!editMode);
   };
 
+  // Gestionnaire pour les changements dans le formulaire
   const handleFormChange = (e) => {
     setFormData({
       ...formData,
@@ -269,6 +311,11 @@ const Globaltoolkit = () => {
     });
   };
 
+  // =================================================================
+  // SECTION 9: GESTIONNAIRES POUR L'ÉDITION DES ÉLÉMENTS
+  // =================================================================
+
+  // Gestionnaire pour sauvegarder un élément
   const handleSaveElement = async () => {
     try {
       setLoading(true);
@@ -300,6 +347,7 @@ const Globaltoolkit = () => {
     }
   };
 
+  // Gestionnaire pour ajouter un exemple
   const handleAddExample = async () => {
     if (!newExample.trim() || !newExampleTitle.trim()) return;
 
@@ -342,6 +390,7 @@ const Globaltoolkit = () => {
     }
   };
 
+  // Gestionnaire pour supprimer un exemple
   const handleDeleteExample = async (exampleId) => {
     try {
       setLoading(true);
@@ -390,28 +439,9 @@ const Globaltoolkit = () => {
     }
   };
 
-  // ===== RENDER =====
-  if (loading && elements.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error && elements.length === 0) {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        <p>{error}</p>
-        <button 
-          className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
+  // =================================================================
+  // SECTION 10: ORGANISATION DES ÉLÉMENTS
+  // =================================================================
 
   // Organisation des éléments par colonne et catégorie
   const organizeElementsByCategory = () => {
@@ -434,374 +464,440 @@ const Globaltoolkit = () => {
 
   const organizedElements = organizeElementsByCategory();
 
-  return (
-    <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-4">Periodic Table of Platform Regulation</h2>
-        <p className="text-gray-700 mb-6">
-          The Periodic Table of Platform Regulation is a visual tool that organizes the key elements
-          of digital platform governance. Inspired by the periodic table of chemical elements,
-          it allows you to explore and understand the different dimensions of platform regulation.
-        </p>
+  // =================================================================
+  // SECTION 11: AFFICHAGE DES ÉTATS DE CHARGEMENT ET D'ERREUR
+  // =================================================================
 
-        {/* Search bar */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search for an element..."
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-
-
-        {/* Zoom controls */}
-        <div className="flex items-center justify-end gap-2 mb-3">
-          <button
-            onClick={zoomOut}
-            className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-            title="Zoom Out"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M3 10h12" />
-            </svg>
-          </button>
-          <span className="text-xs text-gray-700 min-w-[40px] text-center">{Math.round(scale * 100)}%</span>
-          <button
-            onClick={zoomIn}
-            className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-            title="Zoom In"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M12 10V6m0 4v4m0-4h6m-6 0H6" />
-            </svg>
-          </button>
-          <button
-            onClick={resetView}
-            className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-            title="Reset View"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="text-xs text-gray-500 mb-3 text-center">
-          Scroll to zoom • Hold Alt/Option + drag to pan • Double-click to reset view
-        </div>
+  // Affichage pendant le chargement
+  if (loading && elements.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
+    );
+  }
 
-      {/* Interactive Periodic Table - Free-floating without fixed container */}
-      <div 
-        className="mb-8 overflow-hidden"
-        ref={tableContainerRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onDoubleClick={resetView}
-        style={{ minHeight: '500px' }}
-      >
-        <div 
-          ref={tablePanZoomRef}
-          className="origin-center"
-          style={{ 
-            transformOrigin: 'center center',
-            transition: 'transform 0.05s ease-out'
-          }}
+  // Affichage en cas d'erreur
+  if (error && elements.length === 0) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <p>{error}</p>
+        <button 
+          className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => window.location.reload()}
         >
-          {/* Table content with category headers and cells */}
-          <div className="grid grid-cols-6 gap-1">
-            {/* Render elements by category in columns */}
-            {Object.entries(CATEGORIES).map(([categoryKey, category], colIndex) => (
-              <div key={categoryKey} className="flex flex-col gap-1">
+          Retry
+        </button>
+      </div>
+    );
+  }
 
-                {/* Category header */}
-                <div 
-                  className={`${CATEGORIES[categoryKey].color} border ${CATEGORIES[categoryKey].borderColor} 
-                             rounded-md p-3 flex flex-col items-center justify-center
-                             text-center font-semibold text-sm h-20`}
-                >
-                  {category.name}
-                </div>
+  // =================================================================
+  // GlobalToolkit.jsx - Partie 2/2
+  // Rendu du composant (JSX)
+  // Cette partie contient tout le JSX pour le rendu de l'interface utilisateur
+  // =================================================================
 
-                {/* Elements in this category */}
-                {organizedElements[categoryKey].map((element, rowIndex) => (
-                  <button
-                    key={element.id}
-                    onClick={() => handleElementClick(element)}
-                    className={`${CATEGORIES[element.category].color} border ${CATEGORIES[element.category].borderColor} 
-                              rounded-md p-3 flex flex-col items-center justify-center h-24 transition-transform 
-                              hover:scale-105 hover:shadow-md text-center`}
-                  >
-                    <span className="font-mono text-lg font-bold mb-1">{element.id}</span>
-                    <span className="text-xs line-clamp-2">{element.name}</span>
-                  </button>
-                ))}
-              </div>
-            ))}
+    // =================================================================
+    // SECTION 12: RENDU DU COMPOSANT
+    // =================================================================
+
+    // Rendu principal du composant
+    return (
+      <div className="bg-white rounded-lg shadow-lg p-4 md:p-6">
+        {/* =================================================================
+            SECTION 13: EN-TÊTE ET CONTRÔLES
+            ================================================================= */}
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold mb-4">Periodic Table of Platform Regulation</h2>
+          <p className="text-gray-700 mb-6">
+            The Periodic Table of Platform Regulation is a visual tool that organizes the key elements
+            of digital platform governance. Inspired by the periodic table of chemical elements,
+            it allows you to explore and understand the different dimensions of platform regulation.
+          </p>
+
+          {/* Barre de recherche */}
+          <div className="mb-6">
+            <input
+              type="text"
+              placeholder="Search for an element..."
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Contrôles de zoom */}
+          <div className="flex items-center justify-end gap-2 mb-3">
+            <button
+              onClick={zoomOut}
+              className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
+              title="Zoom Out"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M3 10h12" />
+              </svg>
+            </button>
+            <span className="text-xs text-gray-700 min-w-[40px] text-center">{Math.round(scale * 100)}%</span>
+            <button
+              onClick={zoomIn}
+              className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
+              title="Zoom In"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M12 10V6m0 4v4m0-4h6m-6 0H6" />
+              </svg>
+            </button>
+            <button
+              onClick={resetView}
+              className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
+              title="Reset View"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="text-xs text-gray-500 mb-3 text-center">
+            Scroll to zoom • Hold Alt/Option + drag to pan • Double-click to reset view
           </div>
         </div>
-      </div>
 
-      {/* Element detail modal */}
-      {selectedElement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex-grow">
-                  {editMode && isAdmin ? (
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleFormChange}
-                      className="text-2xl font-bold w-full p-1 border rounded mb-1"
-                    />
-                  ) : (
-                    <h3 className="text-2xl font-bold">{selectedElement.name}</h3>
-                  )}
-                  <p className="text-sm text-gray-600">
-                    {editMode && isAdmin ? (
-                      <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleFormChange}
-                        className="p-1 border rounded"
-                      >
-                        {Object.entries(CATEGORIES).map(([key, { name }]) => (
-                          <option key={key} value={key}>{name}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      CATEGORIES[selectedElement.category].name
-                    )}
-                  </p>
-                </div>
+        {/* =================================================================
+            SECTION 14: TABLEAU PÉRIODIQUE INTERACTIF
+            ================================================================= */}
+        <div 
+          className="mb-8 overflow-hidden"
+          ref={tableContainerRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+          onDoubleClick={resetView}
+          style={{ minHeight: '500px' }}
+        >
+          <div 
+            ref={tablePanZoomRef}
+            className="origin-center"
+            style={{ 
+              transformOrigin: 'center center',
+              transition: 'transform 0.05s ease-out'
+            }}
+          >
+            {/* Table content with category headers and cells */}
+            <div className="grid grid-cols-6 gap-1">
+              {/* Render elements by category in columns */}
+              {Object.entries(CATEGORIES).map(([categoryKey, category], colIndex) => (
+                <div key={categoryKey} className="flex flex-col gap-1">
 
-                <div className="flex space-x-2">
-                  {isAdmin && (
-                    <button
-                      onClick={handleEditToggle}
-                      className="text-blue-500 hover:text-blue-700"
-                    >
-                      {editMode ? 'Cancel' : 'Edit'}
-                    </button>
-                  )}
-
-                  <button
-                    onClick={handleCloseDetail}
-                    className="text-gray-500 hover:text-gray-700"
+                  {/* Category header */}
+                  <div 
+                    className={`${CATEGORIES[categoryKey].color} border ${CATEGORIES[categoryKey].borderColor} 
+                               rounded-md p-3 flex flex-col items-center justify-center
+                               text-center font-semibold text-sm h-20`}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <div className={`w-full h-2 rounded-full ${CATEGORIES[selectedElement.category].headerColor} mb-4`}></div>
-
-              {/* Description section */}
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2">Description</h4>
-                {editMode && isAdmin ? (
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleFormChange}
-                    className="w-full p-2 border rounded min-h-[80px]"
-                  />
-                ) : (
-                  <p className="text-gray-700">{selectedElement.description}</p>
-                )}
-              </div>
-
-              {/* Context section */}
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2">Context</h4>
-                {editMode && isAdmin ? (
-                  <textarea
-                    name="context"
-                    value={formData.context}
-                    onChange={handleFormChange}
-                    className="w-full p-2 border rounded min-h-[80px]"
-                  />
-                ) : (
-                  <p className="text-gray-700">{selectedElement.context || 'No context provided'}</p>
-                )}
-              </div>
-
-              {/* Application Examples section */}
-              <div className="mb-4">
-                <h4 className="font-semibold mb-2">Application Examples</h4>
-
-                {/* List of existing examples */}
-                {selectedElement.examples && selectedElement.examples.length > 0 ? (
-                  <ul className="divide-y divide-gray-200">
-                    {selectedElement.examples.map((example, index) => (
-                      <li key={example.id || index} className="py-3">
-                        <div className="flex flex-col">
-                          <div 
-                            className="flex items-center justify-between cursor-pointer"
-                            onClick={() => toggleExampleExpansion(example.id)}
-                          >
-                            <h5 className="font-medium">
-                              {example.title || 'Example'}
-
-                              {/* Icône pour indiquer l'expansion */}
-                              <span className="inline-block ml-2 transform transition-transform">
-                                {expandedExampleId === example.id ? (
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                  </svg>
-                                ) : (
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                  </svg>
-                                )}
-                              </span>
-                            </h5>
-
-                            {/* Delete button (admin only or author) */}
-                            {canDeleteExample(example) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Éviter de déclencher le toggleExampleExpansion
-                                  handleDeleteExample(example.id);
-                                }}
-                                className="text-red-500 hover:text-red-700 ml-2"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Contenu de l'exemple (visible uniquement lorsqu'il est développé) */}
-                          {expandedExampleId === example.id && (
-                            <div className="mt-2 pl-2 border-l-2 border-gray-200">
-                              <div className="text-gray-700 mb-2">
-                                {example.text}
-                              </div>
-
-                              {example.url && (
-                                <div className="mb-2">
-                                  <a 
-                                    href={example.url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-blue-500 hover:underline text-sm"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    Source: {example.url}
-                                  </a>
-                                </div>
-                              )}
-
-                              {example.userName && (
-                                <div className="text-xs text-gray-500">
-                                  Contributed by: {example.userName}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500 italic mb-4">No examples provided yet.</p>
-                )}
-
-                {/* Add new example form (for authenticated users) */}
-                {user && (
-                  <div className="mt-4 border-t pt-4">
-                    <h5 className="font-medium mb-2">Add new example</h5>
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm text-gray-600 mb-1">Title</label>
-                        <input
-                          type="text"
-                          value={newExampleTitle}
-                          onChange={(e) => setNewExampleTitle(e.target.value)}
-                          className="w-full p-2 border rounded"
-                          placeholder="Brief title for your example"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm text-gray-600 mb-1">Description</label>
-                        <textarea
-                          value={newExample}
-                          onChange={(e) => setNewExample(e.target.value)}
-                          className="w-full p-2 border rounded"
-                          rows="3"
-                          placeholder="Describe a real-world application example..."
-                        ></textarea>
-                      </div>
-                      <div>
-                        <label className="block text-sm text-gray-600 mb-1">Reference URL (optional)</label>
-                        <input
-                          type="url"
-                          value={newExampleUrl}
-                          onChange={(e) => setNewExampleUrl(e.target.value)}
-                          className="w-full p-2 border rounded"
-                          placeholder="https://example.com/reference"
-                        />
-                      </div>
-                      <button
-                        onClick={handleAddExample}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                        disabled={!newExample.trim() || !newExampleTitle.trim()}
-                      >
-                        Add Example
-                      </button>
-                    </div>
+                    {category.name}
                   </div>
-                )}
-              </div>
 
-              {/* Save button for admin edit mode */}
-              {editMode && isAdmin && (
-                <div className="flex justify-end mt-6">
-                  <button
-                    onClick={handleSaveElement}
-                    className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
-                  >
-                    Save Changes
-                  </button>
+                  {/* Elements in this category */}
+                  {organizedElements[categoryKey].map((element, rowIndex) => (
+                    <button
+                      key={element.id}
+                      onClick={() => handleElementClick(element)}
+                      draggable={true}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', element.id);
+                        e.dataTransfer.effectAllowed = 'copy';
+                      }}
+                      className={`${CATEGORIES[element.category].color} border ${CATEGORIES[element.category].borderColor} 
+                                rounded-md p-3 flex flex-col items-center justify-center h-24 transition-transform 
+                                hover:scale-105 hover:shadow-md text-center`}
+                    >
+                      <span className="font-mono text-lg font-bold mb-1">{element.id}</span>
+                      <span className="text-xs line-clamp-2">{element.name}</span>
+                    </button>
+                  ))}
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
-      )}
 
-      {/* Information and references section */}
-      <div className="mt-12 bg-gray-50 p-6 rounded-lg">
-        <h3 className="text-2xl font-bold mb-4">About this project</h3>
-        <p className="mb-4">
-          This periodic table is a component of the Global Toolkit Methodology, developed to provide a framework for understanding
-          digital platform governance. It is structured around six main categories that cover
-          the essential aspects of platform regulation.
-        </p>
-        <p className="mb-4">
-          This tool allows members of the I4TK network to contribute examples and references to enrich the understanding
-          of each element. The goal is to create a comprehensive knowledge base that helps regulators, policy makers,
-          researchers, and civil society navigate the complexity of digital platform regulation.
-        </p>
-        <p>
-          Developed as part of the I4TKnowledge initiative, this project builds on UNESCO's guidelines
-          for digital platform governance and aims to promote a human rights-based approach.
-        </p>
+        {/* =================================================================
+            SECTION 15: SECTION D'INFORMATION ET RÉFÉRENCES
+            ================================================================= */}
+        <div className="mt-12 bg-gray-50 p-6 rounded-lg">
+          <h3 className="text-2xl font-bold mb-4">About this project</h3>
+          <p className="mb-4">
+            This periodic table is a component of the Global Toolkit Methodology, developed to provide a framework for understanding
+            digital platform governance. It is structured around six main categories that cover
+            the essential aspects of platform regulation.
+          </p>
+          <p className="mb-4">
+            This tool allows members of the I4TK network to contribute examples and references to enrich the understanding
+            of each element. The goal is to create a comprehensive knowledge base that helps regulators, policy makers,
+            researchers, and civil society navigate the complexity of digital platform regulation.
+          </p>
+          <p>
+            Developed as part of the I4TKnowledge initiative, this project builds on UNESCO's guidelines
+            for digital platform governance and aims to promote a human rights-based approach.
+          </p>
+        </div>
+
+        {/* =================================================================
+            SECTION 16: RESOLUTION PATHS
+            ================================================================= */}
+        {/* Resolution Paths section (visible uniquement pour les admins) */}
+        {isAdmin && (
+          <div className="mt-12">
+            <ResolutionPath elements={elements} />
+          </div>
+        )}
+
+        {/* =================================================================
+            SECTION 17: MODAL POUR LES DÉTAILS D'UN ÉLÉMENT
+            ================================================================= */}
+        {selectedElement && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                {/* En-tête du modal */}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-grow">
+                    {editMode && isAdmin ? (
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleFormChange}
+                        className="text-2xl font-bold w-full p-1 border rounded mb-1"
+                      />
+                    ) : (
+                      <h3 className="text-2xl font-bold">{selectedElement.name}</h3>
+                    )}
+                    <p className="text-sm text-gray-600">
+                      {editMode && isAdmin ? (
+                        <select
+                          name="category"
+                          value={formData.category}
+                          onChange={handleFormChange}
+                          className="p-1 border rounded"
+                        >
+                          {Object.entries(CATEGORIES).map(([key, { name }]) => (
+                            <option key={key} value={key}>{name}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        CATEGORIES[selectedElement.category].name
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-2">
+                    {isAdmin && (
+                      <button
+                        onClick={handleEditToggle}
+                        className="text-blue-500 hover:text-blue-700"
+                      >
+                        {editMode ? 'Cancel' : 'Edit'}
+                      </button>
+                    )}
+
+                    <button
+                      onClick={handleCloseDetail}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className={`w-full h-2 rounded-full ${CATEGORIES[selectedElement.category].headerColor} mb-4`}></div>
+
+                {/* Section Description */}
+                <div className="mb-4">
+                  <h4 className="font-semibold mb-2">Description</h4>
+                  {editMode && isAdmin ? (
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleFormChange}
+                      className="w-full p-2 border rounded min-h-[80px]"
+                    />
+                  ) : (
+                    <p className="text-gray-700">{selectedElement.description}</p>
+                  )}
+                </div>
+
+                {/* Section Contexte */}
+                <div className="mb-4">
+                  <h4 className="font-semibold mb-2">Context</h4>
+                  {editMode && isAdmin ? (
+                    <textarea
+                      name="context"
+                      value={formData.context}
+                      onChange={handleFormChange}
+                      className="w-full p-2 border rounded min-h-[80px]"
+                    />
+                  ) : (
+                    <p className="text-gray-700">{selectedElement.context || 'No context provided'}</p>
+                  )}
+                </div>
+
+                {/* Section Exemples d'application */}
+                <div className="mb-4">
+                  <h4 className="font-semibold mb-2">Application Examples</h4>
+
+                  {/* Liste des exemples existants */}
+                  {selectedElement.examples && selectedElement.examples.length > 0 ? (
+                    <ul className="divide-y divide-gray-200">
+                      {selectedElement.examples.map((example, index) => (
+                        <li key={example.id || index} className="py-3">
+                          <div className="flex flex-col">
+                            <div 
+                              className="flex items-center justify-between cursor-pointer"
+                              onClick={() => toggleExampleExpansion(example.id)}
+                            >
+                              <h5 className="font-medium">
+                                {example.title || 'Example'}
+
+                                {/* Icône pour indiquer l'expansion */}
+                                <span className="inline-block ml-2 transform transition-transform">
+                                  {expandedExampleId === example.id ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                    </svg>
+                                  ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  )}
+                                </span>
+                              </h5>
+
+                              {/* Bouton de suppression (admin uniquement ou auteur) */}
+                              {canDeleteExample(example) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // Éviter de déclencher le toggleExampleExpansion
+                                    handleDeleteExample(example.id);
+                                  }}
+                                  className="text-red-500 hover:text-red-700 ml-2"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Contenu de l'exemple (visible uniquement lorsqu'il est développé) */}
+                            {expandedExampleId === example.id && (
+                              <div className="mt-2 pl-2 border-l-2 border-gray-200">
+                                <div className="text-gray-700 mb-2">
+                                  {example.text}
+                                </div>
+
+                                {example.url && (
+                                  <div className="mb-2">
+                                    <a 
+                                      href={example.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-blue-500 hover:underline text-sm"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      Source: {example.url}
+                                    </a>
+                                  </div>
+                                )}
+
+                                {example.userName && (
+                                  <div className="text-xs text-gray-500">
+                                    Contributed by: {example.userName}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 italic mb-4">No examples provided yet.</p>
+                  )}
+
+                  {/* Formulaire d'ajout de nouvel exemple (pour les utilisateurs authentifiés) */}
+                  {user && (
+                    <div className="mt-4 border-t pt-4">
+                      <h5 className="font-medium mb-2">Add new example</h5>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Title</label>
+                          <input
+                            type="text"
+                            value={newExampleTitle}
+                            onChange={(e) => setNewExampleTitle(e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder="Brief title for your example"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Description</label>
+                          <textarea
+                            value={newExample}
+                            onChange={(e) => setNewExample(e.target.value)}
+                            className="w-full p-2 border rounded"
+                            rows="3"
+                            placeholder="Describe a real-world application example..."
+                          ></textarea>
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Reference URL (optional)</label>
+                          <input
+                            type="url"
+                            value={newExampleUrl}
+                            onChange={(e) => setNewExampleUrl(e.target.value)}
+                            className="w-full p-2 border rounded"
+                            placeholder="https://example.com/reference"
+                          />
+                        </div>
+                        <button
+                          onClick={handleAddExample}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                          disabled={!newExample.trim() || !newExampleTitle.trim()}
+                        >
+                          Add Example
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bouton de sauvegarde pour le mode édition admin */}
+                {editMode && isAdmin && (
+                  <div className="flex justify-end mt-6">
+                    <button
+                      onClick={handleSaveElement}
+                      className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-export default Globaltoolkit;
+  // =================================================================
+  // SECTION 18: EXPORTATION DU COMPOSANT
+  // =================================================================
+
+  export default Globaltoolkit;
