@@ -15,8 +15,7 @@ import {
 import { db } from './firebase';
 
 // =============== CONSTANTS ===============
-const COLLECTION_NAME = 'globaltoolkit';
-const SUBCOLLECTION_NAME = 'resolutionPaths';
+const COLLECTION_NAME = 'resolutionPaths';
 
 // =============== RESOLUTION PATH SERVICE ===============
 export const resolutionPathService = {
@@ -25,7 +24,7 @@ export const resolutionPathService = {
    */
   async getAllResolutionPaths() {
     try {
-      const pathsRef = collection(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME);
+      const pathsRef = collection(db, COLLECTION_NAME);
       const snapshot = await getDocs(pathsRef);
 
       // Convertir les documents en objets avec leurs ID
@@ -63,7 +62,7 @@ export const resolutionPathService = {
    */
   async getUserResolutionPaths(userId) {
     try {
-      const pathsRef = collection(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME);
+      const pathsRef = collection(db, COLLECTION_NAME);
       const q = query(
         pathsRef, 
         where('creator.uid', '==', userId),
@@ -107,7 +106,7 @@ export const resolutionPathService = {
    */
   async getResolutionPathById(pathId) {
     try {
-      const pathRef = doc(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME, pathId);
+      const pathRef = doc(db, COLLECTION_NAME, pathId);
       const docSnap = await getDoc(pathRef);
 
       if (!docSnap.exists()) {
@@ -148,21 +147,33 @@ export const resolutionPathService = {
    */
   async createResolutionPath(pathData) {
     try {
-      const pathsRef = collection(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME);
+      console.log("Starting creation of resolution path with data:", JSON.stringify(pathData));
+      const pathsRef = collection(db, COLLECTION_NAME);
+      console.log("Collection reference created:", COLLECTION_NAME);
 
       const newPath = {
-        ...pathData,
+        title: pathData.title || '',  // Valeur par défaut vide
+        description: pathData.description || '',  // Valeur par défaut vide
+        status: pathData.status || 'draft',
+        elements: pathData.elements || [],
+        creator: pathData.creator,
         ratings: {},
         comments: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       };
+      console.log("Prepared new path object:", JSON.stringify(newPath));
 
+      // Tentative d'ajout du document
+      console.log("Attempting to add document to Firestore...");
       const docRef = await addDoc(pathsRef, newPath);
+      console.log("Document added successfully with ID:", docRef.id);
 
-      // Récupérer le document créé pour avoir les timestamps corrects
+      // Récupération du document créé
+      console.log("Fetching newly created document...");
       const newDocSnap = await getDoc(docRef);
       const newDocData = newDocSnap.data();
+      console.log("Retrieved document data:", JSON.stringify(newDocData));
 
       return {
         id: docRef.id,
@@ -172,7 +183,11 @@ export const resolutionPathService = {
         updatedAt: newDocData.updatedAt.toDate()
       };
     } catch (error) {
-      console.error('Error creating resolution path:', error);
+      console.error("Detailed error in createResolutionPath:", error);
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      console.error("Error code:", error.code);
+      console.error("Error stack:", error.stack);
       throw error;
     }
   },
@@ -182,7 +197,7 @@ export const resolutionPathService = {
    */
   async updateResolutionPath(pathId, updateData) {
     try {
-      const pathRef = doc(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME, pathId);
+      const pathRef = doc(db, COLLECTION_NAME, pathId);
 
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
@@ -228,7 +243,7 @@ export const resolutionPathService = {
    */
   async addComment(pathId, commentData) {
     try {
-      const pathRef = doc(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME, pathId);
+      const pathRef = doc(db, COLLECTION_NAME, pathId);
 
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
@@ -271,7 +286,7 @@ export const resolutionPathService = {
         throw new Error('Rating must be an integer between 1 and 5');
       }
 
-      const pathRef = doc(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME, pathId);
+      const pathRef = doc(db, COLLECTION_NAME, pathId);
 
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
@@ -303,7 +318,7 @@ export const resolutionPathService = {
    */
   async deleteResolutionPath(pathId) {
     try {
-      const pathRef = doc(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME, pathId);
+      const pathRef = doc(db, COLLECTION_NAME, pathId);
 
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
@@ -346,7 +361,7 @@ export const resolutionPathService = {
    */
   async getRecentPaths(limit = 5) {
     try {
-      const pathsRef = collection(db, COLLECTION_NAME, 'data', SUBCOLLECTION_NAME);
+      const pathsRef = collection(db, COLLECTION_NAME);
       const q = query(
         pathsRef,
         where('status', '==', 'published'),
