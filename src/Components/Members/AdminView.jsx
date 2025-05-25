@@ -215,6 +215,19 @@ const AdminView = () => {
       }
     }
   };
+
+  const handleResendInvitation = async (invitationId) => {
+    if (window.confirm('Are you sure you want to resend this invitation?')) {
+      try {
+        await invitationsService.resendInvitation(invitationId);
+        showNotification('Invitation resent successfully', 'success');
+        loadData(); // Recharger les données pour mettre à jour la liste
+      } catch (error) {
+        console.error('Error resending invitation:', error);
+        showNotification(error.message || 'Error resending invitation', 'error');
+      }
+    }
+  };
   
   // Gestion des utilisateurs
   const handleUpdateUserRole = async (uid, newRole) => {
@@ -560,13 +573,24 @@ const AdminView = () => {
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {invitation.createdAt?.toDate().toLocaleDateString()}
               </td>
+
               <td className="px-6 py-4 text-right text-sm font-medium">
-                <button
-                  onClick={() => handleCancelInvitation(invitation.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex items-center justify-end space-x-2">
+                  <button
+                    onClick={() => handleResendInvitation(invitation.id)}
+                    className="text-blue-600 hover:text-blue-900"
+                    title="Resend invitation"
+                  >
+                    <Mail className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleCancelInvitation(invitation.id)}
+                    className="text-red-600 hover:text-red-900"
+                    title="Cancel invitation"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
