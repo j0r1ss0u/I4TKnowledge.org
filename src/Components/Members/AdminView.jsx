@@ -216,12 +216,56 @@ const AdminView = () => {
     }
   };
 
+  const getInvitationStatus = (invitation) => {
+    const now = new Date();
+    const expiresAt = invitation.expiresAt?.toDate();
+
+    if (!expiresAt) {
+      return { status: 'unknown', label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
+    }
+
+    if (invitation.status === 'accepted') {
+      return { status: 'accepted', label: 'Accepted', color: 'bg-green-100 text-green-800' };
+    }
+
+    if (invitation.status === 'expired' || expiresAt < now) {
+      return { status: 'expired', label: 'Expired', color: 'bg-red-100 text-red-800' };
+    }
+
+    // Vérifier si l'invitation expire bientôt (dans moins de 24h)
+    const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    if (expiresAt < twentyFourHoursFromNow) {
+      return { status: 'expiring', label: 'Expiring Soon', color: 'bg-yellow-100 text-yellow-800' };
+    }
+
+    return { status: 'active', label: 'Active', color: 'bg-blue-100 text-blue-800' };
+  };
+
+  const formatExpirationDate = (invitation) => {
+    const expiresAt = invitation.expiresAt?.toDate();
+    if (!expiresAt) return 'N/A';
+
+    const now = new Date();
+    const diffTime = expiresAt - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+      return `Expired ${Math.abs(diffDays)} day${Math.abs(diffDays) > 1 ? 's' : ''} ago`;
+    } else if (diffDays === 0) {
+      return 'Expires today';
+    } else if (diffDays === 1) {
+      return 'Expires tomorrow';
+    } else {
+      return `Expires in ${diffDays} days`;
+    }
+  };
+
   const handleResendInvitation = async (invitationId) => {
     if (window.confirm('Are you sure you want to resend this invitation?')) {
       try {
         await invitationsService.resendInvitation(invitationId);
         showNotification('Invitation resent successfully', 'success');
-        loadData(); // Recharger les données pour mettre à jour la liste
+        loadData();
       } catch (error) {
         console.error('Error resending invitation:', error);
         showNotification(error.message || 'Error resending invitation', 'error');
@@ -545,55 +589,70 @@ const AdminView = () => {
       <table className="min-w-full divide-y divide-gray-200 table-fixed">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Email</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Organization</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Role</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Sent Date</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Email</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Organization</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">Role</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Expiration</th>
             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Actions</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {getFilteredData().map((invitation) => (
-            <tr key={invitation.id} className="hover:bg-gray-50">
-              <td className="px-6 py-4 truncate">
-                <div className="text-sm text-gray-900 truncate hover:text-clip hover:overflow-visible" title={invitation.email}>
-                  {invitation.email}
-                </div>
-              </td>
-              <td className="px-6 py-4">
-                <div className="text-sm text-gray-900 break-words">
-                  {invitation.organization || 'Unknown'}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
-                  {invitation.role}
-                </span>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {invitation.createdAt?.toDate().toLocaleDateString()}
-              </td>
-
-              <td className="px-6 py-4 text-right text-sm font-medium">
-                <div className="flex items-center justify-end space-x-2">
-                  <button
-                    onClick={() => handleResendInvitation(invitation.id)}
-                    className="text-blue-600 hover:text-blue-900"
-                    title="Resend invitation"
-                  >
-                    <Mail className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleCancelInvitation(invitation.id)}
-                    className="text-red-600 hover:text-red-900"
-                    title="Cancel invitation"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {getFilteredData().map((invitation) => {
+            const invitationStatus = getInvitationStatus(invitation);
+            return (
+              <tr key={invitation.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 truncate">
+                  <div className="text-sm text-gray-900 truncate hover:text-clip hover:overflow-visible" title={invitation.email}>
+                    {invitation.email}
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900 break-words">
+                    {invitation.organization || 'Unknown'}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                    {invitation.role}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invitationStatus.color}`}>
+                    {invitationStatus.label}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex flex-col">
+                    <span>{invitation.createdAt?.toDate().toLocaleDateString()}</span>
+                    <span className={`text-xs ${invitationStatus.status === 'expired' ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
+                      {formatExpirationDate(invitation)}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-right text-sm font-medium">
+                  <div className="flex items-center justify-end space-x-2">
+                    {invitationStatus.status !== 'accepted' && (
+                      <button
+                        onClick={() => handleResendInvitation(invitation.id)}
+                        className="text-blue-600 hover:text-blue-900"
+                        title="Resend invitation"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleCancelInvitation(invitation.id)}
+                      className="text-red-600 hover:text-red-900"
+                      title="Cancel invitation"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       ) : (
