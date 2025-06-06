@@ -519,196 +519,236 @@ const AdminView = () => {
         </div>
       </div>
 
-      {/* Contenu principal */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {activeTab === 'organizations' ? (
-          // Table des organisations
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Website</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visibility</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {getFilteredData().map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    {member.name}
-                    {member.fullName && (
-                      <span className="block text-sm text-gray-500">{member.fullName}</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">{member.city}, {member.country}</td>
-                  <td className="px-6 py-4">{member.category}</td>
-                  <td className="px-6 py-4">
-                    {member.website && (
-                      <a 
-                        href={`https://${member.website}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        {member.website}
-                      </a>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleVisibilityToggle(member.id)}
-                      className={`p-1 rounded ${member.isVisible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
-                    >
-                      {member.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => setEditingMember(member)}
-                      className="text-indigo-600 hover:text-indigo-900 mr-3"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMember(member.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        {/* Contenu principal */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            {activeTab === 'organizations' ? (
+              // Table des organisations
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Name</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Location</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Category</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Website</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Visibility</th>
+                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {getFilteredData().map((member) => (
+                    <tr key={member.id} className="hover:bg-gray-50">
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="min-w-[150px]">
+                          <div className="text-sm font-medium text-gray-900">{member.name}</div>
+                          {member.fullName && (
+                            <div className="text-sm text-gray-500">{member.fullName}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="min-w-[120px] text-sm text-gray-900">
+                          {member.city}, {member.country}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="min-w-[100px] text-sm text-gray-900">
+                          {member.category}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="min-w-[120px]">
+                          {member.website && (
+                            <a 
+                              href={`https://${member.website}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-sm truncate block"
+                              title={member.website}
+                            >
+                              {member.website}
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="min-w-[80px] flex justify-center">
+                          <button
+                            onClick={() => handleVisibilityToggle(member.id)}
+                            className={`p-1 rounded ${member.isVisible ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+                          >
+                            {member.isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="min-w-[100px] flex justify-end space-x-2">
+                          <button
+                            onClick={() => setEditingMember(member)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                            title="Edit organization"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMember(member.id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete organization"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-      ) : activeTab === 'invitations' ? (
-        // Table des invitations
-      <table className="min-w-full divide-y divide-gray-200 table-fixed">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Email</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Organization</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">Role</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Status</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Expiration</th>
-            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {getFilteredData().map((invitation) => {
-            const invitationStatus = getInvitationStatus(invitation);
-            return (
-              <tr key={invitation.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 truncate">
-                  <div className="text-sm text-gray-900 truncate hover:text-clip hover:overflow-visible" title={invitation.email}>
-                    {invitation.email}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900 break-words">
-                    {invitation.organization || 'Unknown'}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
-                    {invitation.role}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invitationStatus.color}`}>
-                    {invitationStatus.label}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div className="flex flex-col">
-                    <span>{invitation.createdAt?.toDate().toLocaleDateString()}</span>
-                    <span className={`text-xs ${invitationStatus.status === 'expired' ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
-                      {formatExpirationDate(invitation)}
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    {invitationStatus.status !== 'accepted' && (
-                      <button
-                        onClick={() => handleResendInvitation(invitation.id)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Resend invitation"
-                      >
-                        <Mail className="h-4 w-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleCancelInvitation(invitation.id)}
-                      className="text-red-600 hover:text-red-900"
-                      title="Cancel invitation"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      ) : (
-          // Table des utilisateurs
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loadingUsers ? (
-                <tr>
-                  <td colSpan="4" className="px-6 py-4 text-center">Loading users...</td>
-                </tr>
-              ) : getFilteredData().map((user) => (
-                <tr key={user.uid} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <select
-                      value={user.role}
-                      onChange={(e) => handleUpdateUserRole(user.uid, e.target.value)}
-                      className="text-sm text-gray-900 border border-gray-300 rounded px-2 py-1"
-                    >
-                      <option value="member">Member</option>
-                      <option value="validator">Organization Validator</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleDeleteUser(user.uid)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ) : activeTab === 'invitations' ? (
+              // Table des invitations
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">Email</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Organization</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Role</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Status</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">Expiration</th>
+                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {getFilteredData().map((invitation) => {
+                    const invitationStatus = getInvitationStatus(invitation);
+                    return (
+                      <tr key={invitation.id} className="hover:bg-gray-50">
+                        <td className="px-3 sm:px-6 py-4">
+                          <div className="text-sm text-gray-900 min-w-[180px] truncate" title={invitation.email}>
+                            {invitation.email}
+                          </div>
+                        </td>
+                        <td className="px-3 sm:px-6 py-4">
+                          <div className="text-sm text-gray-900 min-w-[150px] truncate" title={invitation.organization || 'Unknown'}>
+                            {invitation.organization || 'Unknown'}
+                          </div>
+                        </td>
+                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                          <div className="min-w-[80px]">
+                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
+                              {invitation.role}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                          <div className="min-w-[100px]">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invitationStatus.color}`}>
+                              {invitationStatus.label}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex flex-col min-w-[140px]">
+                            <span className="text-xs">{invitation.createdAt?.toDate().toLocaleDateString()}</span>
+                            <span className={`text-xs ${invitationStatus.status === 'expired' ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
+                              {formatExpirationDate(invitation)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-3 sm:px-6 py-4 text-right text-sm font-medium">
+                          <div className="flex items-center justify-end space-x-2 min-w-[100px]">
+                            {invitationStatus.status !== 'accepted' && (
+                              <button
+                                onClick={() => handleResendInvitation(invitation.id)}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Resend invitation"
+                              >
+                                <Mail className="h-4 w-4" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleCancelInvitation(invitation.id)}
+                              className="text-red-600 hover:text-red-900"
+                              title="Cancel invitation"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              // Table des utilisateurs
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Email</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Organization</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">Role</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Status</th>
+                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {loadingUsers ? (
+                    <tr>
+                      <td colSpan="5" className="px-3 sm:px-6 py-4 text-center">Loading users...</td>
+                    </tr>
+                  ) : getFilteredData().map((user) => (
+                    <tr key={user.uid} className="hover:bg-gray-50">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 min-w-[200px] truncate" title={user.email}>
+                          {user.email}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 min-w-[150px] truncate" title={user.organization || 'No organization'}>
+                          {user.organization || '-'}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="min-w-[140px]">
+                          <select
+                            value={user.role}
+                            onChange={(e) => handleUpdateUserRole(user.uid, e.target.value)}
+                            className="text-sm text-gray-900 border border-gray-300 rounded px-2 py-1 w-full"
+                          >
+                            <option value="member">Member</option>
+                            <option value="validator">Organization Validator</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="min-w-[80px]">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {user.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="min-w-[80px] flex justify-end">
+                          <button
+                            onClick={() => handleDeleteUser(user.uid)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete user"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
       
-        )}
-      </div>
       {/* Formulaires modaux */}
       {showMemberForm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
