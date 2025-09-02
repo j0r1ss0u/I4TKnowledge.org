@@ -25,6 +25,12 @@ const CATEGORIES = [
   "Internal document"
 ];
 
+const COLLECTIONS = [
+  "Collection 1",
+  "Collection 2",
+  "Collection 3"
+];
+
 // =============== AUXILIARY COMPONENTS ===============
 const NetworkHelp = () => (
   <div className="mt-4 p-4 bg-gray-50 rounded-md text-sm">
@@ -66,6 +72,7 @@ export default function SubmitContribution() {
     authors: '',
     description: '',
     programme: '',
+    collection: '',
     categories: [],
     references: ''
   });
@@ -235,6 +242,7 @@ export default function SubmitContribution() {
       authors: '',
       description: '',
       programme: '',
+      collection: '',
       categories: [],
       references: ''
     });
@@ -382,6 +390,24 @@ export default function SubmitContribution() {
               </select>
             </div>
 
+            {/* Collection Selection */}
+            <div>
+              <label htmlFor="collection" className="block text-sm font-medium text-gray-700">
+                Collection
+              </label>
+              <select
+                id="collection"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                value={formData.collection}
+                onChange={e => setFormData({...formData, collection: e.target.value})}
+              >
+                <option value="">Sélectionner une collection (optionnel)</option>
+                {COLLECTIONS.map(collection => (
+                  <option key={collection} value={collection}>{collection}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Categories Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
@@ -442,4 +468,5 @@ export default function SubmitContribution() {
         {showNetworkHelp && <NetworkHelp />}
       </div>
     </div>
-  );}
+  );
+}

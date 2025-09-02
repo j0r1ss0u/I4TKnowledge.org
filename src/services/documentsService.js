@@ -293,7 +293,7 @@ export const documentsService = {
     }
   },
 
-  
+
   // =============== ADD COMMENT ===============
   // Ajoute un commentaire à un document
   async addComment(documentId, comment) {
@@ -384,9 +384,12 @@ export const documentsService = {
         // Calcul du score lexical
         const titleWords = (data.title || '').toLowerCase();
         const contentWords = (data.description || '').toLowerCase();
+        const collectionWords = (data.collection || '').toLowerCase();
 
         const keywordMatches = keywords.filter(keyword => 
-          titleWords.includes(keyword) || contentWords.includes(keyword)
+          titleWords.includes(keyword) || 
+          contentWords.includes(keyword) || 
+          collectionWords.includes(keyword)
         ).length;
 
         lexicalScore = keywordMatches / keywords.length;
@@ -404,7 +407,8 @@ export const documentsService = {
             createdAt: data.createdAt,
             relevance: combinedScore,
             validationStatus: data.validationStatus,  // Ajout du status
-            ipfsCid: data.ipfsCid
+            ipfsCid: data.ipfsCid,
+            collection: data.collection  // Ajout de la collection
           });
 
         }
@@ -458,7 +462,7 @@ export const documentsService = {
       console.log(`Reindexing completed. Updated ${updated} documents`);
       return updated;
     } catch (error) {
-      console.error('❌ Error in hybrid search:', error);
+      console.error('❌ Error in reindexing:', error);
       throw error;
     }
       },
