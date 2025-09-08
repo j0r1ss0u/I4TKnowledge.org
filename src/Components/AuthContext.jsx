@@ -22,99 +22,11 @@ import { firebaseAuthService } from "../services/firebaseAuthService";
 import { passwordResetService } from "../services/passwordResetService";
 import { invitationsService } from "../services/invitationsService";
 import { usersService } from "../services/usersService";
+import { loadTranslations, preloadTranslations } from '../translations';
 
 // Dynamic import to avoid circular import
 // ForgotPassword will only be loaded when needed
 const ForgotPassword = lazy(() => import('./Members/ForgotPassword'));
-
-// =================================================================
-// Translations
-// =================================================================
-
-const translations = {
-  en: {
-    // Notifications
-    adminConnected: "Connected as administrator",
-    inactiveAccount: "Your account is inactive. Please contact the administrator.",
-    welcomeValidator: "Welcome validator",
-    welcomeMember: "Welcome member",
-    welcomeOf: "of",
-    profileError: "Error initializing profile. Please contact the administrator.",
-    incompleteProfile: "Your user profile is incomplete. Please contact the administrator.",
-    connectionError: "Error during login",
-    logoutSuccess: "You have been successfully logged out",
-    loginError: "Login failed. Check your credentials.",
-    verifyEmail: "Please verify your email before logging in.",
-    verificationSent: "Verification email sent. Check your inbox.",
-    verificationError: "Error sending verification email.",
-    passwordUpdated: "Password updated successfully",
-    passwordUpdateError: "Failed to update password",
-
-    // Pending invitations
-    pendingInvitation: "An invitation has been pending since",
-    checkEmail: "Check the email sent by noreply@i4tk.org",
-
-    // Password reset
-    resetPasswordInstructions: "If an account is associated with this email address, reset instructions will be sent.",
-    resetPasswordSent: "Password reset instructions sent by email. Please check your inbox and spam folder.",
-
-    // Access denied
-    accessDenied: "Access denied",
-    noPermission: "You don't have the necessary permissions to access this page.",
-
-    // Login form
-    login: "Login",
-    email: "Email",
-    password: "Password",
-    forgotPassword: "Forgot password?",
-    sendVerification: "Send verification email",
-    loading: "Loading...",
-
-    // Account deactivated
-    accountDeactivated: "This account has been deactivated. Please contact the administrator."
-  },
-  fr: {
-    // Notifications
-    adminConnected: "Connecté en tant qu'administrateur",
-    inactiveAccount: "Votre compte est inactif. Veuillez contacter l'administrateur.",
-    welcomeValidator: "Bienvenue validateur",
-    welcomeMember: "Bienvenue membre",
-    welcomeOf: "de",
-    profileError: "Erreur lors de l'initialisation du profil. Veuillez contacter l'administrateur.",
-    incompleteProfile: "Votre profil utilisateur est incomplet. Veuillez contacter l'administrateur.",
-    connectionError: "Erreur lors de la connexion",
-    logoutSuccess: "Vous avez été déconnecté avec succès",
-    loginError: "Échec de la connexion. Vérifiez vos identifiants.",
-    verifyEmail: "Veuillez vérifier votre email avant de vous connecter.",
-    verificationSent: "Email de vérification envoyé. Vérifiez votre boîte de réception.",
-    verificationError: "Erreur lors de l'envoi de l'email de vérification.",
-    passwordUpdated: "Mot de passe mis à jour avec succès",
-    passwordUpdateError: "Échec de la mise à jour du mot de passe",
-
-    // Pending invitations
-    pendingInvitation: "Une invitation est en attente depuis le",
-    checkEmail: "Vérifiez l'email envoyé par noreply@i4tk.org",
-
-    // Password reset
-    resetPasswordInstructions: "Si un compte est associé à cette adresse email, des instructions de réinitialisation vous seront envoyées.",
-    resetPasswordSent: "Instructions de réinitialisation envoyées par email. Veuillez vérifier votre boîte de réception et vos spams.",
-
-    // Access denied
-    accessDenied: "Accès refusé",
-    noPermission: "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
-
-    // Login form
-    login: "Connexion",
-    email: "Email",
-    password: "Mot de passe",
-    forgotPassword: "Mot de passe oublié ?",
-    sendVerification: "Envoyer l'email de vérification",
-    loading: "Chargement...",
-
-    // Account deactivated
-    accountDeactivated: "Ce compte a été désactivé. Veuillez contacter l'administrateur."
-  }
-};
 
 // =================================================================
 // Context creation and custom Hook export
@@ -143,16 +55,43 @@ export const AuthProvider = ({ children }) => {
   const [language, setLanguage] = useState(() => {
     return localStorage.getItem('preferredLanguage') || 'en';
   });
+  const [translations, setTranslations] = useState({});
+  const [translationsLoading, setTranslationsLoading] = useState(true);
 
-  // Get translations for current language
-  const t = translations[language] || translations.en;
+  // Get translations for current language with fallback
+  const t = translations || {};
 
   // Toggle language
   const toggleLanguage = () => {
     const newLanguage = language === 'en' ? 'fr' : 'en';
     setLanguage(newLanguage);
     localStorage.setItem('preferredLanguage', newLanguage);
+    // Preload translations for the new language
+    preloadTranslations(newLanguage);
   };
+
+  // Load translations when language changes
+  useEffect(() => {
+    const loadCurrentTranslations = async () => {
+      try {
+        setTranslationsLoading(true);
+        const loadedTranslations = await loadTranslations(language);
+        setTranslations(loadedTranslations);
+      } catch (error) {
+        console.error('Failed to load translations:', error);
+        // Fallback to empty object if loading fails
+        setTranslations({});
+      } finally {
+        setTranslationsLoading(false);
+      }
+    };
+
+    loadCurrentTranslations();
+    
+    // Preload the other language for faster switching
+    const otherLanguage = language === 'en' ? 'fr' : 'en';
+    preloadTranslations(otherLanguage);
+  }, [language]);
 
   // ------- Notification handler -------
   const showNotification = (message, type = 'success', duration = 3000) => {
