@@ -1,5 +1,5 @@
 // ================ IMPORTS ================
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 // RainbowKit & Wagmi imports
 import '@rainbow-me/rainbowkit/styles.css';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
@@ -34,20 +34,30 @@ import {
   updateDoc 
 } from 'firebase/firestore';
 
-// Components
+// Components (immediate imports)
 import Header from './Components/Header';
-import HomePage from './Components/Home/HomePage';
-import AboutPage from './Components/About/AboutPage';
-import MembersPage from "./Components/Members/MembersPage";
-import LibraryPage from "./Components/Library/LibraryPage";
-import { ProtectedForumPage } from "./Components/Forum/ForumPage";
-import GenealogyPage from "./Components/Library/GenealogyPage";
-import LibraryChat from "./Components/Library/LibraryChat";
-import FinalizeInvitation from './Components/Members/FinalizeInvitation';
-import Pressrelease from "./Components/About/Pressrelease";
 import { LoginForm } from "./Components/AuthContext";
-import ForgotPassword from "./Components/Members/ForgotPassword";
-import ToolsPage from "./Components/Tools/ToolsPage"; // Nouvel import
+
+// Lazy-loaded components to reduce bundle size
+const HomePage = React.lazy(() => import('./Components/Home/HomePage'));
+const AboutPage = React.lazy(() => import('./Components/About/AboutPage'));
+const MembersPage = React.lazy(() => import('./Components/Members/MembersPage'));
+const LibraryPage = React.lazy(() => import('./Components/Library/LibraryPage'));
+const ProtectedForumPage = React.lazy(() => import('./Components/Forum/ForumPage').then(module => ({ default: module.ProtectedForumPage })));
+const GenealogyPage = React.lazy(() => import('./Components/Library/GenealogyPage'));
+const LibraryChat = React.lazy(() => import('./Components/Library/LibraryChat'));
+const FinalizeInvitation = React.lazy(() => import('./Components/Members/FinalizeInvitation'));
+const Pressrelease = React.lazy(() => import('./Components/About/Pressrelease'));
+const ForgotPassword = React.lazy(() => import('./Components/Members/ForgotPassword'));
+const ToolsPage = React.lazy(() => import('./Components/Tools/ToolsPage'));
+
+// Loading component for Suspense fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    <span className="ml-3 text-gray-600">Loading...</span>
+  </div>
+);
 
 // ================ QUERY CLIENT CONFIGURATION ================
 const queryClient = new QueryClient({
@@ -602,14 +612,24 @@ function AppContent() {
       <div className="relative z-10 w-full">
         <main className="w-full overflow-x-hidden">
           {currentPage === "home" && (
-            <HomePage 
-              currentLang={currentLang} 
-              handlePageChange={handlePageChange}
-              setActiveView={setViewMode}
-            />
+            <Suspense fallback={<PageLoader />}>
+              <HomePage 
+                currentLang={currentLang} 
+                handlePageChange={handlePageChange}
+                setActiveView={setViewMode}
+              />
+            </Suspense>
           )}
-          {currentPage === "about" && <AboutPage currentLang={currentLang} />}
-          {currentPage === "tools" && <ToolsPage currentLang={currentLang} />}
+          {currentPage === "about" && (
+            <Suspense fallback={<PageLoader />}>
+              <AboutPage currentLang={currentLang} />
+            </Suspense>
+          )}
+          {currentPage === "tools" && (
+            <Suspense fallback={<PageLoader />}>
+              <ToolsPage currentLang={currentLang} />
+            </Suspense>
+          )}
 
           {currentPage === "register" && (
             <div className="container mx-auto max-w-md p-6">
@@ -622,41 +642,57 @@ function AppContent() {
           )}
 
           {currentPage === "finalize-invitation" && (
-            <FinalizeInvitation handlePageChange={handlePageChange} />
+            <Suspense fallback={<PageLoader />}>
+              <FinalizeInvitation handlePageChange={handlePageChange} />
+            </Suspense>
           )}
           {currentPage === "reset-password" && (
-            <ForgotPassword />
+            <Suspense fallback={<PageLoader />}>
+              <ForgotPassword />
+            </Suspense>
           )}
           {currentPage === "chat" && user?.role === "admin" && (
-            <LibraryChat currentLang={currentLang} />
+            <Suspense fallback={<PageLoader />}>
+              <LibraryChat currentLang={currentLang} />
+            </Suspense>
           )}
           {currentPage === "members" && (
-            <MembersPage.MembersPageWrapper 
-              currentLang={currentLang}
-              initialView={localStorage.getItem('preferredView')}
-            />
+            <Suspense fallback={<PageLoader />}>
+              <MembersPage.MembersPageWrapper 
+                currentLang={currentLang}
+                initialView={localStorage.getItem('preferredView')}
+              />
+            </Suspense>
           )}
           {currentPage === "library" && (
-            <LibraryPage 
-              currentLang={currentLang} 
-              handlePageChange={handlePageChange}
-              setSelectedTokenId={setSelectedTokenId}
-            />
+            <Suspense fallback={<PageLoader />}>
+              <LibraryPage 
+                currentLang={currentLang} 
+                handlePageChange={handlePageChange}
+                setSelectedTokenId={setSelectedTokenId}
+              />
+            </Suspense>
           )}
           {currentPage === "press-releases" && (
-            <Pressrelease currentLang={currentLang} />
+            <Suspense fallback={<PageLoader />}>
+              <Pressrelease currentLang={currentLang} />
+            </Suspense>
           )}
           {currentPage === "genealogy" && (
-            <>
+            <Suspense fallback={<PageLoader />}>
               {console.log("Rendering GenealogyPage with tokenId:", selectedTokenId)}
               <GenealogyPage 
                 currentLang={currentLang}
                 tokenId={selectedTokenId}
                 onBack={() => handlePageChange("library")}
               />
-            </>
+            </Suspense>
           )}
-          {currentPage === "forum" && <ProtectedForumPage currentLang={currentLang} />}
+          {currentPage === "forum" && (
+            <Suspense fallback={<PageLoader />}>
+              <ProtectedForumPage currentLang={currentLang} />
+            </Suspense>
+          )}
         </main>
       </div>
 
@@ -664,7 +700,9 @@ function AppContent() {
       {authPage === 'forgot-password' && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <ForgotPassword />
+            <Suspense fallback={<PageLoader />}>
+              <ForgotPassword />
+            </Suspense>
           </div>
         </div>
       )}
