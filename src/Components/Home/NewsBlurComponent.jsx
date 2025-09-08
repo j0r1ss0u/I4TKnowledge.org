@@ -115,10 +115,11 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
     );
   }
 
-  // Composant d'image robuste avec fallback
-  const RobustImage = ({ src, alt, className, fallbackType = 'news' }) => {
+  // Composant d'image robuste avec fallback intelligent
+  const RobustImage = ({ src, alt, className, fallbackType = 'news', feedLogo = null }) => {
     const [imageSrc, setImageSrc] = useState(src);
     const [hasError, setHasError] = useState(false);
+    const [currentFallbackLevel, setCurrentFallbackLevel] = useState(0);
 
     // Images par défaut selon le type
     const defaultImages = {
@@ -126,23 +127,53 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
       favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ddd'/%3E%3C/svg%3E"
     };
 
+    // Logique de fallback en cascade
+    const getFallbackImage = (level) => {
+      switch (level) {
+        case 0: return src; // Image originale
+        case 1: return feedLogo && fallbackType === 'news' ? feedLogo : defaultImages[fallbackType]; // Logo du feed pour les news
+        case 2: return defaultImages[fallbackType]; // Placeholder final
+        default: return defaultImages[fallbackType];
+      }
+    };
+
     const handleImageError = () => {
-      if (!hasError) {
-        setHasError(true);
-        setImageSrc(defaultImages[fallbackType]);
+      const nextLevel = currentFallbackLevel + 1;
+      const nextImage = getFallbackImage(nextLevel);
+      
+      if (nextImage && nextImage !== imageSrc && nextLevel <= 2) {
+        setCurrentFallbackLevel(nextLevel);
+        setImageSrc(nextImage);
+        setHasError(nextLevel >= 2); // Marquer comme erreur seulement au placeholder final
       }
     };
 
     const handleImageLoad = () => {
-      setHasError(false);
+      // Ne pas marquer comme erreur si on charge avec succès le logo du feed
+      setHasError(currentFallbackLevel >= 2);
     };
 
     useEffect(() => {
       if (src && src !== imageSrc) {
         setImageSrc(src);
         setHasError(false);
+        setCurrentFallbackLevel(0);
       }
     }, [src]);
+
+    // Style spécial pour les logos de feed utilisés comme image principale
+    const getImageStyle = () => {
+      if (currentFallbackLevel === 1 && fallbackType === 'news' && feedLogo) {
+        // Logo de feed utilisé comme image principale - centré et plus grand
+        return {
+          objectFit: 'contain',
+          background: '#f8f9fa',
+          padding: '2rem',
+          border: '2px solid #e9ecef'
+        };
+      }
+      return hasError ? { filter: 'grayscale(100%) opacity(0.7)' } : {};
+    };
 
     return (
       <img
@@ -151,7 +182,7 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
         className={className}
         onError={handleImageError}
         onLoad={handleImageLoad}
-        style={hasError ? { filter: 'grayscale(100%) opacity(0.7)' } : {}}
+        style={getImageStyle()}
       />
     );
   };
@@ -177,6 +208,7 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
                 alt={article.title}
                 className="w-full h-full object-cover"
                 fallbackType="news"
+                feedLogo={article.feedFavicon}
               />
             </div>
             <div className="p-4">

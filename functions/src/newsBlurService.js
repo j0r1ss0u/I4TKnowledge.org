@@ -136,16 +136,33 @@ exports.getNewsBlurArticles = functions.https.onCall(async (data, context) => {
     const count = data?.count || 6;
 
     // Transformer et limiter les articles
-    const articles = storiesData.stories.slice(0, count).map(story => ({
-      id: story.id,
-      title: story.story_title,
-      summary: story.story_summary || extractExcerpt(story.story_content),
-      url: story.story_permalink,
-      publishedDate: story.story_date,
-      feedTitle: story.story_feed_title,
-      thumbnailUrl: extractThumbnail(story.story_content),
-      feedFavicon: story.feed_favicon
-    }));
+    const articles = storiesData.stories.slice(0, count).map(story => {
+      console.log('Traitement article:', {
+        titre: story.story_title,
+        feedId: story.story_feed_id,
+        feedFavicon: story.feed_favicon,
+        feedColor: story.feed_color,
+        autresChamps: Object.keys(story).filter(k => k.includes('feed') || k.includes('favicon') || k.includes('icon'))
+      });
+
+      // Construire l'URL du favicon depuis l'ID du feed si pas de favicon direct
+      let faviconUrl = story.feed_favicon;
+      if (!faviconUrl && story.story_feed_id) {
+        // Construire l'URL du favicon à partir de l'ID du feed
+        faviconUrl = `https://www.newsblur.com/rss_feeds/icon/${story.story_feed_id}/`;
+      }
+
+      return {
+        id: story.id,
+        title: story.story_title,
+        summary: story.story_summary || extractExcerpt(story.story_content),
+        url: story.story_permalink,
+        publishedDate: story.story_date,
+        feedTitle: story.story_feed_title,
+        thumbnailUrl: extractThumbnail(story.story_content),
+        feedFavicon: faviconUrl
+      };
+    });
 
     // Renvoyer les articles au client
     console.log('Envoi de la réponse avec', articles.length, 'articles');
