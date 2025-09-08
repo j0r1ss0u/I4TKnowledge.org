@@ -424,7 +424,8 @@ export const AuthProvider = ({ children }) => {
       authPage,
       setAuthPage,
       language,
-      toggleLanguage
+      toggleLanguage,
+      t
     }}>
       {notification && (
         <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg ${
@@ -455,8 +456,7 @@ const ROLE_HIERARCHY = {
 
 export const withAuth = (WrappedComponent, allowedRoles = []) => {
   return function ProtectedComponent(props) {
-    const { user, authPage, language } = useAuth();
-    const t = translations[language] || translations.en;
+    const { user, authPage, language, t } = useAuth();
 
     if (!user) {
       return authPage === 'forgot-password' ? (
@@ -494,11 +494,9 @@ export const withAuth = (WrappedComponent, allowedRoles = []) => {
 // =================================================================
 
 export const UserProfile = () => {
-  const { user, logout, language } = useAuth();
+  const { user, logout, language, t } = useAuth();
 
   if (!user) return null;
-
-  const t = translations[language] || translations.en;
 
   return (
     <div className="flex items-center space-x-4">
@@ -526,9 +524,7 @@ export const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
-  const { login, setAuthPage, showNotification, language, toggleLanguage } = useAuth();
-
-  const t = translations[language] || translations.en;
+  const { login, setAuthPage, showNotification, language, toggleLanguage, t } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
