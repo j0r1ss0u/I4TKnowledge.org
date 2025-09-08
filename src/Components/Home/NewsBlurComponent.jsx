@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 
 const NewsBlurComponent = ({ currentLang = 'en' }) => {
@@ -6,10 +6,14 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const intervalRef = useRef(null);
+  const mountedRef = useRef(true);
 
   const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
-  const fetchNewsBlurArticles = async (isInitialLoad = false) => {
+  const fetchNewsBlurArticles = useCallback(async (isInitialLoad = false) => {
+    if (!mountedRef.current) return; // Évite les mises à jour si le composant est démonté
+
     try {
       // Seulement afficher le loading pour le chargement initial
       if (isInitialLoad) {
@@ -30,8 +34,9 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
 
       console.log('Réponse reçue:', result);
 
+      if (!mountedRef.current) return; // Vérifier à nouveau après l'appel async
+
       // Accéder directement aux données de la réponse
-      // Note: la fonction httpsCallable encapsule automatiquement la réponse dans un champ 'data'
       if (result.data && result.data.articles) {
         setNews(result.data.articles);
         setError(null);
@@ -41,22 +46,41 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
       }
     } catch (err) {
       console.error('Fetch error:', err);
-      setError(err.message || 'Une erreur est survenue');
+      if (mountedRef.current) {
+        setError(err.message || 'Une erreur est survenue');
+      }
     } finally {
-      if (isInitialLoad) {
-        setLoading(false);
-      } else {
-        setIsRefreshing(false);
+      if (mountedRef.current) {
+        if (isInitialLoad) {
+          setLoading(false);
+        } else {
+          setIsRefreshing(false);
+        }
       }
     }
-  };
+  }, []); // Pas de dépendances pour éviter les re-renders
 
   useEffect(() => {
-    fetchNewsBlurArticles(true); // Premier chargement = initial
-    const interval = setInterval(() => fetchNewsBlurArticles(false), REFRESH_INTERVAL); // Rafraîchissements = pas initial
+    mountedRef.current = true;
+    
+    // Premier chargement
+    fetchNewsBlurArticles(true);
+    
+    // Configurer l'intervalle pour les rafraîchissements
+    intervalRef.current = setInterval(() => {
+      if (mountedRef.current) {
+        fetchNewsBlurArticles(false);
+      }
+    }, REFRESH_INTERVAL);
 
-    return () => clearInterval(interval);
-  }, []);
+    // Cleanup
+    return () => {
+      mountedRef.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []); // Pas de dépendances pour éviter les re-renders
 
   const formatDate = (dateString) => {
     try {
