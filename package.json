@@ -48,6 +48,7 @@
     "react-leaflet": "^4.2.1",
     "react-pdf": "^9.1.1",
     "react-router-dom": "^7.0.2",
+    "terser": "^5.44.0",
     "viem": "^2.22.8",
     "wagmi": "^2.14.7"
   }
