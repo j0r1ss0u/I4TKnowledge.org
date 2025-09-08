@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as pdfjsLib from 'pdfjs-dist';
 import { ExternalLink, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Dynamic PDF.js import to reduce initial bundle size
+let pdfjsLib = null;
+const loadPdfJs = async () => {
+  if (!pdfjsLib) {
+    pdfjsLib = await import('pdfjs-dist');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  }
+  return pdfjsLib;
+};
 
 const GATEWAY = 'https://nftstorage.link/ipfs/';
 const CORS_PROXY = 'https://cors.eu.org/';
@@ -32,9 +39,10 @@ const DocumentViewer = ({ documentCid }) => {
 
   const generateThumbnail = async (pdfBuffer) => {
     try {
-      const loadingTask = pdfjsLib.getDocument({
+      const pdfjs = await loadPdfJs();
+      const loadingTask = pdfjs.getDocument({
         data: pdfBuffer,
-        cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/cmaps/`,
+        cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/cmaps/`,
         cMapPacked: true
       });
 

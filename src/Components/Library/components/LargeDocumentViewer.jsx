@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
-import * as pdfjsLib from 'pdfjs-dist';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+// Dynamic PDF.js import to reduce initial bundle size
+let pdfjsLib = null;
+const loadPdfJs = async () => {
+  if (!pdfjsLib) {
+    pdfjsLib = await import('pdfjs-dist');
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  }
+  return pdfjsLib;
+};
 
 const GATEWAY = 'https://nftstorage.link/ipfs/';
 const FALLBACK_GATEWAY = 'https://cloudflare-ipfs.com/ipfs/';
@@ -102,9 +109,10 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
       try {
         setState(prev => ({ ...prev, loading: true, error: null }));
 
-        const loadingTask = pdfjsLib.getDocument({
+        const pdfjs = await loadPdfJs();
+        const loadingTask = pdfjs.getDocument({
           url: `${GATEWAY}${documentCid}`,
-          cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/cmaps/`,
+          cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/cmaps/`,
           cMapPacked: true
         });
 
