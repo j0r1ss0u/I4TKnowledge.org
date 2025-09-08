@@ -115,6 +115,47 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
     );
   }
 
+  // Composant d'image robuste avec fallback
+  const RobustImage = ({ src, alt, className, fallbackType = 'news' }) => {
+    const [imageSrc, setImageSrc] = useState(src);
+    const [hasError, setHasError] = useState(false);
+
+    // Images par défaut selon le type
+    const defaultImages = {
+      news: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400' viewBox='0 0 800 400'%3E%3Crect width='800' height='400' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23666' text-anchor='middle' dy='.3em'%3EImage non disponible%3C/text%3E%3C/svg%3E",
+      favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ddd'/%3E%3C/svg%3E"
+    };
+
+    const handleImageError = () => {
+      if (!hasError) {
+        setHasError(true);
+        setImageSrc(defaultImages[fallbackType]);
+      }
+    };
+
+    const handleImageLoad = () => {
+      setHasError(false);
+    };
+
+    useEffect(() => {
+      if (src && src !== imageSrc) {
+        setImageSrc(src);
+        setHasError(false);
+      }
+    }, [src]);
+
+    return (
+      <img
+        src={imageSrc || defaultImages[fallbackType]}
+        alt={alt}
+        className={className}
+        onError={handleImageError}
+        onLoad={handleImageLoad}
+        style={hasError ? { filter: 'grayscale(100%) opacity(0.7)' } : {}}
+      />
+    );
+  };
+
   // Affichage des articles
   return (
     <div className="container mx-auto p-4">
@@ -131,27 +172,24 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
         {news.map((article, index) => (
           <article key={article.id || `article-${index}`} className="bg-white/50 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
             <div className="w-full h-48 bg-gray-100">
-              <img 
-                src={article.thumbnailUrl || '/api/placeholder/800/400'}
+              <RobustImage
+                src={article.thumbnailUrl}
                 alt={article.title}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/api/placeholder/800/400';
-                }}
+                fallbackType="news"
               />
             </div>
             <div className="p-4">
               <div className="flex items-center mb-2">
                 {article.feedFavicon && (
-                  <img 
-                    src={article.feedFavicon} 
-                    alt={article.feedTitle} 
-                    className="w-4 h-4 mr-2"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
+                  <div className="w-4 h-4 mr-2 flex-shrink-0">
+                    <RobustImage
+                      src={article.feedFavicon}
+                      alt={article.feedTitle}
+                      className="w-4 h-4"
+                      fallbackType="favicon"
+                    />
+                  </div>
                 )}
                 <span className="text-xs text-gray-500">{article.feedTitle}</span>
               </div>
