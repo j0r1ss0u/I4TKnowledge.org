@@ -123,7 +123,7 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
 
     // Images par défaut selon le type
     const defaultImages = {
-      news: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400' viewBox='0 0 800 400'%3E%3Crect width='800' height='400' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23666' text-anchor='middle' dy='.3em'%3EImage non disponible%3C/text%3E%3C/svg%3E",
+      news: "/digital-democracy-placeholder.png",
       favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ddd'/%3E%3C/svg%3E"
     };
 
