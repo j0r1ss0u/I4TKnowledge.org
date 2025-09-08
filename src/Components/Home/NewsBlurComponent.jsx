@@ -4,13 +4,20 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 const NewsBlurComponent = ({ currentLang = 'en' }) => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
 
   const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
-  const fetchNewsBlurArticles = async () => {
+  const fetchNewsBlurArticles = async (isInitialLoad = false) => {
     try {
-      setLoading(true);
+      // Seulement afficher le loading pour le chargement initial
+      if (isInitialLoad) {
+        setLoading(true);
+      } else {
+        // Pour les rafraîchissements automatiques, utiliser un état séparé
+        setIsRefreshing(true);
+      }
 
       // Initialiser Firebase Functions
       const functions = getFunctions();
@@ -36,13 +43,17 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
       console.error('Fetch error:', err);
       setError(err.message || 'Une erreur est survenue');
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setLoading(false);
+      } else {
+        setIsRefreshing(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchNewsBlurArticles();
-    const interval = setInterval(fetchNewsBlurArticles, REFRESH_INTERVAL);
+    fetchNewsBlurArticles(true); // Premier chargement = initial
+    const interval = setInterval(() => fetchNewsBlurArticles(false), REFRESH_INTERVAL); // Rafraîchissements = pas initial
 
     return () => clearInterval(interval);
   }, []);
@@ -83,6 +94,15 @@ const NewsBlurComponent = ({ currentLang = 'en' }) => {
   // Affichage des articles
   return (
     <div className="container mx-auto p-4">
+      {/* Indicateur de rafraîchissement discret */}
+      {isRefreshing && (
+        <div className="flex justify-center mb-2">
+          <div className="bg-blue-100 text-blue-600 text-xs px-3 py-1 rounded-full flex items-center gap-2">
+            <div className="animate-spin rounded-full h-3 w-3 border border-blue-400 border-t-transparent"></div>
+            {currentLang === 'en' ? 'Updating articles...' : 'Actualisation des articles...'}
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {news.map((article, index) => (
           <article key={article.id || `article-${index}`} className="bg-white/50 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden">
