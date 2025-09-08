@@ -26,7 +26,7 @@ const CATEGORIES = [
 ];
 
 const COLLECTIONS = [
-  "Collection 1",
+  "Science Summit",
   "Collection 2",
   "Collection 3"
 ];
