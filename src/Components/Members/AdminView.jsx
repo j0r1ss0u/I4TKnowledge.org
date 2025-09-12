@@ -520,8 +520,8 @@ const AdminView = () => {
       </div>
 
         {/* Contenu principal */}
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <div className="min-w-full">
+        <div className="bg-white rounded-lg shadow">
+          <div className="w-full overflow-x-auto">
             {activeTab === 'organizations' ? (
               // Table des organisations
               <table className="min-w-full divide-y divide-gray-200">
@@ -609,8 +609,7 @@ const AdminView = () => {
 
             ) : activeTab === 'invitations' ? (
               // Table des invitations  
-              <div className="overflow-x-scroll">
-                <table className="min-w-[1600px] w-full divide-y divide-gray-200 table-fixed">
+              <table className="min-w-[1600px] divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[350px]">Email</th>
@@ -618,7 +617,7 @@ const AdminView = () => {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">Role</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">Status</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[220px]">Expiration Date</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[150px]">Actions</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[150px] sticky right-0 bg-white">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -654,7 +653,7 @@ const AdminView = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-right text-sm font-medium w-[150px]">
+                        <td className="px-4 py-4 text-right text-sm font-medium w-[150px] sticky right-0 bg-white">
                           <div className="flex items-center justify-end space-x-2">
                             {invitationStatus.status !== 'accepted' && (
                               <button
@@ -678,8 +677,7 @@ const AdminView = () => {
                     );
                   })}
                 </tbody>
-                </table>
-              </div>
+              </table>
 
             ) : (
               // Table des utilisateurs
