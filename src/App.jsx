@@ -41,7 +41,7 @@ import { LoginForm } from "./Components/AuthContext";
 // Lazy-loaded components to reduce bundle size
 const HomePage = React.lazy(() => import('./Components/Home/HomePage'));
 const AboutPage = React.lazy(() => import('./Components/About/AboutPage'));
-const MembersPage = React.lazy(() => import('./Components/Members/MembersPage'));
+import MembersPageComponent from './Components/Members/MembersPage';
 const LibraryPage = React.lazy(() => import('./Components/Library/LibraryPage'));
 const ProtectedForumPage = React.lazy(() => import('./Components/Forum/ForumPage').then(module => ({ default: module.ProtectedForumPage })));
 const GenealogyPage = React.lazy(() => import('./Components/Library/GenealogyPage'));
@@ -657,12 +657,10 @@ function AppContent() {
             </Suspense>
           )}
           {currentPage === "members" && (
-            <Suspense fallback={<PageLoader />}>
-              <MembersPage.MembersPageWrapper 
-                currentLang={currentLang}
-                initialView={localStorage.getItem('preferredView')}
-              />
-            </Suspense>
+            <MembersPageComponent 
+              currentLang={currentLang}
+              initialView={localStorage.getItem('preferredView')}
+            />
           )}
           {currentPage === "library" && (
             <Suspense fallback={<PageLoader />}>

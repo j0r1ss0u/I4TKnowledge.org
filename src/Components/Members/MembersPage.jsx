@@ -76,13 +76,6 @@ const MembersPageWrapper = ({ initialView }) => {
 };
 
 // -------------------------------------------
-// Export des composants
+// Export par défaut du composant principal
 // -------------------------------------------
-const components = {
-  MapView,
-  MembersPageWrapper: ({ currentLang, initialView }) => (
-    <MembersPageWrapper currentLang={currentLang} initialView={initialView} />
-  )
-};
-
-export default components;
+export default MembersPageWrapper;
