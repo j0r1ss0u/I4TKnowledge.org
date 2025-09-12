@@ -376,7 +376,7 @@ const AdminView = () => {
   };
   
   return (
-    <div>
+    <>
       {notification && <NotificationPortal notification={notification} />}
       <div className="space-y-6">
         
@@ -609,8 +609,7 @@ const AdminView = () => {
 
             ) : activeTab === 'invitations' ? (
               // Table des invitations
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">Email</th>
@@ -683,13 +682,78 @@ const AdminView = () => {
                   })}
                 </tbody>
               </table>
-              </div>
-            ) : null}
+            ) : (
+              // Table des utilisateurs
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Email</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Organization</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">Role</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Status</th>
+                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {loadingUsers ? (
+                    <tr>
+                      <td colSpan="5" className="px-3 sm:px-6 py-4 text-center">Loading users...</td>
+                    </tr>
+                  ) : getFilteredData().map((user) => (
+                    <tr key={user.uid} className="hover:bg-gray-50">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 min-w-[200px] truncate" title={user.email}>
+                          {user.email}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 min-w-[150px] truncate" title={user.organization || 'No organization'}>
+                          {user.organization || '-'}
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="min-w-[140px]">
+                          <select
+                            value={user.role}
+                            onChange={(e) => handleUpdateUserRole(user.uid, e.target.value)}
+                            className="text-sm text-gray-900 border border-gray-300 rounded px-2 py-1 w-full"
+                          >
+                            <option value="member">Member</option>
+                            <option value="validator">Organization Validator</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                        <div className="min-w-[80px]">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {user.status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="min-w-[80px] flex justify-end">
+                          <button
+                            onClick={() => handleDeleteUser(user.uid)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete user"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       
-      {/* Formulaires modaux - TEMPORAIREMENT SUPPRIMÉS POUR DÉBOGAGE JSX */}
-      {false && showMemberForm && (
+      {/* Formulaires modaux */}
+      {showMemberForm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
             <div className="flex justify-between items-center mb-4">
@@ -866,8 +930,8 @@ const AdminView = () => {
         </div>
       )}
 
-      {/* Modal formulaire utilisateur - TEMPORAIREMENT SUPPRIMÉ POUR DÉBOGAGE JSX */}
-      {false && showUserForm && (
+        {/* Modal formulaire utilisateur */}
+        {showUserForm && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
             <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
               <div className="flex justify-between items-center mb-4">
@@ -949,8 +1013,12 @@ const AdminView = () => {
             </div>
           </div>
         )}
-    </div>
-  );
-};
 
-export default AdminView;
+             {/* NotificationPortal est géré séparément via createPortal */}
+             <NotificationPortal notification={notification} />
+           </div>
+         </>
+        );
+        };
+
+        export default AdminView;
