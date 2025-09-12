@@ -24,9 +24,9 @@ export const passwordResetService = {
       };
       const resetRef = await addDoc(collection(db, 'passwordResets'), resetDoc);
       console.log('Reset document created:', resetRef.id);
-      // 2. Call the Cloud Function to send email via SendGrid
+      // 2. Call the Cloud Function to send email via Resend
       // Important: Use the correct endpoint for password reset, NOT the invitation endpoint
-      const response = await fetch('https://sendresetpasswordemailhttp-lwu3dhgpbq-uc.a.run.app', {
+      const response = await fetch('https://us-central1-i4tk-website.cloudfunctions.net/sendResetPasswordEmailHttp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
