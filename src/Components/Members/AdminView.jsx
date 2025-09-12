@@ -520,8 +520,8 @@ const AdminView = () => {
       </div>
 
         {/* Contenu principal */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className="bg-white rounded-lg shadow">
+          <div className="overflow-x-auto max-w-none">
             {activeTab === 'organizations' ? (
               // Table des organisations
               <table className="min-w-full divide-y divide-gray-200">
@@ -608,45 +608,45 @@ const AdminView = () => {
               </table>
 
             ) : activeTab === 'invitations' ? (
-              // Table des invitations
-              <div className="overflow-x-auto">
-                <table className="min-w-[1200px] divide-y divide-gray-200 table-fixed">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[300px]">Email</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[200px]">Organization</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">Role</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">Status</th>
-                      <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[180px]">Expiration</th>
-                      <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">Actions</th>
-                    </tr>
-                  </thead>
+              // Table des invitations  
+              <div>
+                <table className="min-w-[1400px] w-full divide-y divide-gray-200 table-auto">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[320px]">Email</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[220px]">Organization</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Role</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[160px]">Expiration Date</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">Actions</th>
+                  </tr>
+                </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {getFilteredData().map((invitation) => {
                     const invitationStatus = getInvitationStatus(invitation);
                     return (
                       <tr key={invitation.id} className="hover:bg-gray-50">
-                        <td className="px-3 py-4 w-[300px]">
-                          <div className="text-sm text-gray-900 truncate" title={invitation.email}>
+                        <td className="px-4 py-4 min-w-[320px]">
+                          <div className="text-sm text-gray-900 break-all" title={invitation.email}>
                             {invitation.email}
                           </div>
                         </td>
-                        <td className="px-3 py-4 w-[200px]">
-                          <div className="text-sm text-gray-900 truncate" title={invitation.organization || 'Unknown'}>
+                        <td className="px-4 py-4 min-w-[220px]">
+                          <div className="text-sm text-gray-900 break-words" title={invitation.organization || 'Unknown'}>
                             {invitation.organization || 'Unknown'}
                           </div>
                         </td>
-                        <td className="px-3 py-4 whitespace-nowrap w-[120px]">
+                        <td className="px-4 py-4 whitespace-nowrap min-w-[120px]">
                           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
                             {invitation.role}
                           </span>
                         </td>
-                        <td className="px-3 py-4 whitespace-nowrap w-[120px]">
+                        <td className="px-4 py-4 whitespace-nowrap min-w-[120px]">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invitationStatus.color}`}>
                             {invitationStatus.label}
                           </span>
                         </td>
-                        <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-500 w-[180px]">
+                        <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 min-w-[160px]">
                           <div className="flex flex-col">
                             <span className="text-xs">{invitation.createdAt?.toDate().toLocaleDateString()}</span>
                             <span className={`text-xs ${invitationStatus.status === 'expired' ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
@@ -654,7 +654,7 @@ const AdminView = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-3 py-4 text-right text-sm font-medium w-[120px]">
+                        <td className="px-4 py-4 text-right text-sm font-medium min-w-[140px]">
                           <div className="flex items-center justify-end space-x-2">
                             {invitationStatus.status !== 'accepted' && (
                               <button
@@ -680,6 +680,7 @@ const AdminView = () => {
                 </tbody>
                 </table>
               </div>
+
             ) : (
               // Table des utilisateurs
               <table className="min-w-full divide-y divide-gray-200">
