@@ -609,7 +609,8 @@ const AdminView = () => {
 
             ) : activeTab === 'invitations' ? (
               // Table des invitations
-              <table className="min-w-full divide-y divide-gray-200">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">Email</th>
@@ -682,6 +683,7 @@ const AdminView = () => {
                   })}
                 </tbody>
               </table>
+              </div>
             ) : (
               // Table des utilisateurs
               <table className="min-w-full divide-y divide-gray-200">
@@ -1013,12 +1015,8 @@ const AdminView = () => {
             </div>
           </div>
         )}
+      </>
+    );
+  };
 
-             {/* NotificationPortal est géré séparément via createPortal */}
-             <NotificationPortal notification={notification} />
-           </div>
-         </>
-        );
-        };
-
-        export default AdminView;
+export default AdminView;
