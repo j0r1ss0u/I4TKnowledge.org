@@ -376,7 +376,7 @@ const AdminView = () => {
   };
   
   return (
-    <>
+    <div>
       {notification && <NotificationPortal notification={notification} />}
       <div className="space-y-6">
         
@@ -688,8 +688,8 @@ const AdminView = () => {
           </div>
         </div>
       
-      {/* Formulaires modaux */}
-      {showMemberForm && (
+      {/* Formulaires modaux - TEMPORAIREMENT SUPPRIMÉS POUR DÉBOGAGE JSX */}
+      {false && showMemberForm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
             <div className="flex justify-between items-center mb-4">
@@ -866,8 +866,8 @@ const AdminView = () => {
         </div>
       )}
 
-        {/* Modal formulaire utilisateur */}
-        {showUserForm && (
+      {/* Modal formulaire utilisateur - TEMPORAIREMENT SUPPRIMÉ POUR DÉBOGAGE JSX */}
+      {false && showUserForm && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
             <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
               <div className="flex justify-between items-center mb-4">
@@ -949,7 +949,7 @@ const AdminView = () => {
             </div>
           </div>
         )}
-    </>
+    </div>
   );
 };
 
