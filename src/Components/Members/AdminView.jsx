@@ -609,56 +609,57 @@ const AdminView = () => {
 
             ) : activeTab === 'invitations' ? (
               // Table des invitations
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px]">Email</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Organization</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Role</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Status</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">Expiration</th>
-                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Actions</th>
-                  </tr>
-                </thead>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48 sm:w-auto">Email</th>
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36 sm:w-auto">Organization</th>
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20 sm:w-auto">Role</th>
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24 sm:w-auto">Status</th>
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32 sm:w-auto">Expiration</th>
+                      <th className="px-2 sm:px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20 sm:w-auto">Actions</th>
+                    </tr>
+                  </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {getFilteredData().map((invitation) => {
                     const invitationStatus = getInvitationStatus(invitation);
                     return (
                       <tr key={invitation.id} className="hover:bg-gray-50">
-                        <td className="px-3 sm:px-6 py-4">
-                          <div className="text-sm text-gray-900 min-w-[180px] truncate" title={invitation.email}>
+                        <td className="px-2 sm:px-4 py-4">
+                          <div className="text-sm text-gray-900 w-48 sm:w-auto truncate" title={invitation.email}>
                             {invitation.email}
                           </div>
                         </td>
-                        <td className="px-3 sm:px-6 py-4">
-                          <div className="text-sm text-gray-900 min-w-[150px] truncate" title={invitation.organization || 'Unknown'}>
+                        <td className="px-2 sm:px-4 py-4">
+                          <div className="text-sm text-gray-900 w-36 sm:w-auto truncate" title={invitation.organization || 'Unknown'}>
                             {invitation.organization || 'Unknown'}
                           </div>
                         </td>
-                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                          <div className="min-w-[80px]">
+                        <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
+                          <div className="w-20 sm:w-auto">
                             <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-amber-100 text-amber-800">
                               {invitation.role}
                             </span>
                           </div>
                         </td>
-                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                          <div className="min-w-[100px]">
+                        <td className="px-2 sm:px-4 py-4 whitespace-nowrap">
+                          <div className="w-24 sm:w-auto">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${invitationStatus.color}`}>
                               {invitationStatus.label}
                             </span>
                           </div>
                         </td>
-                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex flex-col min-w-[140px]">
+                        <td className="px-2 sm:px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <div className="flex flex-col w-32 sm:w-auto">
                             <span className="text-xs">{invitation.createdAt?.toDate().toLocaleDateString()}</span>
                             <span className={`text-xs ${invitationStatus.status === 'expired' ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
                               {formatExpirationDate(invitation)}
                             </span>
                           </div>
                         </td>
-                        <td className="px-3 sm:px-6 py-4 text-right text-sm font-medium">
-                          <div className="flex items-center justify-end space-x-2 min-w-[100px]">
+                        <td className="px-2 sm:px-4 py-4 text-right text-sm font-medium">
+                          <div className="flex items-center justify-end space-x-1 w-20 sm:w-auto">
                             {invitationStatus.status !== 'accepted' && (
                               <button
                                 onClick={() => handleResendInvitation(invitation.id)}
@@ -681,7 +682,8 @@ const AdminView = () => {
                     );
                   })}
                 </tbody>
-              </table>
+                </table>
+              </div>
             ) : (
               // Table des utilisateurs
               <table className="min-w-full divide-y divide-gray-200">
@@ -751,8 +753,8 @@ const AdminView = () => {
             )}
           </div>
         </div>
-      
-      {/* Formulaires modaux */}
+
+        {/* Formulaires modaux */}
       {showMemberForm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
@@ -1013,12 +1015,9 @@ const AdminView = () => {
             </div>
           </div>
         )}
+      </div>
+    </>
+  );
+};
 
-             {/* NotificationPortal est géré séparément via createPortal */}
-             <NotificationPortal notification={notification} />
-           </div>
-         </>
-        );
-        };
-
-        export default AdminView;
+export default AdminView;
