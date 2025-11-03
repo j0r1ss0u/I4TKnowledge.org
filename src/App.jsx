@@ -542,59 +542,63 @@ function AppContent() {
   }, [user, showNotification]);
 
 
-  // Validation des invitations
+  // Validation des invitations - doit se faire AVANT la vérification de connexion
   useEffect(() => {
-    // Si on est sur la page register, traiter les paramètres d'URL
-    if (currentPage === "register") {
-      const params = new URLSearchParams(window.location.search);
-      const email = params.get('email');
-      const code = params.get('code');
+    // Vérifier les paramètres d'URL pour les invitations DÈS LE CHARGEMENT
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email');
+    const code = params.get('code');
 
-      if (email && code) {
-        // Valider le code d'invitation AVANT de rediriger
-        const validateAndRedirect = async () => {
-          try {
-            console.log('Validation du code d\'invitation:', code, 'pour:', email);
-            
-            const validationResult = await invitationsService.validateInvitationCode(email, code);
-            
-            if (!validationResult.valid) {
-              showNotification(
-                validationResult.message || 'Code d\'invitation invalide',
-                'error'
-              );
-              return;
-            }
-            
-            // Stocker l'ID d'invitation pour FinalizeInvitation
-            localStorage.setItem('currentInvitationId', validationResult.invitation.id);
-            console.log('Code validé, invitation ID stocké:', validationResult.invitation.id);
-            
-            // Nettoyer l'URL pour éviter les problèmes
-            window.history.replaceState({}, '', '/#finalize-invitation');
-            
-            // Rediriger vers la page de finalisation
+    if (email && code) {
+      console.log('Paramètres d\'invitation détectés dans l\'URL:', email, code);
+      
+      // Valider le code d'invitation AVANT toute autre logique
+      const validateAndRedirect = async () => {
+        try {
+          console.log('Validation du code d\'invitation:', code, 'pour:', email);
+          
+          const validationResult = await invitationsService.validateInvitationCode(email, code);
+          
+          if (!validationResult.valid) {
             showNotification(
-              currentLang === 'fr' 
-                ? 'Code d\'invitation validé avec succès!' 
-                : 'Invitation code validated successfully!',
-              'success'
-            );
-            
-            handlePageChange('finalize-invitation');
-          } catch (error) {
-            console.error('Erreur lors de la validation du code:', error);
-            showNotification(
-              error.message || 'Erreur lors de la validation de l\'invitation',
+              validationResult.message || 'Code d\'invitation invalide',
               'error'
             );
+            // Nettoyer l'URL
+            window.history.replaceState({}, '', '/');
+            return;
           }
-        };
-        
-        validateAndRedirect();
-      }
+          
+          // Stocker l'ID d'invitation pour FinalizeInvitation
+          localStorage.setItem('currentInvitationId', validationResult.invitation.id);
+          console.log('Code validé, invitation ID stocké:', validationResult.invitation.id);
+          
+          // Nettoyer l'URL pour éviter les problèmes
+          window.history.replaceState({}, '', '/#finalize-invitation');
+          
+          // Rediriger vers la page de finalisation
+          showNotification(
+            currentLang === 'fr' 
+              ? 'Code d\'invitation validé avec succès!' 
+              : 'Invitation code validated successfully!',
+            'success'
+          );
+          
+          handlePageChange('finalize-invitation');
+        } catch (error) {
+          console.error('Erreur lors de la validation du code:', error);
+          showNotification(
+            error.message || 'Erreur lors de la validation de l\'invitation',
+            'error'
+          );
+          // Nettoyer l'URL
+          window.history.replaceState({}, '', '/');
+        }
+      };
+      
+      validateAndRedirect();
     }
-  }, [currentPage, currentLang, showNotification]);
+  }, [currentLang, showNotification, handlePageChange]);
 
 
 
