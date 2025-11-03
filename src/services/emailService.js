@@ -18,6 +18,29 @@ const actionCodeSettings = {
 const isDevelopment = window.location.hostname.includes('replit.dev') || 
                      window.location.hostname.includes('localhost');
 
+// Fonction pour obtenir l'URL du backend
+const getBackendUrl = () => {
+  // Si une URL explicite est configurée, l'utiliser
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && envUrl.trim()) {
+    return envUrl;
+  }
+  
+  // Sinon, détecter automatiquement selon l'environnement
+  const origin = window.location.origin;
+  
+  // Remplacer le port de l'URL actuelle par 3000
+  // Cela fonctionne pour Replit (*.replit.dev) et production (www.i4tknowledge.org)
+  try {
+    const url = new URL(origin);
+    url.port = '3000';
+    return url.toString().replace(/\/$/, ''); // Enlever le slash final
+  } catch (e) {
+    // Fallback si quelque chose ne va pas
+    return 'http://localhost:3000';
+  }
+};
+
 export const emailService = {
   // ------- Envoi d'email d'invitation avec code -------
   async sendInvitationEmail(email, invitationId, organizationName) {
@@ -31,9 +54,8 @@ export const emailService = {
       const userLang = localStorage.getItem('preferredLanguage') || 'en';
 
       // Déterminer l'URL du backend selon l'environnement
-      // En développement Replit, utiliser localhost
-      // En production, le backend tourne également sur ce serveur mais accessible via l'URL publique
-      const backendUrl = 'http://localhost:3000/api/send-invitation-email';
+      const backendBaseUrl = getBackendUrl();
+      const backendUrl = `${backendBaseUrl}/api/send-invitation-email`;
 
       console.log('Calling backend email service:', backendUrl);
 
