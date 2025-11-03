@@ -20,6 +20,7 @@ import { useAuth } from "./Components/AuthContext";
 // Services
 import { auth } from "./services/firebase";
 import { db } from './services/firebase';
+import { invitationsService } from './services/invitationsService';
 import { 
   isSignInWithEmailLink, 
   signInWithEmailLink 
@@ -550,17 +551,50 @@ function AppContent() {
       const code = params.get('code');
 
       if (email && code) {
-        // Stocker provisoirement pour que FinalizeInvitation puisse les utiliser
-        localStorage.setItem('pendingInvitationEmail', email);
-        localStorage.setItem('pendingInvitationCode', code);
-
-        // Rediriger automatiquement après une courte pause
-        setTimeout(() => {
-          handlePageChange('finalize-invitation');
-        }, 1500);
+        // Valider le code d'invitation AVANT de rediriger
+        const validateAndRedirect = async () => {
+          try {
+            console.log('Validation du code d\'invitation:', code, 'pour:', email);
+            
+            const validationResult = await invitationsService.validateInvitationCode(email, code);
+            
+            if (!validationResult.valid) {
+              showNotification(
+                validationResult.message || 'Code d\'invitation invalide',
+                'error'
+              );
+              return;
+            }
+            
+            // Stocker l'ID d'invitation pour FinalizeInvitation
+            localStorage.setItem('currentInvitationId', validationResult.invitation.id);
+            console.log('Code validé, invitation ID stocké:', validationResult.invitation.id);
+            
+            // Nettoyer l'URL pour éviter les problèmes
+            window.history.replaceState({}, '', '/#finalize-invitation');
+            
+            // Rediriger vers la page de finalisation
+            showNotification(
+              currentLang === 'fr' 
+                ? 'Code d\'invitation validé avec succès!' 
+                : 'Invitation code validated successfully!',
+              'success'
+            );
+            
+            handlePageChange('finalize-invitation');
+          } catch (error) {
+            console.error('Erreur lors de la validation du code:', error);
+            showNotification(
+              error.message || 'Erreur lors de la validation de l\'invitation',
+              'error'
+            );
+          }
+        };
+        
+        validateAndRedirect();
       }
     }
-  }, [currentPage]);
+  }, [currentPage, currentLang, showNotification]);
 
 
 
