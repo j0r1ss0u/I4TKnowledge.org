@@ -79,8 +79,10 @@ app.post('/api/send-invitation-email', async (req, res) => {
         </div>
       `;
 
+    // TEMPORAIRE : Utiliser l'adresse de test Resend en attendant la propagation DNS
+    // Une fois i4tknowledge.org complètement propagé, changer pour : 'I4T Knowledge <noreply@i4tknowledge.org>'
     const emailData = {
-      from: 'I4T Knowledge <noreply@i4tknowledge.org>',
+      from: 'I4T Knowledge <onboarding@resend.dev>',
       to: [email],
       subject: subject,
       html: htmlContent
