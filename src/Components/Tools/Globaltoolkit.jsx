@@ -612,10 +612,13 @@ const Globaltoolkit = () => {
                       }}
                       className={`${CATEGORIES[element.category].color} border ${CATEGORIES[element.category].borderColor} 
                                 rounded-md p-3 flex flex-col items-center justify-center h-24 transition-transform 
-                                hover:scale-105 hover:shadow-md text-center`}
+                                hover:scale-105 hover:shadow-md text-center relative`}
                     >
                       <span className="font-mono text-lg font-bold mb-1">{element.id}</span>
                       <span className="text-xs line-clamp-2">{element.name}</span>
+                      <span className="absolute bottom-1 right-2 text-xs font-semibold text-gray-700">
+                        {element.examples?.length || 0}
+                      </span>
                     </button>
                   ))}
                 </div>
