@@ -94,14 +94,14 @@ exports.getNewsBlurArticles = functions.https.onCall(async (data, context) => {
     console.log('Cookies obtenus:', cookies ? 'Oui' : 'Non');
 
     // 2. Récupérer les articles
-    // Récupérer les articles non lus
+    // Récupérer les articles récents (lus ET non lus) pour éviter que NewsBlur les marque comme lus
     const unreadUrl = 'https://www.newsblur.com/reader/river_stories';
 
     const params2 = new URLSearchParams({
       include_hidden: false,
-      include_read: false,
+      include_read: true,  // Inclure les articles lus pour éviter le marquage automatique
       page: 1,
-      read_filter: 'unread',
+      read_filter: 'all',  // Récupérer tous les articles (pas seulement "unread")
       order: 'newest'
     });
 
