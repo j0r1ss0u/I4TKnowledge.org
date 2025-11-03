@@ -61,7 +61,9 @@ export const emailService = {
       return true;
     } catch (error) {
       console.error('Error sending invitation email:', error);
-      throw error;
+      // Fournir un message d'erreur plus explicite
+      const message = error?.message || 'Impossible de contacter le service d\'email';
+      throw new Error(message);
     }
   },
 

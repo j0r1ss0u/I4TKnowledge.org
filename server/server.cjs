@@ -90,6 +90,15 @@ app.post('/api/send-invitation-email', async (req, res) => {
     const result = await resend.emails.send(emailData);
     console.log('Invitation email sent successfully:', result);
 
+    // Vérifier si Resend a retourné une erreur (même avec un code 200)
+    if (result.error) {
+      console.error('Resend API error:', result.error);
+      return res.status(500).json({
+        error: 'Email service error',
+        details: result.error.message || 'Domain verification pending or other Resend error'
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: 'Invitation email sent successfully',

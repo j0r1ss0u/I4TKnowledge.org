@@ -335,7 +335,10 @@ const AdminView = () => {
       setShowUserForm(false);
     } catch (error) {
       console.error('Error inviting user:', error);
-      showNotification(error.message, 'error');
+      // Afficher un message d'erreur plus clair
+      const errorMessage = error?.message || 'Une erreur est survenue lors de l\'envoi de l\'invitation';
+      showNotification(errorMessage, 'error');
+      // Ne pas bloquer le formulaire, le laisser ouvert pour réessayer
     }
   };
   
