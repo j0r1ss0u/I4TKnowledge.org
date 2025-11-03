@@ -542,25 +542,27 @@ function AppContent() {
   }, [user, showNotification]);
 
 
-  // Validation des invitations - doit se faire AVANT la vérification de connexion
+  // Validation des invitations - PRIORITÉ ABSOLUE, doit se faire AVANT toute redirection
   useEffect(() => {
-    // DEBUG: Toujours logger pour voir si le useEffect s'exécute
-    console.log('[INVITATION DEBUG] useEffect de validation exécuté');
-    console.log('[INVITATION DEBUG] window.location.href:', window.location.href);
-    console.log('[INVITATION DEBUG] window.location.search:', window.location.search);
-    console.log('[INVITATION DEBUG] window.location.hash:', window.location.hash);
-    
-    // Vérifier les paramètres d'URL pour les invitations DÈS LE CHARGEMENT
+    // Sauvegarder immédiatement les paramètres d'URL dans sessionStorage
+    // pour éviter de les perdre lors des redirections
     const params = new URLSearchParams(window.location.search);
     const email = params.get('email');
     const code = params.get('code');
     
+    console.log('[INVITATION DEBUG] useEffect de validation exécuté');
+    console.log('[INVITATION DEBUG] window.location.href:', window.location.href);
     console.log('[INVITATION DEBUG] Paramètres extraits - email:', email, 'code:', code);
 
+    // Si on a des paramètres dans l'URL, les sauvegarder ET valider immédiatement
     if (email && code) {
       console.log('Paramètres d\'invitation détectés dans l\'URL:', email, code);
       
-      // Valider le code d'invitation AVANT toute autre logique
+      // Sauvegarder dans sessionStorage pour ne pas les perdre
+      sessionStorage.setItem('pendingInvitationEmail', email);
+      sessionStorage.setItem('pendingInvitationCode', code);
+      
+      // Valider immédiatement
       const validateAndRedirect = async () => {
         try {
           console.log('Validation du code d\'invitation:', code, 'pour:', email);
@@ -572,7 +574,9 @@ function AppContent() {
               validationResult.message || 'Code d\'invitation invalide',
               'error'
             );
-            // Nettoyer l'URL
+            // Nettoyer
+            sessionStorage.removeItem('pendingInvitationEmail');
+            sessionStorage.removeItem('pendingInvitationCode');
             window.history.replaceState({}, '', '/');
             return;
           }
@@ -581,7 +585,11 @@ function AppContent() {
           localStorage.setItem('currentInvitationId', validationResult.invitation.id);
           console.log('Code validé, invitation ID stocké:', validationResult.invitation.id);
           
-          // Nettoyer l'URL pour éviter les problèmes
+          // Nettoyer sessionStorage
+          sessionStorage.removeItem('pendingInvitationEmail');
+          sessionStorage.removeItem('pendingInvitationCode');
+          
+          // Nettoyer l'URL et rediriger
           window.history.replaceState({}, '', '/#finalize-invitation');
           
           // Rediriger vers la page de finalisation
@@ -599,12 +607,69 @@ function AppContent() {
             error.message || 'Erreur lors de la validation de l\'invitation',
             'error'
           );
-          // Nettoyer l'URL
+          // Nettoyer
+          sessionStorage.removeItem('pendingInvitationEmail');
+          sessionStorage.removeItem('pendingInvitationCode');
           window.history.replaceState({}, '', '/');
         }
       };
       
       validateAndRedirect();
+    } 
+    // Si pas de paramètres dans l'URL, vérifier sessionStorage au cas où
+    else {
+      const savedEmail = sessionStorage.getItem('pendingInvitationEmail');
+      const savedCode = sessionStorage.getItem('pendingInvitationCode');
+      
+      if (savedEmail && savedCode) {
+        console.log('Paramètres d\'invitation récupérés depuis sessionStorage');
+        
+        // Valider avec les paramètres sauvegardés
+        const validateAndRedirect = async () => {
+          try {
+            console.log('Validation du code d\'invitation:', savedCode, 'pour:', savedEmail);
+            
+            const validationResult = await invitationsService.validateInvitationCode(savedEmail, savedCode);
+            
+            if (!validationResult.valid) {
+              showNotification(
+                validationResult.message || 'Code d\'invitation invalide',
+                'error'
+              );
+              sessionStorage.removeItem('pendingInvitationEmail');
+              sessionStorage.removeItem('pendingInvitationCode');
+              return;
+            }
+            
+            localStorage.setItem('currentInvitationId', validationResult.invitation.id);
+            console.log('Code validé, invitation ID stocké:', validationResult.invitation.id);
+            
+            sessionStorage.removeItem('pendingInvitationEmail');
+            sessionStorage.removeItem('pendingInvitationCode');
+            
+            window.history.replaceState({}, '', '/#finalize-invitation');
+            
+            showNotification(
+              currentLang === 'fr' 
+                ? 'Code d\'invitation validé avec succès!' 
+                : 'Invitation code validated successfully!',
+              'success'
+            );
+            
+            handlePageChange('finalize-invitation');
+          } catch (error) {
+            console.error('Erreur lors de la validation du code:', error);
+            showNotification(
+              error.message || 'Erreur lors de la validation de l\'invitation',
+              'error'
+            );
+            sessionStorage.removeItem('pendingInvitationEmail');
+            sessionStorage.removeItem('pendingInvitationCode');
+          }
+        };
+        
+        validateAndRedirect();
+      }
     }
   }, [currentLang, showNotification, handlePageChange]);
 
