@@ -326,13 +326,19 @@ const AdminView = () => {
 
       await invitationsService.createInvitation(invitationData);
       showNotification('Invitation sent successfully');
-      await loadData();
+      
+      // Réinitialiser le formulaire
       setInviteForm({
         email: '',
         organization: isValidator ? currentUser.organization : '',
         role: 'member'
       });
+      
+      // Fermer le modal AVANT de recharger les données
       setShowUserForm(false);
+      
+      // Recharger les données en arrière-plan (ne pas bloquer la fermeture)
+      loadData().catch(err => console.error('Error reloading data:', err));
     } catch (error) {
       console.error('Error inviting user:', error);
       // Afficher un message d'erreur plus clair
