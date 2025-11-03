@@ -85,7 +85,8 @@ const NetworkPublications = ({
   const handleViewDetails = (doc) => {
     const cid = getDocumentCid(doc);
     if (cid) {
-      window.open(`https://nftstorage.link/ipfs/${cid}`, '_blank');
+      // Utiliser un gateway IPFS fiable - Cloudflare IPFS est généralement plus stable
+      window.open(`https://cloudflare-ipfs.com/ipfs/${cid}`, '_blank');
     } else {
       console.error('Invalid or missing IPFS CID:', doc);
     }
