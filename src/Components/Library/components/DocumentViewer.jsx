@@ -11,9 +11,9 @@ const loadPdfJs = async () => {
   return pdfjsLib;
 };
 
-const GATEWAY = 'https://nftstorage.link/ipfs/';
+const GATEWAY = 'https://ipfs.io/ipfs/';
 const CORS_PROXY = 'https://cors.eu.org/';
-const FALLBACK_GATEWAY = 'https://cloudflare-ipfs.com/ipfs/';
+const FALLBACK_GATEWAY = 'https://dweb.link/ipfs/';
 const FALLBACK_IMAGE = '/assets/logos/I4TK logo no text.png';
 
 // Stocker les miniatures plutôt que les PDFs bruts

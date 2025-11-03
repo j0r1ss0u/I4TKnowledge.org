@@ -11,8 +11,8 @@ const loadPdfJs = async () => {
   return pdfjsLib;
 };
 
-const GATEWAY = 'https://nftstorage.link/ipfs/';
-const FALLBACK_GATEWAY = 'https://cloudflare-ipfs.com/ipfs/';
+const GATEWAY = 'https://ipfs.io/ipfs/';
+const FALLBACK_GATEWAY = 'https://dweb.link/ipfs/';
 
 const LargeDocumentViewer = ({ documentCid, currentLang }) => {
   const [state, setState] = useState({
