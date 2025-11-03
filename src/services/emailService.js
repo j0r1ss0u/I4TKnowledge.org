@@ -30,27 +30,14 @@ export const emailService = {
       // Langue préférée de l'utilisateur
       const userLang = localStorage.getItem('preferredLanguage') || 'en';
 
-      // Si en environnement de développement, simuler l'envoi
-      if (isDevelopment) {
-        console.log('=== INVITATION EMAIL SIMULATION ===');
-        console.log(`To: ${email}`);
-        console.log(`Subject: ${userLang === 'fr' ? `Invitation à rejoindre ${organizationName}` : `Invitation to join ${organizationName}`}`);
-        console.log(`Code: ${code}`);
-        console.log(`Link: ${BASE_URL}/register?email=${encodeURIComponent(email)}&code=${code}`);
-        console.log('===================================');
+      // Déterminer l'URL du backend selon l'environnement
+      // En développement Replit, utiliser localhost
+      // En production, le backend tourne également sur ce serveur mais accessible via l'URL publique
+      const backendUrl = 'http://localhost:3000/api/send-invitation-email';
 
-        // Stocker le code dans le localStorage pour faciliter les tests
-        window.localStorage.setItem('lastInvitationCode', code);
-        window.localStorage.setItem('lastInvitationEmail', email);
+      console.log('Calling backend email service:', backendUrl);
 
-        // Afficher une alerte avec le code pour faciliter le test
-        alert(`Code d'invitation pour ${email}: ${code}`);
-
-        return true;
-      }
-
-      // En production, appeler la fonction HTTP
-      const response = await fetch('https://us-central1-i4tk-website.cloudfunctions.net/sendInvitationEmailHttp', {
+      const response = await fetch(backendUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,11 +54,12 @@ export const emailService = {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error ${response.status}`);
+        console.error('Backend email service error:', errorData);
+        throw new Error(errorData.error || errorData.details || `HTTP error ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('Invitation email sent successfully', result);
+      console.log('Invitation email sent successfully via backend:', result);
       return true;
     } catch (error) {
       console.error('Error sending invitation email:', error);
