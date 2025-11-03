@@ -6,8 +6,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { globaltoolkitService } from '../../services/globaltoolkitService';
+import { documentsService } from '../../services/documentsService';
 import { useAuth } from '../AuthContext';
 import ResolutionPath from './ResolutionPath'; // Importation du composant ResolutionPath
+import { ExternalLink } from 'lucide-react';
 
 // =================================================================
 // SECTION 1: CONFIGURATION DES CATÉGORIES
@@ -68,6 +70,7 @@ const Globaltoolkit = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [documentCounts, setDocumentCounts] = useState({});
 
   // États pour l'édition des éléments
   const [editMode, setEditMode] = useState(false);
@@ -76,6 +79,10 @@ const Globaltoolkit = () => {
   const [newExampleUrl, setNewExampleUrl] = useState('');
   const [newExampleTitle, setNewExampleTitle] = useState('');
   const [expandedExampleId, setExpandedExampleId] = useState(null);
+  
+  // États pour les documents liés
+  const [linkedDocuments, setLinkedDocuments] = useState([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
 
   // États pour le zoom et le déplacement
   const [scale, setScale] = useState(1);
@@ -107,6 +114,24 @@ const Globaltoolkit = () => {
         const fetchedElements = await globaltoolkitService.getAllElements();
         setElements(fetchedElements);
         setError(null);
+
+        // Récupérer tous les documents pour compter les références
+        try {
+          const allDocuments = await documentsService.getDocuments();
+          const counts = {};
+          
+          fetchedElements.forEach(element => {
+            const count = allDocuments.filter(doc => 
+              doc.periodicElementIds && doc.periodicElementIds.includes(element.id)
+            ).length;
+            counts[element.id] = count;
+          });
+          
+          setDocumentCounts(counts);
+          console.log('Document counts per element:', counts);
+        } catch (docErr) {
+          console.error("Error fetching documents for counts:", docErr);
+        }
       } catch (err) {
         console.error("Error fetching toolkit elements:", err);
         setError("Failed to load toolkit elements. Please try again later.");
@@ -265,7 +290,7 @@ const Globaltoolkit = () => {
   // =================================================================
 
   // Gestionnaire pour le clic sur un élément
-  const handleElementClick = (element) => {
+  const handleElementClick = async (element) => {
     if (isPanning.current) return; // Don't select elements while panning
 
     console.log("Element clicked:", element);
@@ -280,6 +305,20 @@ const Globaltoolkit = () => {
       context: element.context || ''
     });
     setExpandedExampleId(null);
+
+    // Charger les documents liés à cet élément
+    setLoadingDocuments(true);
+    setLinkedDocuments([]);
+    try {
+      const docs = await documentsService.getDocumentsByPeriodicElement(element.id);
+      setLinkedDocuments(docs);
+      console.log(`Found ${docs.length} documents linked to element ${element.id}`);
+    } catch (err) {
+      console.error('Error loading linked documents:', err);
+      setLinkedDocuments([]);
+    } finally {
+      setLoadingDocuments(false);
+    }
   };
 
   // Gestionnaire pour fermer les détails d'un élément
@@ -616,6 +655,9 @@ const Globaltoolkit = () => {
                     >
                       <span className="font-mono text-lg font-bold mb-1">{element.id}</span>
                       <span className="text-xs line-clamp-2">{element.name}</span>
+                      <span className="absolute bottom-1 left-2 text-xs font-semibold text-gray-700">
+                        {documentCounts[element.id] || 0}
+                      </span>
                       <span className="absolute bottom-1 right-2 text-xs font-semibold text-gray-700">
                         {element.examples?.length || 0}
                       </span>
@@ -877,6 +919,44 @@ const Globaltoolkit = () => {
                         </button>
                       </div>
                     </div>
+                  )}
+                </div>
+
+                {/* Section Documents liés */}
+                <div className="mb-4 border-t pt-4">
+                  <h4 className="font-semibold mb-2">Related Documents from Library</h4>
+                  
+                  {loadingDocuments ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500" />
+                    </div>
+                  ) : linkedDocuments && linkedDocuments.length > 0 ? (
+                    <ul className="space-y-2">
+                      {linkedDocuments.map((doc) => (
+                        <li key={doc.id} className="flex items-start gap-2 p-2 hover:bg-gray-50 rounded">
+                          <ExternalLink className="w-4 h-4 mt-1 text-blue-600 flex-shrink-0" />
+                          <div className="flex-1">
+                            <a
+                              href={`/#library`}
+                              className="text-blue-600 hover:underline font-medium"
+                              onClick={() => {
+                                window.location.hash = 'library';
+                              }}
+                            >
+                              {doc.title}
+                            </a>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {doc.authors || doc.creatorAddress} • {doc.validationStatus}
+                            </p>
+                            {doc.description && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{doc.description}</p>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 italic">No documents reference this element yet.</p>
                   )}
                 </div>
 

@@ -1,9 +1,10 @@
 // =============== IMPORTS ===============
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
-import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit } from 'lucide-react';
 import DocumentValidator from "./DocumentValidator";
 import DocumentViewer from './DocumentViewer';
+import DocumentMetadataEditor from './DocumentMetadataEditor';
 
 // =============== CONSTANTS ===============
 const ValidationStatus = {
@@ -34,6 +35,7 @@ const NetworkPublications = ({
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingDocument, setEditingDocument] = useState(null);
 
   // =============== DATA LOADING ===============
   useEffect(() => {
@@ -142,6 +144,33 @@ const NetworkPublications = ({
     }
   };
 
+  // =============== METADATA EDITOR HANDLERS ===============
+  const handleEditMetadata = (doc) => {
+    setEditingDocument(doc);
+  };
+
+  const handleCloseEditor = () => {
+    setEditingDocument(null);
+  };
+
+  const handleSaveMetadata = async () => {
+    const loadDocuments = async () => {
+      try {
+        const docs = await documentsService.getDocuments();
+        setDocuments(docs.filter(Boolean));
+      } catch (err) {
+        console.error("Error reloading documents:", err);
+      }
+    };
+    await loadDocuments();
+    setEditingDocument(null);
+  };
+
+  const isDocumentAuthor = (doc) => {
+    return address && doc.creatorAddress && 
+           address.toLowerCase() === doc.creatorAddress.toLowerCase();
+  };
+
   // =============== DOCUMENTS DISPLAY LOGIC ===============
   if (loading || isSearching) {
     return (
@@ -182,8 +211,16 @@ const NetworkPublications = ({
 
   // =============== MAIN RENDER ===============
   return (
-    <div className="grid grid-cols-1 gap-6">
-      {displayedDocuments.map((doc) => {
+    <>
+      {editingDocument && (
+        <DocumentMetadataEditor
+          document={editingDocument}
+          onClose={handleCloseEditor}
+          onSave={handleSaveMetadata}
+        />
+      )}
+      <div className="grid grid-cols-1 gap-6">
+        {displayedDocuments.map((doc) => {
         if (!doc) return null;
         const documentCid = getDocumentCid(doc);
 
@@ -221,35 +258,32 @@ const NetworkPublications = ({
 
                 {/* Actions */}
                 <div className="flex items-center gap-4">
-                   {/* Boutons voir le document */}
-                  <button
-                    onClick={() => handleViewDetails(doc)}
-                    disabled={!doc.ipfsCid}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                      doc.ipfsCid
-                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Read content
-                  </button>
+                  {/* Bouton pour gérer les métadonnées (visible uniquement pour l'auteur) */}
+                  {isDocumentAuthor(doc) ? (
+                    <button
+                      onClick={() => handleEditMetadata(doc)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-amber-100 text-amber-700 hover:bg-amber-200"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Manage metadata
+                    </button>
+                  ) : null}
                   
                   {/* Nouveau bouton pour la généalogie */}
                   {isWebAdmin || isWeb3Admin ? (
-                  <button
-                    onClick={() => handleViewGenealogy(doc)}
-                    disabled={!doc.tokenId}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                      doc.tokenId
-                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                        : 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    <GitFork className="w-4 h-4" />
-                    Document Genealogy
-                  </button>
-            ) : null}
+                    <button
+                      onClick={() => handleViewGenealogy(doc)}
+                      disabled={!doc.tokenId}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+                        doc.tokenId
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}
+                    >
+                      <GitFork className="w-4 h-4" />
+                      Document Genealogy
+                    </button>
+                  ) : null}
                 </div>
 
                 {/* Validation si autorisé */}
@@ -266,7 +300,8 @@ const NetworkPublications = ({
           </article>
         );
       })}
-    </div>
+      </div>
+    </>
   );
 };
 

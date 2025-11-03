@@ -479,6 +479,63 @@ export const documentsService = {
         }
 
         return false;
+      },
+
+      // =============== GET DOCUMENTS BY PERIODIC ELEMENT ===============
+      // Récupère tous les documents qui référencent un élément périodique spécifique
+      async getDocumentsByPeriodicElement(elementId) {
+        try {
+          console.log('=== Fetching Documents by Periodic Element ===');
+          console.log('Element ID:', elementId);
+
+          if (!elementId) {
+            throw new Error('Element ID is required');
+          }
+
+          const documentsRef = collection(db, 'web3IP');
+          const q = query(documentsRef, where('periodicElementIds', 'array-contains', elementId));
+          const snapshot = await getDocs(q);
+
+          const documents = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            validationStatus: doc.data().validationStatus || "PENDING"
+          }));
+
+          console.log(`Found ${documents.length} documents referencing element ${elementId}`);
+          return documents;
+        } catch (error) {
+          console.error('❌ Error getting documents by periodic element:', error);
+          throw error;
+        }
+      },
+
+      // =============== UPDATE PERIODIC ELEMENTS ===============
+      // Met à jour les éléments périodiques référencés par un document
+      async updatePeriodicElements(documentId, periodicElementIds) {
+        try {
+          console.log('=== Updating Periodic Elements ===');
+          console.log('Params:', { documentId, periodicElementIds });
+
+          if (!documentId) {
+            throw new Error('Document ID is required');
+          }
+
+          if (!Array.isArray(periodicElementIds)) {
+            throw new Error('periodicElementIds must be an array');
+          }
+
+          const docRef = doc(db, 'web3IP', documentId);
+          await updateDoc(docRef, {
+            periodicElementIds,
+            updatedAt: serverTimestamp()
+          });
+
+          console.log('Periodic elements updated successfully');
+        } catch (error) {
+          console.error('❌ Error updating periodic elements:', error);
+          throw error;
+        }
       }
     };
 
