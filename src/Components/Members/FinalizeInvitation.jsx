@@ -145,15 +145,32 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         }
 
         // Récupérer l'ID d'invitation du localStorage 
+        console.log('[DEBUG] Vérification du localStorage pour invitation ID');
+        console.log('[DEBUG] Tous les items dans localStorage:', Object.keys(localStorage));
+        console.log('[DEBUG] currentInvitationId:', localStorage.getItem('currentInvitationId'));
+        console.log('[DEBUG] sessionStorage items:', Object.keys(sessionStorage));
+        
         const invitationId = localStorage.getItem('currentInvitationId');
+        
         if (!invitationId) {
-          throw new Error(currentLang === 'fr' 
+          const debugInfo = {
+            localStorageKeys: Object.keys(localStorage),
+            sessionStorageKeys: Object.keys(sessionStorage),
+            urlSearch: window.location.search,
+            urlHash: window.location.hash,
+            currentUrl: window.location.href
+          };
+          
+          console.error('[DEBUG] Invitation ID non trouvé. Informations de debug:', debugInfo);
+          
+          throw new Error((currentLang === 'fr' 
             ? 'Invitation non trouvée. Veuillez valider votre invitation d\'abord.' 
-            : 'Invitation not found. Please validate your invitation first.');
+            : 'Invitation not found. Please validate your invitation first.') + 
+            '\n\nDEBUG INFO:\n' + JSON.stringify(debugInfo, null, 2));
         }
 
         // Valider l'invitation
-        console.log('Récupération de l\'invitation:', invitationId);
+        console.log('[DEBUG] Récupération de l\'invitation avec ID:', invitationId);
         const invitationResult = await invitationsService.validateInvitation(invitationId);
 
         if (!invitationResult.valid) {
