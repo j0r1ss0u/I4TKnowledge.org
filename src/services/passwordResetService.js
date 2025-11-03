@@ -42,7 +42,7 @@ export const passwordResetService = {
       console.log('Reset document created:', resetRef.id);
       
       // 3. Appeler la Firebase Cloud Function pour envoyer l'email via Resend
-      const response = await fetch('https://us-central1-i4tk-website.cloudfunctions.net/sendResetPasswordEmailHttp', {
+      const response = await fetch('https://sendresetpasswordemailhttp-lwu3dhgpbq-uc.a.run.app', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -160,7 +160,7 @@ export const passwordResetService = {
       // car Firebase Auth ne permet pas de changer le mot de passe d'un utilisateur
       // sans être authentifié avec cet utilisateur
       const response = await fetch(
-        'https://us-central1-i4tk-website.cloudfunctions.net/completePasswordResetHttp', 
+        'https://completepasswordresethttp-lwu3dhgpbq-uc.a.run.app', 
         {
           method: 'POST',
           headers: {
