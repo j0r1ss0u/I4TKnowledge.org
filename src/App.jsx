@@ -269,10 +269,10 @@ function AppContent() {
   const [processingAuthLink, setProcessingAuthLink] = useState(false);
 
   // ===== Page Change Handler =====
-  const handlePageChange = (newPage) => {
+  const handlePageChange = React.useCallback((newPage) => {
     setCurrentPage(newPage);
     window.location.hash = newPage === 'home' ? '' : newPage;
-  };
+  }, []);
 
   // ===== Provider Check Effect =====
   useEffect(() => {
@@ -544,10 +544,18 @@ function AppContent() {
 
   // Validation des invitations - doit se faire AVANT la vérification de connexion
   useEffect(() => {
+    // DEBUG: Toujours logger pour voir si le useEffect s'exécute
+    console.log('[INVITATION DEBUG] useEffect de validation exécuté');
+    console.log('[INVITATION DEBUG] window.location.href:', window.location.href);
+    console.log('[INVITATION DEBUG] window.location.search:', window.location.search);
+    console.log('[INVITATION DEBUG] window.location.hash:', window.location.hash);
+    
     // Vérifier les paramètres d'URL pour les invitations DÈS LE CHARGEMENT
     const params = new URLSearchParams(window.location.search);
     const email = params.get('email');
     const code = params.get('code');
+    
+    console.log('[INVITATION DEBUG] Paramètres extraits - email:', email, 'code:', code);
 
     if (email && code) {
       console.log('Paramètres d\'invitation détectés dans l\'URL:', email, code);
