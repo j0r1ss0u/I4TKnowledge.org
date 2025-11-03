@@ -101,7 +101,11 @@ const ForgotPassword = () => {
     const checkResetStatus = async () => {
       try {
         setLoading(true);
-        const params = new URLSearchParams(window.location.search);
+        // Extraire les paramètres depuis le hash au lieu de window.location.search
+        const hash = window.location.hash;
+        const queryStart = hash.indexOf('?');
+        const queryString = queryStart !== -1 ? hash.substring(queryStart + 1) : '';
+        const params = new URLSearchParams(queryString);
         const resetId = params.get('resetId');
         const codeParam = params.get('code');
         const langParam = params.get('lang');
