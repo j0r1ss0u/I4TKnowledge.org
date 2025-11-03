@@ -674,6 +674,79 @@ function AppContent() {
   }, [currentLang, showNotification, handlePageChange]);
 
 
+  // Validation de réinitialisation de mot de passe - même logique que les invitations
+  useEffect(() => {
+    // Sauvegarder immédiatement les paramètres d'URL dans sessionStorage
+    const params = new URLSearchParams(window.location.search);
+    const resetId = params.get('resetId');
+    const code = params.get('code');
+    const lang = params.get('lang');
+    
+    console.log('[RESET PASSWORD DEBUG] useEffect de validation exécuté');
+    console.log('[RESET PASSWORD DEBUG] window.location.href:', window.location.href);
+    console.log('[RESET PASSWORD DEBUG] Paramètres extraits - resetId:', resetId, 'code:', code);
+
+    // Si on a des paramètres dans l'URL, les sauvegarder pour éviter de les perdre
+    if (resetId) {
+      console.log('Paramètres de reset password détectés dans l\'URL:', resetId);
+      
+      // Sauvegarder dans sessionStorage pour ne pas les perdre lors des redirections
+      sessionStorage.setItem('pendingResetId', resetId);
+      if (code) {
+        sessionStorage.setItem('pendingResetCode', code);
+      }
+      if (lang) {
+        sessionStorage.setItem('pendingResetLang', lang);
+      }
+      
+      // Rediriger vers la page reset-password avec les paramètres préservés
+      const redirectToReset = () => {
+        console.log('Redirection vers la page reset-password avec paramètres sauvegardés');
+        
+        // Construire l'URL avec les paramètres
+        let resetUrl = '/#reset-password?resetId=' + resetId;
+        if (code) resetUrl += '&code=' + code;
+        if (lang) resetUrl += '&lang=' + lang;
+        
+        // Nettoyer l'URL complète et rediriger
+        window.history.replaceState({}, '', resetUrl);
+        handlePageChange('reset-password');
+        
+        showNotification(
+          currentLang === 'fr' 
+            ? 'Redirection vers la réinitialisation du mot de passe...' 
+            : 'Redirecting to password reset...',
+          'info'
+        );
+      };
+      
+      redirectToReset();
+    }
+    // Si pas de paramètres dans l'URL, vérifier sessionStorage au cas où
+    else {
+      const savedResetId = sessionStorage.getItem('pendingResetId');
+      const savedCode = sessionStorage.getItem('pendingResetCode');
+      const savedLang = sessionStorage.getItem('pendingResetLang');
+      
+      if (savedResetId && currentPage === 'reset-password') {
+        console.log('Paramètres de reset récupérés depuis sessionStorage');
+        
+        // Restaurer les paramètres dans l'URL pour que ForgotPassword les trouve
+        let resetUrl = '?resetId=' + savedResetId;
+        if (savedCode) resetUrl += '&code=' + savedCode;
+        if (savedLang) resetUrl += '&lang=' + savedLang;
+        
+        // Mettre à jour l'URL sans recharger la page
+        window.history.replaceState({}, '', '/#reset-password' + resetUrl);
+        
+        // Nettoyer sessionStorage car les paramètres sont maintenant dans l'URL
+        sessionStorage.removeItem('pendingResetId');
+        sessionStorage.removeItem('pendingResetCode');
+        sessionStorage.removeItem('pendingResetLang');
+      }
+    }
+  }, [currentLang, currentPage, showNotification, handlePageChange]);
+
 
   // ===== Language Handler =====
   const handleLanguageChange = (newLang) => {
