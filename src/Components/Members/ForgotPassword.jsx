@@ -286,7 +286,7 @@ const ForgotPassword = () => {
       }
 
       // User exists, proceed with reset
-      await passwordResetService.requestPasswordReset(email);
+      await passwordResetService.requestPasswordReset(email, language);
       setStatus('success');
 
       // Notification

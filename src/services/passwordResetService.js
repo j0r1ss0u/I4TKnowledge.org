@@ -11,22 +11,39 @@ import {
   Timestamp
 } from 'firebase/firestore';
 export const passwordResetService = {
+  // ------- Generate random code -------
+  generateResetCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  },
+
   // ------- Password reset request -------
-  async requestPasswordReset(email) {
+  async requestPasswordReset(email, language = 'en') {
     try {
       console.log('Starting password reset process for:', email);
-      // 1. Create an entry in the passwordResets collection
+      
+      // 1. Générer un code de réinitialisation aléatoire
+      const code = this.generateResetCode();
+      console.log('Generated reset code:', code);
+      
+      // 2. Create an entry in the passwordResets collection
       const resetDoc = {
         email: email.toLowerCase(),
+        code: code,
         status: 'pending',
         createdAt: serverTimestamp(),
         expiresAt: Timestamp.fromDate(new Date(Date.now() + 24 * 60 * 60 * 1000)) // 24 hours
       };
       const resetRef = await addDoc(collection(db, 'passwordResets'), resetDoc);
       console.log('Reset document created:', resetRef.id);
-      // 2. Call the Cloud Function to send email via Resend
-      // Important: Use the correct endpoint for password reset, NOT the invitation endpoint
-      const response = await fetch('https://us-central1-i4tk-website.cloudfunctions.net/sendResetPasswordEmailHttp', {
+      
+      // 3. Appeler le serveur Express local pour envoyer l'email via Resend
+      // Utiliser une URL relative - Vite proxy va router vers le backend
+      const response = await fetch('/api/send-reset-password-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -34,14 +51,20 @@ export const passwordResetService = {
         body: JSON.stringify({
           email: email,
           resetId: resetRef.id,
-          language: 'en' // Changed to English
+          code: code,
+          language: language
         })
       });
+      
       if (!response.ok) {
         const errorData = await response.json();
+        console.error('Failed to send reset email:', errorData);
         throw new Error(`Failed to send reset email: ${errorData.error}`);
       }
-      console.log('Reset email sent successfully');
+      
+      const result = await response.json();
+      console.log('Reset email sent successfully:', result);
+      
       return {
         success: true,
         id: resetRef.id
@@ -54,28 +77,54 @@ export const passwordResetService = {
   // ------- Reset code verification -------
   async verifyResetCode(resetId, code) {
     try {
-      console.log(`Calling validateResetCodeHttp with resetId="${resetId}" and code="${code}"`);
-      // Utiliser fetch standard au lieu de httpsCallable
-      const response = await fetch(
-        'https://us-central1-i4tk-website.cloudfunctions.net/validateResetCodeHttp', 
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ resetId, code })
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to validate reset code');
+      console.log(`Verifying reset code for resetId="${resetId}" with code="${code}"`);
+      
+      // Récupérer le document de réinitialisation depuis Firestore
+      const resetRef = doc(db, 'passwordResets', resetId);
+      const resetDoc = await getDoc(resetRef);
+      
+      if (!resetDoc.exists()) {
+        console.log('Reset document not found');
+        return {
+          valid: false,
+          error: 'Reset request not found'
+        };
       }
+      
+      const resetData = resetDoc.data();
+      
+      // Vérifier l'expiration
+      if (resetData.expiresAt && resetData.expiresAt.toDate() < new Date()) {
+        console.log('Reset link expired');
+        await updateDoc(resetRef, { status: 'expired' });
+        return {
+          valid: false,
+          error: 'Reset link has expired'
+        };
+      }
+      
+      // Vérifier que le code correspond
+      if (resetData.code !== code.toUpperCase()) {
+        console.log('Invalid reset code:', code, 'expected:', resetData.code);
+        return {
+          valid: false,
+          error: 'Invalid reset code'
+        };
+      }
+      
+      // Marquer comme validé
+      await updateDoc(resetRef, { 
+        status: 'validated',
+        validatedAt: serverTimestamp()
+      });
+      
+      console.log('Reset code validated successfully');
       return {
-        valid: data.success === true,
-        email: data.email
+        valid: true,
+        email: resetData.email
       };
     } catch (error) {
-      console.error('Error calling validateResetCodeHttp:', error);
+      console.error('Error verifying reset code:', error);
       return {
         valid: false,
         error: error.message
@@ -86,7 +135,31 @@ export const passwordResetService = {
   async confirmReset(resetId, newPassword) {
     try {
       console.log('Confirming password reset for resetId:', resetId);
-
+      
+      // Récupérer le document de réinitialisation
+      const resetRef = doc(db, 'passwordResets', resetId);
+      const resetDoc = await getDoc(resetRef);
+      
+      if (!resetDoc.exists()) {
+        throw new Error('Reset request not found');
+      }
+      
+      const resetData = resetDoc.data();
+      
+      // Vérifier que le statut est 'validated'
+      if (resetData.status !== 'validated') {
+        throw new Error('Reset code must be validated first');
+      }
+      
+      // Vérifier l'expiration
+      if (resetData.expiresAt && resetData.expiresAt.toDate() < new Date()) {
+        await updateDoc(resetRef, { status: 'expired' });
+        throw new Error('Reset link has expired');
+      }
+      
+      // IMPORTANT: Pour changer le mot de passe, nous devons utiliser Firebase Cloud Function
+      // car Firebase Auth ne permet pas de changer le mot de passe d'un utilisateur
+      // sans être authentifié avec cet utilisateur
       const response = await fetch(
         'https://us-central1-i4tk-website.cloudfunctions.net/completePasswordResetHttp', 
         {
