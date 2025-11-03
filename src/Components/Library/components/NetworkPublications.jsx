@@ -85,8 +85,8 @@ const NetworkPublications = ({
   const handleViewDetails = (doc) => {
     const cid = getDocumentCid(doc);
     if (cid) {
-      // Utiliser un gateway IPFS fiable - Cloudflare IPFS est généralement plus stable
-      window.open(`https://cloudflare-ipfs.com/ipfs/${cid}`, '_blank');
+      // Utiliser le gateway IPFS officiel qui est très fiable
+      window.open(`https://ipfs.io/ipfs/${cid}`, '_blank');
     } else {
       console.error('Invalid or missing IPFS CID:', doc);
     }
