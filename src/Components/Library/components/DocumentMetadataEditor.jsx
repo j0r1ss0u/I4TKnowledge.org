@@ -331,19 +331,23 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                       <h4 className="font-medium text-sm text-gray-700 mb-2">
                         {CATEGORY_NAMES[categoryKey] || categoryKey}
                       </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {elements.map(element => (
                           <label
                             key={element.id}
-                            className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-50 cursor-pointer"
+                            className="flex items-start space-x-2 p-2 border rounded hover:bg-gray-50 cursor-pointer group relative"
+                            title={`${element.description}${element.context ? '\n\n' + element.context : ''}`}
                           >
                             <input
                               type="checkbox"
-                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500 flex-shrink-0"
                               checked={formData.periodicElementIds.includes(element.id)}
                               onChange={() => togglePeriodicElement(element.id)}
                             />
-                            <span className="font-mono text-xs font-bold">{element.id}</span>
+                            <div className="flex-1 min-w-0">
+                              <span className="font-mono text-xs font-bold">{element.id}</span>
+                              <span className="text-xs"> - {element.name}</span>
+                            </div>
                           </label>
                         ))}
                       </div>
@@ -363,10 +367,11 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                       return (
                         <span
                           key={id}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-blue-200 rounded text-xs"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-blue-200 rounded text-xs cursor-help"
+                          title={element ? `${element.description}${element.context ? '\n\n' + element.context : ''}` : id}
                         >
                           <span className="font-mono font-bold">{id}</span>
-                          {element && <span>{element.name}</span>}
+                          {element && <span>- {element.name}</span>}
                         </span>
                       );
                     })}
