@@ -41,9 +41,8 @@ export const passwordResetService = {
       const resetRef = await addDoc(collection(db, 'passwordResets'), resetDoc);
       console.log('Reset document created:', resetRef.id);
       
-      // 3. Appeler le serveur Express local pour envoyer l'email via Resend
-      // Utiliser une URL relative - Vite proxy va router vers le backend
-      const response = await fetch('/api/send-reset-password-email', {
+      // 3. Appeler la Firebase Cloud Function pour envoyer l'email via Resend
+      const response = await fetch('https://us-central1-i4tk-website.cloudfunctions.net/sendResetPasswordEmailHttp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
