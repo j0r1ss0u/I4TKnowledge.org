@@ -7,21 +7,10 @@
 import { pdfExtractionService } from './pdfExtractionService';
 import { globaltoolkitService } from './globaltoolkitService';
 
-// Configuration - URL backend dynamique pour supporter production
-const getBackendURL = () => {
-  const hostname = window.location.hostname;
-  
-  if (hostname === 'localhost') {
-    return 'http://localhost:3000';
-  }
-  
-  // Production Replit: 
-  // Format: <uuid>-00-<session>.<workspace>.replit.dev
-  // Devient: <uuid>-3000-00-<session>.<workspace>.replit.dev
-  const backendHostname = hostname.replace(/(-00-)/, '-3000$1');
-  return `https://${backendHostname}`;
-};
-const BACKEND_URL = getBackendURL();
+// Configuration - URL backend via Vite proxy
+// Vite est configuré avec un proxy : /api/* → localhost:3000
+// Donc on utilise simplement les chemins relatifs !
+const BACKEND_URL = '';
 
 class AutoTaggingService {
   constructor() {

@@ -17,23 +17,10 @@ const RETRY_DELAY = 1000;
 // ================================================================
 // BACKEND URL HELPER
 // ================================================================
+// Vite est configuré avec un proxy : /api/* → localhost:3000
+// Donc on utilise simplement les chemins relatifs !
 const getBackendURL = () => {
-  const hostname = window.location.hostname;
-  
-  if (hostname === 'localhost') {
-    return 'http://localhost:3000';
-  }
-  
-  // Production Replit: 
-  // Format: <uuid>-00-<session>.<workspace>.replit.dev
-  // Devient: <uuid>-3000-00-<session>.<workspace>.replit.dev
-  // On insère "-3000" juste avant le segment qui commence par "-00-"
-  const backendHostname = hostname.replace(/(-00-)/, '-3000$1');
-  
-  console.log('🔗 Frontend hostname:', hostname);
-  console.log('🔗 Backend hostname:', backendHostname);
-  
-  return `https://${backendHostname}`;
+  return ''; // Vite proxy gère tout automatiquement
 };
 
 // ================================================================
@@ -43,7 +30,7 @@ class ChatService {
   constructor() {
     this.conversations = new Map();
     this.backendURL = getBackendURL();
-    console.log('🤖 Chat service initialized with backend:', this.backendURL);
+    console.log('🤖 Chat service initialized (using Vite proxy to backend)');
   }
 
   // ================================================================
