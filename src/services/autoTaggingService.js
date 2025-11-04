@@ -9,13 +9,17 @@ import { globaltoolkitService } from './globaltoolkitService';
 
 // Configuration - URL backend dynamique pour supporter production
 const getBackendURL = () => {
-  if (window.location.hostname === 'localhost') {
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost') {
     return 'http://localhost:3000';
   }
-  // Replit production: insérer -3000 avant .replit.dev
-  // Exemple: abc.kirk.replit.dev → abc-3000.kirk.replit.dev
-  const hostname = window.location.hostname;
-  return `https://${hostname.replace(/\.([^.]+\.replit\.dev)$/, '-3000.$1')}`;
+  
+  // Production Replit: 
+  // Format: <uuid>-00-<session>.<workspace>.replit.dev
+  // Devient: <uuid>-3000-00-<session>.<workspace>.replit.dev
+  const backendHostname = hostname.replace(/(-00-)/, '-3000$1');
+  return `https://${backendHostname}`;
 };
 const BACKEND_URL = getBackendURL();
 

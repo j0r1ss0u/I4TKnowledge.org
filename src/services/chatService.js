@@ -24,8 +24,16 @@ const getBackendURL = () => {
     return 'http://localhost:3000';
   }
   
-  // Production Replit: abc.kirk.replit.dev → abc-3000.kirk.replit.dev
-  return `https://${hostname.replace(/\.([^.]+\.replit\.dev)$/, '-3000.$1')}`;
+  // Production Replit: 
+  // Format: <uuid>-00-<session>.<workspace>.replit.dev
+  // Devient: <uuid>-3000-00-<session>.<workspace>.replit.dev
+  // On insère "-3000" juste avant le segment qui commence par "-00-"
+  const backendHostname = hostname.replace(/(-00-)/, '-3000$1');
+  
+  console.log('🔗 Frontend hostname:', hostname);
+  console.log('🔗 Backend hostname:', backendHostname);
+  
+  return `https://${backendHostname}`;
 };
 
 // ================================================================
