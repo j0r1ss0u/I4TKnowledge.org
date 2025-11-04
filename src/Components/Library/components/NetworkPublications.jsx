@@ -259,8 +259,8 @@ const NetworkPublications = ({
 
                 {/* Actions */}
                 <div className="flex items-center gap-4">
-                  {/* Bouton pour gérer les métadonnées (visible uniquement pour l'auteur) */}
-                  {isDocumentAuthor(doc) ? (
+                  {/* Bouton pour gérer les métadonnées (visible pour l'auteur et les admins) */}
+                  {(isDocumentAuthor(doc) || isWebAdmin || isWeb3Admin) ? (
                     <button
                       onClick={() => handleEditMetadata(doc)}
                       className="flex items-center gap-2 px-4 py-2 rounded-md transition-colors bg-amber-100 text-amber-700 hover:bg-amber-200"
