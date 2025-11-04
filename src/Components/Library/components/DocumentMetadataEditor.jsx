@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
 import { globaltoolkitService } from '../../../services/globaltoolkitService';
-import { Save, X, Tag } from 'lucide-react';
+import { autoTaggingService } from '../../../services/autoTaggingService';
+import { Save, X, Tag, Sparkles, Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 const PROGRAMMES = [
   "I4TK Opteam",
@@ -43,6 +44,12 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
   const [error, setError] = useState(null);
   const [periodicElements, setPeriodicElements] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // AI Auto-Tagging States
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const [formData, setFormData] = useState({
     title: document.title || '',
@@ -119,6 +126,59 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
         ? prev.categories.filter(c => c !== category)
         : [...prev.categories, category]
     }));
+  };
+
+  // ===== AI AUTO-TAGGING FUNCTIONS =====
+  const handleGenerateAISuggestions = async () => {
+    try {
+      setAiLoading(true);
+      setAiError(null);
+      setShowSuggestions(false);
+
+      console.log('🤖 Generating AI suggestions for document:', document.title);
+
+      // Appeler le service d'auto-tagging
+      const suggestions = await autoTaggingService.suggestTagsForDocument(
+        document.ipfsCid,
+        document.title
+      );
+
+      setAiSuggestions(suggestions);
+      setShowSuggestions(true);
+
+      // Sauvegarder les suggestions dans Firestore pour référence future
+      await documentsService.saveAISuggestions(document.id, suggestions);
+
+      console.log('✅ AI suggestions generated:', suggestions);
+
+    } catch (err) {
+      console.error('❌ AI suggestion error:', err);
+      setAiError(err.message || 'Failed to generate AI suggestions');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const applyAISuggestion = (elementId) => {
+    // Ajouter l'élément s'il n'est pas déjà sélectionné
+    if (!formData.periodicElementIds.includes(elementId)) {
+      togglePeriodicElement(elementId);
+    }
+  };
+
+  const applyAllAISuggestions = () => {
+    // Ajouter tous les éléments suggérés qui ne sont pas déjà sélectionnés
+    const newElementIds = [...formData.periodicElementIds];
+    aiSuggestions.forEach(suggestion => {
+      if (!newElementIds.includes(suggestion.elementId)) {
+        newElementIds.push(suggestion.elementId);
+      }
+    });
+    setFormData(prev => ({
+      ...prev,
+      periodicElementIds: newElementIds
+    }));
+    setShowSuggestions(false);
   };
 
   const organizeElementsByCategory = () => {
@@ -274,15 +334,152 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
             </div>
 
             <div className="border-t pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Tag className="w-5 h-5 text-gray-700" />
-                <label className="block text-sm font-medium text-gray-700">
-                  Periodic Table Elements
-                </label>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-5 h-5 text-gray-700" />
+                  <label className="block text-sm font-medium text-gray-700">
+                    Periodic Table Elements
+                  </label>
+                </div>
+                
+                {/* AI Auto-Tagging Button */}
+                <button
+                  type="button"
+                  onClick={handleGenerateAISuggestions}
+                  disabled={aiLoading || !document.ipfsCid}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-md hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  title="Generate AI-powered tag suggestions using GPT-4o-mini"
+                >
+                  {aiLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      AI Suggest Tags
+                    </>
+                  )}
+                </button>
               </div>
+
               <p className="text-sm text-gray-600 mb-4">
                 Tag this document with relevant elements from the Periodic Table of Platform Regulation
               </p>
+
+              {/* AI Suggestions Section */}
+              {aiError && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
+                  <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-red-800">AI Suggestion Error</p>
+                    <p className="text-sm text-red-600 mt-1">{aiError}</p>
+                  </div>
+                </div>
+              )}
+
+              {showSuggestions && aiSuggestions.length > 0 && (
+                <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-purple-600" />
+                      <h4 className="text-sm font-semibold text-purple-900">
+                        AI Tag Suggestions ({aiSuggestions.length})
+                      </h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={applyAllAISuggestions}
+                        className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                      >
+                        Apply All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowSuggestions(false)}
+                        className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {aiSuggestions.map((suggestion, idx) => {
+                      const element = periodicElements.find(e => e.id === suggestion.elementId);
+                      const isAlreadySelected = formData.periodicElementIds.includes(suggestion.elementId);
+                      const confidencePercent = Math.round(suggestion.confidence * 100);
+                      
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-3 bg-white border rounded-lg transition ${
+                            isAlreadySelected ? 'border-green-300 bg-green-50' : 'border-purple-200'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-mono text-sm font-bold text-purple-700">
+                                  {suggestion.elementId}
+                                </span>
+                                <span className="text-sm font-medium text-gray-900">
+                                  {suggestion.elementName || element?.name}
+                                </span>
+                                
+                                {/* Confidence Badge */}
+                                <span
+                                  className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                                    confidencePercent >= 80
+                                      ? 'bg-green-100 text-green-800'
+                                      : confidencePercent >= 60
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-orange-100 text-orange-800'
+                                  }`}
+                                >
+                                  {confidencePercent}% confident
+                                </span>
+
+                                {isAlreadySelected && (
+                                  <CheckCircle className="w-4 h-4 text-green-600" />
+                                )}
+                              </div>
+                              
+                              <p className="text-xs text-gray-600 leading-relaxed">
+                                {suggestion.rationale}
+                              </p>
+                            </div>
+
+                            {!isAlreadySelected && (
+                              <button
+                                type="button"
+                                onClick={() => applyAISuggestion(suggestion.elementId)}
+                                className="flex-shrink-0 px-3 py-1 text-xs font-medium bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+                              >
+                                Apply
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <p className="text-xs text-purple-700 mt-3">
+                    💡 AI analyzed your document using semantic embeddings and GPT-4o-mini
+                  </p>
+                </div>
+              )}
+
+              {showSuggestions && aiSuggestions.length === 0 && (
+                <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-sm text-yellow-800">
+                    No tag suggestions found. The AI couldn't find strong matches for this document.
+                  </p>
+                </div>
+              )}
 
               <div className="mb-4">
                 <input
