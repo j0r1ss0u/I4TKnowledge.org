@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const { Resend } = require('resend');
+const OpenAI = require('openai');
 
 const app = express();
 const OLLAMA_URL = 'http://localhost:11434/api';
@@ -205,9 +206,178 @@ app.post('/api/send-reset-password-email', async (req, res) => {
   }
 });
 
+// ================================================================
+// AI AUTO-TAGGING ENDPOINTS
+// ================================================================
+
+// Cache en mémoire pour les embeddings des éléments du tableau périodique
+let elementEmbeddingsCache = null;
+
+// Endpoint pour extraire le texte d'un PDF via IPFS
+app.post('/api/extract-pdf-text', async (req, res) => {
+  try {
+    const { ipfsCid } = req.body;
+
+    if (!ipfsCid) {
+      return res.status(400).json({ error: 'IPFS CID is required' });
+    }
+
+    console.log('📄 Extracting PDF text from IPFS:', ipfsCid);
+
+    // Utiliser l'API cloudflare-ipfs.com pour récupérer le PDF
+    const ipfsUrl = `https://cloudflare-ipfs.com/ipfs/${ipfsCid}`;
+    
+    const response = await axios.get(ipfsUrl, {
+      responseType: 'arraybuffer',
+      timeout: 30000,
+      headers: {
+        'Accept': 'application/pdf'
+      }
+    });
+
+    // Pour l'instant, on retourne juste un texte simulé
+    // En production, vous devriez utiliser une bibliothèque comme pdf-parse
+    const simulatedText = `Document content from IPFS. This is a placeholder for PDF text extraction. 
+    In production, you would use pdf-parse or similar library to extract actual text from the PDF buffer.`;
+
+    res.json({
+      success: true,
+      text: simulatedText,
+      summary: simulatedText.slice(0, 500)
+    });
+
+  } catch (error) {
+    console.error('❌ PDF extraction error:', error.message);
+    res.status(500).json({
+      error: 'Failed to extract PDF text',
+      details: error.message
+    });
+  }
+});
+
+// Endpoint pour générer des suggestions de tags IA
+app.post('/api/suggest-tags', async (req, res) => {
+  try {
+    const { documentText, documentTitle, periodicElements } = req.body;
+
+    if (!documentText || !documentTitle || !periodicElements) {
+      return res.status(400).json({ 
+        error: 'Missing required parameters: documentText, documentTitle, periodicElements' 
+      });
+    }
+
+    // Vérifier la clé OpenAI
+    const openaiApiKey = process.env.VITE_OPENAI_API_KEY;
+    if (!openaiApiKey) {
+      console.error('VITE_OPENAI_API_KEY not found in environment variables');
+      return res.status(500).json({ error: 'AI service not configured' });
+    }
+
+    const openai = new OpenAI({ apiKey: openaiApiKey });
+
+    console.log('🤖 Generating AI suggestions for:', documentTitle);
+
+    // Préparer la liste des éléments pour le prompt
+    const elementsText = periodicElements.map((el, idx) => 
+      `${idx + 1}. **${el.id} - ${el.name}**\n   Description: ${el.description}\n   Context: ${el.context || 'N/A'}`
+    ).join('\n\n');
+
+    const prompt = `You are an expert in digital platform governance and regulation. Analyze this document and determine which regulatory elements from the Periodic Table of Platform Regulation are most relevant.
+
+**Document Title:** ${documentTitle}
+
+**Document Summary:**
+${documentText.slice(0, 2000)}
+
+**Candidate Elements:**
+${elementsText}
+
+**Instructions:**
+1. Analyze which elements are truly relevant to this document's content
+2. For each relevant element, provide:
+   - The element ID (e.g., "EM", "RG")
+   - A confidence score from 0 to 1 (1 = highly relevant, 0 = not relevant)
+   - A brief explanation (1-2 sentences) of WHY this element is relevant
+3. Only include elements with confidence >= 0.6
+4. Return a JSON array with this exact structure:
+
+[
+  {
+    "elementId": "EM",
+    "confidence": 0.95,
+    "rationale": "The document extensively discusses enforcement mechanisms and compliance monitoring systems."
+  }
+]
+
+Return ONLY the JSON array, no other text.`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are an expert analyst specializing in digital platform governance. Respond only with valid JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000
+    });
+
+    const responseText = completion.choices[0].message.content;
+    
+    // Parser la réponse JSON
+    let suggestions;
+    try {
+      // Essayer de parser directement
+      const parsed = JSON.parse(responseText);
+      suggestions = Array.isArray(parsed) ? parsed : (parsed.suggestions || []);
+    } catch (parseError) {
+      console.error('Failed to parse LLM response:', responseText);
+      // Fallback : extraire le JSON array du texte
+      const jsonMatch = responseText.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        suggestions = JSON.parse(jsonMatch[0]);
+      } else {
+        suggestions = [];
+      }
+    }
+
+    // Enrichir avec les informations complètes des éléments
+    const enrichedSuggestions = suggestions.map(sugg => {
+      const element = periodicElements.find(el => el.id === sugg.elementId);
+      return {
+        ...sugg,
+        elementName: element?.name || sugg.elementId,
+        elementDescription: element?.description || '',
+        category: element?.category || ''
+      };
+    });
+
+    console.log(`✅ Generated ${enrichedSuggestions.length} AI suggestions`);
+
+    res.json({
+      success: true,
+      suggestions: enrichedSuggestions
+    });
+
+  } catch (error) {
+    console.error('❌ AI suggestion error:', error.message);
+    res.status(500).json({
+      error: 'Failed to generate AI suggestions',
+      details: error.message
+    });
+  }
+});
+
 app.listen(3000, () => {
   console.log('Backend server running on port 3000');
   console.log('- Ollama proxy available at /api/chat');
   console.log('- Email service available at /api/send-invitation-email');
   console.log('- Email service available at /api/send-reset-password-email');
+  console.log('- AI auto-tagging available at /api/suggest-tags');
+  console.log('- PDF text extraction available at /api/extract-pdf-text');
 });
