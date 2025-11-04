@@ -45,7 +45,7 @@ class AutoTaggingService {
       const embeddingsPromises = elements.map(async (element) => {
         // Créer un texte descriptif pour l'embedding
         const elementText = `${element.name}. ${element.description}. ${element.context || ''}`;
-        const embedding = await embeddingService.generateEmbedding(elementText);
+        const embedding = await embeddingService.getEmbedding(elementText);
         
         return {
           id: element.id,
@@ -91,7 +91,7 @@ class AutoTaggingService {
 
     // Générer l'embedding du document
     console.log('📊 Generating document embedding...');
-    const docEmbedding = await embeddingService.generateEmbedding(documentText);
+    const docEmbedding = await embeddingService.getEmbedding(documentText);
 
     // Calculer la similarité avec chaque élément
     const similarities = this.elementEmbeddingsCache.map(element => ({
