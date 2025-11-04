@@ -3,12 +3,16 @@ const cors = require('cors');
 const axios = require('axios');
 const { Resend } = require('resend');
 const OpenAI = require('openai');
+const path = require('path');
 
 const app = express();
 const OLLAMA_URL = 'http://localhost:11434/api';
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static files from the dist folder (production build)
+app.use(express.static(path.join(__dirname, '../dist')));
 
 app.post('/api/chat', async (req, res) => {
   try {
@@ -421,12 +425,21 @@ app.post('/api/rag-chat', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log('Backend server running on port 3000');
+// Fallback route - serve index.html for all non-API routes (for React Router)
+// Express v5 requires named wildcards: /{*name} instead of just /*
+app.get('/{*catchall}', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend server running on port ${PORT}`);
   console.log('- Ollama proxy available at /api/chat');
   console.log('- Email service available at /api/send-invitation-email');
   console.log('- Email service available at /api/send-reset-password-email');
   console.log('- AI auto-tagging available at /api/suggest-tags');
   console.log('- PDF text extraction available at /api/extract-pdf-text');
   console.log('- RAG chat available at /api/rag-chat');
+  console.log('- Serving frontend from dist folder');
 });
