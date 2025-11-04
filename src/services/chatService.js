@@ -137,7 +137,7 @@ class ChatService {
   // Gestion conversation simple
   async handleSimpleChat(message, detectedLang) {
     const completion = await this.openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
+      model: "gpt-4o-mini",
       messages: [
         { 
           role: "system", 
@@ -189,7 +189,7 @@ class ChatService {
           .join('\n\n');
 
         const completion = await this.openai.chat.completions.create({
-          model: "gpt-4-turbo-preview",
+          model: "gpt-4o-mini",
           messages: [
             { 
               role: "system", 
