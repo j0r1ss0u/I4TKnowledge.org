@@ -373,6 +373,54 @@ Return ONLY the JSON array, no other text.`;
   }
 });
 
+// ================================================================
+// RAG CHAT ENDPOINT (OpenAI)
+// ================================================================
+
+app.post('/api/rag-chat', async (req, res) => {
+  try {
+    const { messages, model = "gpt-4o-mini", temperature = 0.7, maxTokens = 800 } = req.body;
+
+    if (!messages || !Array.isArray(messages)) {
+      return res.status(400).json({ 
+        error: 'Missing required parameter: messages (array)' 
+      });
+    }
+
+    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
+    if (!openaiApiKey) {
+      console.error('OPENAI_API_KEY not found in environment variables');
+      return res.status(500).json({ error: 'AI service not configured' });
+    }
+
+    const openai = new OpenAI({ apiKey: openaiApiKey });
+
+    console.log('💬 RAG chat request:', messages[messages.length - 1].content.slice(0, 100) + '...');
+
+    const completion = await openai.chat.completions.create({
+      model,
+      messages,
+      temperature,
+      max_tokens: maxTokens
+    });
+
+    const response = completion.choices[0].message.content;
+    console.log('✅ RAG response generated');
+
+    res.json({
+      success: true,
+      response
+    });
+
+  } catch (error) {
+    console.error('❌ RAG chat error:', error.message);
+    res.status(500).json({
+      error: 'Failed to generate chat response',
+      details: error.message
+    });
+  }
+});
+
 app.listen(3000, () => {
   console.log('Backend server running on port 3000');
   console.log('- Ollama proxy available at /api/chat');
@@ -380,4 +428,5 @@ app.listen(3000, () => {
   console.log('- Email service available at /api/send-reset-password-email');
   console.log('- AI auto-tagging available at /api/suggest-tags');
   console.log('- PDF text extraction available at /api/extract-pdf-text');
+  console.log('- RAG chat available at /api/rag-chat');
 });

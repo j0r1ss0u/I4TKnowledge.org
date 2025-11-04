@@ -3,7 +3,6 @@
 // ================================================================
 import { db } from './firebase';
 import { collection, getDocs, where, query } from 'firebase/firestore';
-import OpenAI from 'openai';
 import axios from 'axios';
 import { embeddingService } from './embeddingService';
 import { languageDetection } from './languageService';
@@ -16,15 +15,50 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 
 // ================================================================
+// BACKEND URL HELPER
+// ================================================================
+const getBackendURL = () => {
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost') {
+    return 'http://localhost:3000';
+  }
+  
+  // Production Replit: abc.kirk.replit.dev → abc-3000.kirk.replit.dev
+  return `https://${hostname.replace(/\.([^.]+\.replit\.dev)$/, '-3000.$1')}`;
+};
+
+// ================================================================
 // SERVICE PRINCIPAL DE CHAT
 // ================================================================
 class ChatService {
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-      dangerouslyAllowBrowser: true
-    });
     this.conversations = new Map();
+    this.backendURL = getBackendURL();
+    console.log('🤖 Chat service initialized with backend:', this.backendURL);
+  }
+
+  // ================================================================
+  // BACKEND COMMUNICATION - Appels OpenAI via backend sécurisé
+  // ================================================================
+  async callOpenAI(messages, temperature = 0.7, maxTokens = 800) {
+    try {
+      const response = await axios.post(`${this.backendURL}/api/rag-chat`, {
+        messages,
+        model: 'gpt-4o-mini',
+        temperature,
+        maxTokens
+      });
+
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Unknown error');
+      }
+
+      return response.data.response;
+    } catch (error) {
+      console.error('❌ Backend OpenAI call failed:', error);
+      throw error;
+    }
   }
 
   // ================================================================
@@ -136,20 +170,18 @@ class ChatService {
 
   // Gestion conversation simple
   async handleSimpleChat(message, detectedLang) {
-    const completion = await this.openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { 
-          role: "system", 
-          content: conversationRouter.getSystemPrompt('chitchat', detectedLang)
-        },
-        { role: "user", content: message }
-      ],
-      temperature: 0.7
-    });
+    const messages = [
+      { 
+        role: "system", 
+        content: conversationRouter.getSystemPrompt('chitchat', detectedLang)
+      },
+      { role: "user", content: message }
+    ];
+
+    const response = await this.callOpenAI(messages, 0.7, 800);
 
     return {
-      answer: completion.choices[0].message.content,
+      answer: response,
       sources: []
     };
   }
@@ -188,21 +220,18 @@ class ChatService {
           })
           .join('\n\n');
 
-        const completion = await this.openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            { 
-              role: "system", 
-              content: conversationRouter.getSystemPrompt('research', detectedLang)
-            },
-            { role: "user", content: `Question: ${message}\n\nSources:\n\n${context}` }
-          ],
-          temperature: 0.3,
-          max_tokens: 800
-        });
+        const messages = [
+          { 
+            role: "system", 
+            content: conversationRouter.getSystemPrompt('research', detectedLang)
+          },
+          { role: "user", content: `Question: ${message}\n\nSources:\n\n${context}` }
+        ];
+
+        const response = await this.callOpenAI(messages, 0.3, 800);
 
         return {
-          answer: completion.choices[0].message.content,
+          answer: response,
           sources: fullDocs.map(doc => ({
             title: doc.title,
             authors: doc.authors,
