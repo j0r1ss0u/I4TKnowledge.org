@@ -21,6 +21,7 @@ import { useAuth } from "./Components/AuthContext";
 import { auth } from "./services/firebase";
 import { db } from './services/firebase';
 import { invitationsService } from './services/invitationsService';
+import { autoTaggingService } from './services/autoTaggingService';
 import { 
   isSignInWithEmailLink, 
   signInWithEmailLink 
@@ -286,6 +287,21 @@ function AppContent() {
       }
     };
     checkProvider();
+  }, []);
+
+  // ===== Initialize AI Auto-Tagging Embeddings =====
+  useEffect(() => {
+    const initializeEmbeddings = async () => {
+      try {
+        console.log('🤖 Initializing auto-tagging service...');
+        await autoTaggingService.precomputeElementEmbeddings();
+        console.log('✅ Auto-tagging service ready');
+      } catch (error) {
+        console.error('❌ Failed to initialize auto-tagging:', error);
+        // Non-bloquant : l'app peut fonctionner sans auto-tagging
+      }
+    };
+    initializeEmbeddings();
   }, []);
 
   // ===== Hash Navigation Effect =====
