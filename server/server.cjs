@@ -11,9 +11,6 @@ const OLLAMA_URL = 'http://localhost:11434/api';
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the dist folder (production build)
-app.use(express.static(path.join(__dirname, '../dist')));
-
 app.post('/api/chat', async (req, res) => {
   try {
     const response = await axios.post(`${OLLAMA_URL}/generate`, {
@@ -424,6 +421,10 @@ app.post('/api/rag-chat', async (req, res) => {
     });
   }
 });
+
+// Serve static files from the dist folder (production build)
+// IMPORTANT: Must be AFTER API routes to avoid conflicts
+app.use(express.static(path.join(__dirname, '../dist')));
 
 // Fallback route - serve index.html for all non-API routes (for React Router)
 // Express v5 requires named wildcards: /{*name} instead of just /*
