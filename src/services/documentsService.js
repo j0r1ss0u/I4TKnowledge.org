@@ -173,6 +173,32 @@ export const documentsService = {
     }
   },
 
+  // =============== SAVE AI TAG SUGGESTIONS ===============
+  // Sauvegarde les suggestions de tags générées par l'IA
+  async saveAISuggestions(documentId, suggestions) {
+    try {
+      console.log('=== Saving AI Tag Suggestions ===');
+      console.log('Document ID:', documentId);
+      console.log('Suggestions:', suggestions);
+
+      if (!documentId) {
+        throw new Error('Document ID is required');
+      }
+
+      const docRef = doc(db, 'web3IP', documentId);
+      await updateDoc(docRef, {
+        aiTagSuggestions: suggestions,
+        aiTagSuggestionsGeneratedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      console.log('AI suggestions saved successfully');
+    } catch (error) {
+      console.error('❌ Error saving AI suggestions:', error);
+      throw error;
+    }
+  },
+
   // =============== DELETE DOCUMENT ===============
   // Supprime un document de la collection
   async deleteDocument(documentId) {
