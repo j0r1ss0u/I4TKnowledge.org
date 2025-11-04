@@ -266,10 +266,10 @@ app.post('/api/suggest-tags', async (req, res) => {
       });
     }
 
-    // Vérifier la clé OpenAI
-    const openaiApiKey = process.env.VITE_OPENAI_API_KEY;
+    // Vérifier la clé OpenAI (utilise OPENAI_API_KEY ou VITE_OPENAI_API_KEY en fallback)
+    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
     if (!openaiApiKey) {
-      console.error('VITE_OPENAI_API_KEY not found in environment variables');
+      console.error('OPENAI_API_KEY not found in environment variables');
       return res.status(500).json({ error: 'AI service not configured' });
     }
 

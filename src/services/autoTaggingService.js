@@ -7,8 +7,17 @@
 import { pdfExtractionService } from './pdfExtractionService';
 import { globaltoolkitService } from './globaltoolkitService';
 
-// Configuration
-const BACKEND_URL = 'http://localhost:3000';
+// Configuration - URL backend dynamique pour supporter production
+const getBackendURL = () => {
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:3000';
+  }
+  // Replit production: insérer -3000 avant .replit.dev
+  // Exemple: abc.kirk.replit.dev → abc-3000.kirk.replit.dev
+  const hostname = window.location.hostname;
+  return `https://${hostname.replace(/\.([^.]+\.replit\.dev)$/, '-3000.$1')}`;
+};
+const BACKEND_URL = getBackendURL();
 
 class AutoTaggingService {
   constructor() {
