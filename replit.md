@@ -1,6 +1,23 @@
 # Overview
 
-I4T Knowledge Network is a comprehensive web application designed for digital governance research and collaboration. The platform serves as a knowledge management system where researchers can share documents, engage in conversations with an AI assistant, and collaborate on policy research projects. The application includes features for user management, document storage with semantic search capabilities, project management, event organization, and blockchain integration for tokenizing research contributions.
+I4T Knowledge Network is a comprehensive web application designed for digital governance research and collaboration. The platform serves as a knowledge management system where researchers can share documents, engage in conversations with an AI assistant, and collaborate on policy research projects. The application includes features for user management, document storage with semantic search capabilities, project management, event organization, AI-powered document auto-tagging, and blockchain integration for tokenizing research contributions.
+
+# Recent Changes (November 2024)
+
+## Security Enhancements
+- **Migrated all OpenAI API calls to secure backend** - RAG chat and auto-tagging now route through Express backend (`server.cjs`) instead of exposing API keys to the browser
+- **Environment variable migration** - Moved from `VITE_OPENAI_API_KEY` (exposed to client) to `OPENAI_API_KEY` (server-only secret)
+- **Removed dangerouslyAllowBrowser flag** - No OpenAI client instantiation in frontend code
+
+## Performance Optimizations
+- **Upgraded to GPT-4o-mini** - 60x cost reduction ($0.15/1M tokens vs $10/1M) with 2-3x speed improvement
+- **Vite proxy configuration** - All `/api/*` requests automatically proxied to `localhost:3000` backend for seamless development and production deployment
+
+## AI Auto-Tagging System
+- **PDF text extraction** - Automatic extraction of document content from IPFS-stored PDFs
+- **Semantic candidate selection** - TensorFlow.js embeddings to shortlist 6-8 relevant periodic table elements
+- **GPT-4o-mini validation** - AI analyzes document content and suggests tags with confidence scores (≥60% threshold) and explanations
+- **UI integration** - DocumentMetadataEditor includes "AI Suggest Tags" button with confidence badges and apply/apply-all functionality
 
 # User Preferences
 
@@ -14,17 +31,45 @@ The application uses React 18 with Vite as the build tool and bundler. The front
 The build configuration includes manual code splitting to optimize bundle sizes, separating vendor libraries (React ecosystem, Firebase, blockchain tools) from application code. This approach reduces initial load times and improves caching efficiency.
 
 ## Backend Services
-The backend leverages Firebase as the primary infrastructure:
+
+### Express Backend (server.cjs)
+The application includes an Express.js backend server running on port 3000 that handles:
+- **OpenAI RAG Chat** (`/api/rag-chat`) - Secure server-side OpenAI API calls for conversational AI
+- **Auto-Tagging AI** (`/api/suggest-tags`) - GPT-4o-mini powered document tag suggestions
+- **PDF Text Extraction** (`/api/extract-pdf-text`) - Server-side PDF content extraction from IPFS
+- **Email Services** - SendGrid integration for invitations and password resets via `/api/send-invitation-email` and `/api/send-reset-password-email`
+- **Ollama Proxy** (`/api/chat`) - Local LLM integration endpoint (optional)
+
+All frontend API calls to `/api/*` are automatically proxied through Vite's dev server configuration.
+
+### Firebase Services
+Firebase provides the primary cloud infrastructure:
 - **Firebase Authentication** handles user registration, login, email verification, and password reset functionality
 - **Cloud Firestore** serves as the NoSQL database for storing user profiles, documents, projects, invitations, and governance data
-- **Firebase Cloud Functions** provide serverless backend logic for email notifications (SendGrid integration), user management, and authentication workflows
+- **Firebase Cloud Functions** provide serverless backend logic for NewsBlur integration and additional server-side operations
 
 The authentication system supports invitation-based user registration with role-based access control (Admin, Validator, Member roles). Email verification is automatically handled for invited users.
 
 ## Document Management and AI Integration
 Documents are stored using IPFS through Pinata's pinning service, providing decentralized storage. The system generates semantic embeddings using TensorFlow.js and the Universal Sentence Encoder model for intelligent document search and retrieval.
 
-An OpenAI-powered conversational AI assistant can search through documents using vector similarity matching and provide contextual responses. The chat service includes language detection (using the 'franc' library) and conversation routing to handle different types of user interactions.
+### RAG Chat System (Secure Backend Architecture)
+An OpenAI GPT-4o-mini powered conversational AI assistant provides intelligent document search and question answering:
+- **Language detection** - Automatic French/English detection using the 'franc' library
+- **Semantic search** - TensorFlow.js embeddings with cosine similarity matching to find relevant documents
+- **Conversation routing** - Intelligent classification of user intents (greeting, research, chitchat)
+- **Backend-only API calls** - All OpenAI interactions routed through `/api/rag-chat` endpoint for security
+- **IPFS content retrieval** - Automatic fetching of full document text from IPFS for context
+- **Bilingual responses** - Contextual answers in French or English with source citations
+
+### AI Auto-Tagging System
+Automatic periodic table element suggestions for uploaded documents:
+- **PDF text extraction** - Server-side extraction of PDF content via `/api/extract-pdf-text`
+- **Embedding-based candidate selection** - TensorFlow.js Universal Sentence Encoder to shortlist 6-8 relevant elements
+- **GPT-4o-mini validation** - AI analysis with confidence scoring (0-1 scale) and detailed rationales
+- **Confidence thresholds** - Only suggestions ≥60% confidence displayed to users
+- **Interactive UI** - DocumentMetadataEditor with color-coded confidence badges (green ≥80%, yellow 60-79%, orange <60%)
+- **Batch operations** - Apply individual tags or all suggestions at once
 
 ## Blockchain Integration
 The application integrates Web3 functionality through:
@@ -41,11 +86,11 @@ The application uses a hybrid storage approach:
 - **Local storage** for user preferences and session data
 
 ## External Service Integrations
-- **SendGrid** for transactional email delivery (invitations, password resets)
-- **OpenAI API** for conversational AI capabilities
-- **TensorFlow.js** for client-side machine learning (embeddings)
+- **SendGrid** for transactional email delivery (invitations, password resets) via backend endpoints
+- **OpenAI API** (GPT-4o-mini) for conversational AI and auto-tagging - **server-side only** via `OPENAI_API_KEY` environment variable
+- **TensorFlow.js** for client-side machine learning (Universal Sentence Encoder embeddings)
 - **NewsBlur API** for content aggregation (configured in Firebase Functions)
-- **Pinata/IPFS** for decentralized file storage
+- **Pinata/IPFS** for decentralized file storage and document retrieval
 
 # External Dependencies
 
@@ -56,9 +101,9 @@ The application uses a hybrid storage approach:
 - Firebase Hosting for deployment (configured)
 
 ## AI and Machine Learning
-- OpenAI API for conversational AI
-- TensorFlow.js for universal sentence encoder embeddings
-- Franc library for automatic language detection
+- OpenAI GPT-4o-mini API for RAG chat and auto-tagging (backend-only, via Express server)
+- TensorFlow.js for Universal Sentence Encoder embeddings (client-side)
+- Franc library for automatic language detection (French/English)
 
 ## Blockchain and Web3
 - Wagmi for React Web3 hooks
