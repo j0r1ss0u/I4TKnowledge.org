@@ -6,9 +6,12 @@ I4T Knowledge Network is a comprehensive web application designed for digital go
 
 ## Production Deployment Architecture (November 4, 2024)
 - **Changed deployment from "static" to "autoscale"** - Backend Express server now serves both API endpoints AND frontend static files
-- **Express v5 wildcard syntax** - Updated catch-all route from `/*` to `/{*catchall}` (required by Express v5)
+- **Express v5 wildcard syntax** - Updated catch-all route from `/{*catchall}` (required by Express v5)
 - **Unified production server** - Single Express server on PORT (env variable) serves frontend from `dist/` folder and handles all API routes
 - **Build pipeline** - `npm run build` creates production bundle, then `node server/server.cjs` serves both frontend and backend
+- **Route ordering fix** - Moved `express.static()` AFTER API routes to prevent conflicts
+- **Production URLs** - Deployed on `i4tk.replit.app`, `i4tknowledge.org`, and `www.i4tknowledge.org`
+- **✅ RAG and auto-tagging confirmed working in production** (November 4, 2024)
 
 ## Security Enhancements
 - **Migrated all OpenAI API calls to secure backend** - RAG chat and auto-tagging now route through Express backend (`server.cjs`) instead of exposing API keys to the browser
