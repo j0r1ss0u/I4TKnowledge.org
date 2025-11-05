@@ -10,6 +10,7 @@ import ReactFlow, {
   useEdgesState,
   MarkerType,
   Panel,
+  ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Info, FileText, User, Calendar, ExternalLink } from 'lucide-react';
@@ -155,13 +156,21 @@ const DocumentGenealogy = ({ tokenId }) => {
             id: `edge-${nodeId}-${childNodeId}`,
             source: nodeId,
             target: childNodeId,
-            type: 'smoothstep',
+            type: 'default',
             animated: true,
-            style: { stroke: '#9CA3AF', strokeWidth: 2 },
+            style: { 
+              stroke: '#6B7280', 
+              strokeWidth: 2,
+            },
             markerEnd: {
               type: MarkerType.ArrowClosed,
-              color: '#9CA3AF',
+              width: 20,
+              height: 20,
+              color: '#6B7280',
             },
+            label: 'cite',
+            labelStyle: { fill: '#6B7280', fontSize: 10 },
+            labelBgStyle: { fill: 'white' },
           });
 
           calculateLayout(child, depth + 1, startPos + index, childrenWidth);
@@ -276,44 +285,53 @@ const DocumentGenealogy = ({ tokenId }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
-      {/* React Flow Visualization */}
-      <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden" style={{ height: '600px' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
-          nodeTypes={nodeTypes}
-          fitView
-          minZoom={0.1}
-          maxZoom={1.5}
-          defaultEdgeOptions={{
-            type: 'smoothstep',
-            animated: true,
-          }}
-        >
-          <Background color="#aaa" gap={16} />
-          <Controls />
-          <MiniMap 
-            nodeColor={(node) => node.data.isRoot ? '#3B82F6' : '#E5E7EB'}
-            maskColor="rgba(0, 0, 0, 0.1)"
-          />
-          <Panel position="top-left" className="bg-white/90 backdrop-blur-sm p-2 rounded shadow text-sm">
-            <div className="flex items-center gap-2 text-gray-600">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-blue-500 rounded" />
-                <span>Document principal</span>
+    <ReactFlowProvider>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+        {/* React Flow Visualization */}
+        <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden" style={{ height: '600px' }}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onNodeClick={onNodeClick}
+            nodeTypes={nodeTypes}
+            fitView
+            fitViewOptions={{
+              padding: 0.2,
+            }}
+            minZoom={0.1}
+            maxZoom={1.5}
+            defaultEdgeOptions={{
+              type: 'default',
+              animated: true,
+              style: { strokeWidth: 2, stroke: '#6B7280' },
+            }}
+            proOptions={{ hideAttribution: true }}
+          >
+            <Background color="#E5E7EB" gap={16} size={1} />
+            <Controls showInteractive={false} />
+            <MiniMap 
+              nodeColor={(node) => node.data.isRoot ? '#3B82F6' : '#D1D5DB'}
+              maskColor="rgba(0, 0, 0, 0.1)"
+              nodeStrokeWidth={3}
+              zoomable
+              pannable
+            />
+            <Panel position="top-left" className="bg-white/90 backdrop-blur-sm p-2 rounded shadow text-sm">
+              <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-blue-500 rounded" />
+                  <span>Document principal</span>
+                </div>
+                <div className="flex items-center gap-1 ml-3">
+                  <div className="w-3 h-3 bg-gray-300 rounded" />
+                  <span>Références</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1 ml-3">
-                <div className="w-3 h-3 bg-gray-300 rounded" />
-                <span>Références</span>
-              </div>
-            </div>
-          </Panel>
-        </ReactFlow>
-      </div>
+            </Panel>
+          </ReactFlow>
+        </div>
 
       {/* Document Details Panel */}
       <div className="lg:col-span-1">
@@ -379,7 +397,8 @@ const DocumentGenealogy = ({ tokenId }) => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </ReactFlowProvider>
   );
 };
 
