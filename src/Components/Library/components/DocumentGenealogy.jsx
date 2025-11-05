@@ -28,7 +28,16 @@ const HORIZONTAL_SPACING = 50;
 // Custom node component
 const DocumentNode = ({ data }) => {
   const isRoot = data.isRoot;
+  const isDescendant = data.isDescendant;
   const isSelected = data.isSelected;
+  
+  // Choose background color based on node type
+  let bgColor = 'bg-white border-gray-300'; // Default for references
+  if (isRoot) {
+    bgColor = 'bg-blue-50 border-blue-500';
+  } else if (isDescendant) {
+    bgColor = 'bg-green-50 border-green-500';
+  }
   
   return (
     <>
@@ -40,20 +49,20 @@ const DocumentNode = ({ data }) => {
         style={{
           width: 12,
           height: 12,
-          background: '#3B82F6',
+          background: isDescendant ? '#10B981' : '#3B82F6',
           border: '2px solid white',
         }}
       />
       
       <div 
         className={`px-4 py-3 rounded-lg shadow-lg border-2 transition-all cursor-pointer
-          ${isRoot ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-300'}
+          ${bgColor}
           ${isSelected ? 'ring-4 ring-blue-300' : ''}
           hover:shadow-xl hover:scale-105`}
         style={{ width: NODE_WIDTH, minHeight: NODE_HEIGHT }}
       >
         <div className="flex items-start gap-2 mb-2">
-          <FileText className={`w-5 h-5 flex-shrink-0 ${isRoot ? 'text-blue-600' : 'text-gray-600'}`} />
+          <FileText className={`w-5 h-5 flex-shrink-0 ${isRoot ? 'text-blue-600' : isDescendant ? 'text-green-600' : 'text-gray-600'}`} />
           <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-tight">
             {data.title}
           </h3>
@@ -88,7 +97,7 @@ const DocumentNode = ({ data }) => {
         style={{
           width: 12,
           height: 12,
-          background: '#3B82F6',
+          background: isDescendant ? '#10B981' : '#3B82F6',
           border: '2px solid white',
         }}
       />
@@ -110,7 +119,43 @@ const DocumentGenealogy = ({ tokenId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Build genealogy tree from Firestore
+  // Find documents that cite the given document (descendants)
+  const findDescendants = async (tokenId) => {
+    try {
+      const { collection, query, where, getDocs } = await import('firebase/firestore');
+      const { db } = await import('../../../services/firebase');
+      
+      const documentsRef = collection(db, 'web3IP');
+      const allDocsSnapshot = await getDocs(documentsRef);
+      
+      const descendants = [];
+      allDocsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        const references = data.references 
+          ? data.references.split(',').map(ref => ref.trim()).filter(Boolean) 
+          : [];
+        
+        if (references.includes(tokenId.toString())) {
+          descendants.push({
+            id: data.tokenId,
+            title: data.title || `Document #${data.tokenId}`,
+            description: data.description,
+            author: data.authors || data.author,
+            createdAt: data.createdAt,
+            ipfsCid: data.ipfsCid,
+            isDescendant: true
+          });
+        }
+      });
+      
+      return descendants;
+    } catch (error) {
+      console.error('Error finding descendants:', error);
+      return [];
+    }
+  };
+
+  // Build genealogy tree from Firestore (references - documents cited by this one)
   const buildGenealogyTree = async (id, depth = 0, processedIds = new Set()) => {
     if (!id || processedIds.has(id)) return null;
 
@@ -137,7 +182,8 @@ const DocumentGenealogy = ({ tokenId }) => {
         createdAt: docData.createdAt,
         ipfsCid: docData.ipfsCid,
         citations: references,
-        children: childrenData.filter(Boolean)
+        children: childrenData.filter(Boolean),
+        isDescendant: false
       };
     } catch (error) {
       console.error('Error building genealogy tree:', error);
@@ -146,16 +192,17 @@ const DocumentGenealogy = ({ tokenId }) => {
   };
 
   // Transform tree to React Flow format with hierarchical layout
-  const transformToReactFlow = (treeData, rootTokenId) => {
+  const transformToReactFlow = (treeData, descendants, rootTokenId) => {
     if (!treeData) return { nodes: [], edges: [] };
 
     const nodes = [];
     const edges = [];
     
-    // Calculate positions using hierarchical layout
+    // Calculate positions using hierarchical layout for references (below main doc)
     const calculateLayout = (node, depth = 0, position = 0, siblings = 1) => {
       const nodeId = `node-${node.id}`;
       const x = position * (NODE_WIDTH + HORIZONTAL_SPACING);
+      // Start main document at y=0, references go down (positive y)
       const y = depth * (NODE_HEIGHT + VERTICAL_SPACING);
 
       nodes.push({
@@ -171,6 +218,7 @@ const DocumentGenealogy = ({ tokenId }) => {
           citations: node.citations,
           citationsCount: node.children?.length || 0,
           isRoot: node.id === rootTokenId,
+          isDescendant: node.isDescendant || false,
           isSelected: false,
         },
       });
@@ -201,7 +249,54 @@ const DocumentGenealogy = ({ tokenId }) => {
       }
     };
 
+    // Layout the main tree (references going down)
     calculateLayout(treeData);
+    
+    // Add descendants (going up from main document)
+    if (descendants && descendants.length > 0) {
+      const mainNodeId = `node-${rootTokenId}`;
+      const descendantsWidth = descendants.length;
+      const startPos = -(descendantsWidth - 1) / 2;
+      
+      descendants.forEach((descendant, index) => {
+        const descendantNodeId = `node-desc-${descendant.id}`;
+        const x = startPos * (NODE_WIDTH + HORIZONTAL_SPACING) + index * (NODE_WIDTH + HORIZONTAL_SPACING);
+        const y = -(NODE_HEIGHT + VERTICAL_SPACING); // Negative y to go up
+        
+        nodes.push({
+          id: descendantNodeId,
+          type: 'documentNode',
+          position: { x, y },
+          data: {
+            tokenId: descendant.id,
+            title: descendant.title,
+            author: descendant.author,
+            description: descendant.description,
+            ipfsCid: descendant.ipfsCid,
+            citations: [],
+            citationsCount: 0,
+            isRoot: false,
+            isDescendant: true,
+            isSelected: false,
+          },
+        });
+        
+        // Create edge from descendant to main document (green connection)
+        edges.push({
+          id: `edge-desc-${descendant.id}-${rootTokenId}`,
+          source: descendantNodeId,
+          target: mainNodeId,
+          sourceHandle: 'bottom',
+          targetHandle: 'top',
+          type: 'smoothstep',
+          animated: true,
+          style: { 
+            stroke: '#10B981', 
+            strokeWidth: 3,
+          },
+        });
+      });
+    }
     
     return { nodes, edges };
   };
@@ -218,9 +313,14 @@ const DocumentGenealogy = ({ tokenId }) => {
       setError(null);
 
       try {
-        const genealogyData = await buildGenealogyTree(id);
+        // Fetch both references (descendants of this doc) and descendants (docs that cite this one)
+        const [genealogyData, descendants] = await Promise.all([
+          buildGenealogyTree(id),
+          findDescendants(id)
+        ]);
+        
         if (genealogyData) {
-          const { nodes: flowNodes, edges: flowEdges } = transformToReactFlow(genealogyData, id);
+          const { nodes: flowNodes, edges: flowEdges } = transformToReactFlow(genealogyData, descendants, id);
           setNodes(flowNodes);
           setEdges(flowEdges);
         } else {
@@ -342,12 +442,16 @@ const DocumentGenealogy = ({ tokenId }) => {
               pannable
             />
             <Panel position="top-left" className="bg-white/90 backdrop-blur-sm p-2 rounded shadow text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex flex-wrap items-center gap-3 text-gray-600">
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 bg-green-500 rounded" />
+                  <span>Descendants</span>
+                </div>
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-blue-500 rounded" />
                   <span>Main Document</span>
                 </div>
-                <div className="flex items-center gap-1 ml-3">
+                <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-gray-300 rounded" />
                   <span>References</span>
                 </div>
