@@ -140,8 +140,8 @@ const NetworkPublications = ({
   // =============== NAVIGATION HANDLERS ===============
   const handleViewGenealogy = (doc) => {
     if (doc && doc.tokenId) {
-      handlePageChange("genealogy");
-      setSelectedTokenId(doc.tokenId);
+      // Mettre à jour l'URL avec le tokenId, ce qui déclenchera le changement de page
+      window.location.hash = `genealogy?tokenId=${doc.tokenId}`;
     }
   };
 
