@@ -18,6 +18,8 @@ import 'reactflow/dist/style.css';
 import { Info, FileText, User, Calendar, ExternalLink } from 'lucide-react';
 import { documentsService } from '../../../services/documentsService';
 import DocumentViewer from './DocumentViewer';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../../services/firebase';
 
 // Layout configuration
 const NODE_WIDTH = 280;
@@ -123,8 +125,6 @@ const DocumentGenealogy = ({ tokenId }) => {
   const findDescendants = async (tokenId) => {
     try {
       console.log('🔍 Finding descendants for tokenId:', tokenId);
-      const { collection, query, where, getDocs } = await import('firebase/firestore');
-      const { db } = await import('../../../services/firebase');
       
       const documentsRef = collection(db, 'web3IP');
       const allDocsSnapshot = await getDocs(documentsRef);
@@ -138,7 +138,7 @@ const DocumentGenealogy = ({ tokenId }) => {
           ? data.references.split(',').map(ref => ref.trim()).filter(Boolean) 
           : [];
         
-        console.log(`📄 Doc ${data.tokenId} references:`, references);
+        console.log(`📄 Doc ${data.tokenId} (${data.title}) references:`, references);
         
         if (references.includes(tokenId.toString())) {
           console.log(`✅ Found descendant: ${data.title} (Token #${data.tokenId})`);
@@ -157,7 +157,7 @@ const DocumentGenealogy = ({ tokenId }) => {
       console.log(`🎯 Total descendants found: ${descendants.length}`, descendants);
       return descendants;
     } catch (error) {
-      console.error('Error finding descendants:', error);
+      console.error('❌ Error finding descendants:', error);
       return [];
     }
   };
