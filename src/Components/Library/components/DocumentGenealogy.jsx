@@ -187,8 +187,8 @@ const DocumentGenealogy = ({ tokenId }) => {
             id: `edge-${childNodeId}-${nodeId}`,
             source: childNodeId,
             target: nodeId,
-            sourceHandle: 'top',
-            targetHandle: 'bottom',
+            sourceHandle: 'bottom',
+            targetHandle: 'top',
             type: 'smoothstep',
             animated: true,
             style: { 
