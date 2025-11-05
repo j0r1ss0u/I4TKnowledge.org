@@ -75,7 +75,7 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
           <div className="flex items-center gap-2">
             <GitFork className="w-5 h-5 md:w-6 md:h-6 text-gray-500" />
             <h1 className="text-xl md:text-2xl font-serif">
-              {currentLang === 'en' ? 'Arbre de citations' : 'Citation tree'}
+              {currentLang === 'en' ? 'Citation Tree' : 'Arbre de citations'}
             </h1>
           </div>
           <button
@@ -83,7 +83,7 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
             className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            {currentLang === 'en' ? 'Retour à la bibliothèque' : 'Back to Library'}
+            {currentLang === 'en' ? 'Back to Library' : 'Retour à la bibliothèque'}
           </button>
         </div>
       </div>

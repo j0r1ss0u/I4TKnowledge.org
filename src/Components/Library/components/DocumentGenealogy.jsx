@@ -194,12 +194,6 @@ const DocumentGenealogy = ({ tokenId }) => {
               stroke: '#3B82F6', 
               strokeWidth: 3,
             },
-            markerEnd: {
-              type: MarkerType.ArrowClosed,
-              width: 20,
-              height: 20,
-              color: '#3B82F6',
-            },
           });
 
           calculateLayout(child, depth + 1, startPos + index, childrenWidth);
@@ -230,11 +224,11 @@ const DocumentGenealogy = ({ tokenId }) => {
           setNodes(flowNodes);
           setEdges(flowEdges);
         } else {
-          setError('Aucune donnée de généalogie trouvée');
+          setError('No genealogy data found');
         }
       } catch (error) {
         console.error("Error in fetchGenealogy:", error);
-        setError('Erreur lors du chargement: ' + error.message);
+        setError('Loading error: ' + error.message);
       } finally {
         setLoading(false);
       }
@@ -251,7 +245,7 @@ const DocumentGenealogy = ({ tokenId }) => {
         if (urlTokenId) {
           fetchGenealogy(urlTokenId);
         } else {
-          setError('Token ID non fourni');
+          setError('Token ID not provided');
           setLoading(false);
         }
       } else {
@@ -296,7 +290,7 @@ const DocumentGenealogy = ({ tokenId }) => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Chargement de l'arbre de citations...</p>
+          <p className="text-gray-600">Loading citation tree...</p>
         </div>
       </div>
     );
@@ -351,11 +345,11 @@ const DocumentGenealogy = ({ tokenId }) => {
               <div className="flex items-center gap-2 text-gray-600">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 bg-blue-500 rounded" />
-                  <span>Document principal</span>
+                  <span>Main Document</span>
                 </div>
                 <div className="flex items-center gap-1 ml-3">
                   <div className="w-3 h-3 bg-gray-300 rounded" />
-                  <span>Références</span>
+                  <span>References</span>
                 </div>
               </div>
             </Panel>
@@ -366,7 +360,7 @@ const DocumentGenealogy = ({ tokenId }) => {
       <div className="lg:col-span-1">
         <div className="bg-white rounded-lg shadow h-full overflow-auto">
           <div className="border-b border-gray-200 p-4 bg-gray-50">
-            <h2 className="text-lg font-semibold text-gray-900">Détails du document</h2>
+            <h2 className="text-lg font-semibold text-gray-900">Document Details</h2>
           </div>
           <div className="p-4">
             {selectedNode ? (
@@ -380,7 +374,7 @@ const DocumentGenealogy = ({ tokenId }) => {
                   <div>
                     <h4 className="font-semibold text-sm text-gray-700 mb-1 flex items-center gap-1">
                       <User className="w-4 h-4" />
-                      Auteur
+                      Author
                     </h4>
                     <p className="text-sm text-gray-800">{selectedNode.attributes.author}</p>
                   </div>
@@ -400,12 +394,12 @@ const DocumentGenealogy = ({ tokenId }) => {
                       {selectedNode.attributes.citations.map((citation, index) => (
                         <li key={index} className="text-sm text-gray-600 flex items-center gap-1">
                           <ExternalLink className="w-3 h-3" />
-                          Référence #{citation}
+                          Reference #{citation}
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-500 italic">Aucune citation</p>
+                    <p className="text-sm text-gray-500 italic">No citations</p>
                   )}
                 </div>
                 
@@ -419,7 +413,7 @@ const DocumentGenealogy = ({ tokenId }) => {
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 text-sm">
-                  Cliquez sur un document pour voir les détails
+                  Click on a document to view details
                 </p>
               </div>
             )}
