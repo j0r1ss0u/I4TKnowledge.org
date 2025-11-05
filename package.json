@@ -41,6 +41,7 @@
     "lucide-react": "^0.454.0",
     "nft.storage": "^7.2.0",
     "openai": "^4.104.0",
+    "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^3.11.174",
     "react-d3-tree": "^3.6.2",
     "react-draggable": "^4.4.6",

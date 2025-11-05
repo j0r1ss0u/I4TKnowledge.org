@@ -4,6 +4,7 @@ const axios = require('axios');
 const { Resend } = require('resend');
 const OpenAI = require('openai');
 const path = require('path');
+const pdfParse = require('pdf-parse');
 
 const app = express();
 const OLLAMA_URL = 'http://localhost:11434/api';
@@ -214,7 +215,7 @@ app.post('/api/send-reset-password-email', async (req, res) => {
 // Cache en mémoire pour les embeddings des éléments du tableau périodique
 let elementEmbeddingsCache = null;
 
-// Endpoint pour extraire le texte d'un PDF via IPFS
+// Endpoint pour extraire le texte d'un PDF via IPFS (BACKEND FALLBACK)
 app.post('/api/extract-pdf-text', async (req, res) => {
   try {
     const { ipfsCid } = req.body;
@@ -223,32 +224,70 @@ app.post('/api/extract-pdf-text', async (req, res) => {
       return res.status(400).json({ error: 'IPFS CID is required' });
     }
 
-    console.log('📄 Extracting PDF text from IPFS:', ipfsCid);
+    console.log('📄 [BACKEND] Extracting PDF text from IPFS:', ipfsCid);
 
-    // Utiliser l'API cloudflare-ipfs.com pour récupérer le PDF
-    const ipfsUrl = `https://cloudflare-ipfs.com/ipfs/${ipfsCid}`;
-    
-    const response = await axios.get(ipfsUrl, {
-      responseType: 'arraybuffer',
-      timeout: 30000,
-      headers: {
-        'Accept': 'application/pdf'
+    // Nettoyer le CID
+    const cleanCid = ipfsCid.replace('ipfs://', '').trim();
+
+    // Liste de gateways IPFS à essayer (même logique que frontend)
+    const gateways = [
+      'https://cloudflare-ipfs.com/ipfs/',
+      'https://ipfs.io/ipfs/',
+      'https://gateway.pinata.cloud/ipfs/',
+      'https://dweb.link/ipfs/'
+    ];
+
+    let lastError = null;
+
+    // Essayer chaque gateway
+    for (const gateway of gateways) {
+      try {
+        const ipfsUrl = `${gateway}${cleanCid}`;
+        console.log(`  Trying gateway: ${gateway}...`);
+        
+        const response = await axios.get(ipfsUrl, {
+          responseType: 'arraybuffer',
+          timeout: 15000,
+          headers: {
+            'Accept': 'application/pdf'
+          }
+        });
+
+        // Extraire le texte du PDF avec pdf-parse
+        const pdfData = await pdfParse(response.data);
+
+        console.log(`✅ [BACKEND] Extracted ${pdfData.text.length} characters from PDF`);
+
+        // Extraire un résumé intelligent
+        const fullText = pdfData.text;
+        let summary = fullText.substring(0, 2000);
+
+        // Essayer de trouver un abstract
+        const abstractMatch = fullText.match(/abstract[:\s]+(.*?)(?:introduction|keywords|1\.|$)/is);
+        if (abstractMatch && abstractMatch[1].length > 100) {
+          summary = abstractMatch[1].trim().substring(0, 2000);
+        }
+
+        return res.json({
+          success: true,
+          text: fullText,
+          summary: summary,
+          source: 'backend',
+          gateway: gateway
+        });
+
+      } catch (error) {
+        console.log(`  ❌ Gateway ${gateway} failed: ${error.message}`);
+        lastError = error;
+        continue;
       }
-    });
+    }
 
-    // Pour l'instant, on retourne juste un texte simulé
-    // En production, vous devriez utiliser une bibliothèque comme pdf-parse
-    const simulatedText = `Document content from IPFS. This is a placeholder for PDF text extraction. 
-    In production, you would use pdf-parse or similar library to extract actual text from the PDF buffer.`;
-
-    res.json({
-      success: true,
-      text: simulatedText,
-      summary: simulatedText.slice(0, 500)
-    });
+    // Si tous les gateways ont échoué
+    throw new Error(`All IPFS gateways failed. Last error: ${lastError?.message || 'Unknown'}`);
 
   } catch (error) {
-    console.error('❌ PDF extraction error:', error.message);
+    console.error('❌ [BACKEND] PDF extraction error:', error.message);
     res.status(500).json({
       error: 'Failed to extract PDF text',
       details: error.message
