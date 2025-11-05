@@ -11,6 +11,8 @@ import ReactFlow, {
   MarkerType,
   Panel,
   ReactFlowProvider,
+  Handle,
+  Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Info, FileText, User, Calendar, ExternalLink } from 'lucide-react';
@@ -29,40 +31,68 @@ const DocumentNode = ({ data }) => {
   const isSelected = data.isSelected;
   
   return (
-    <div 
-      className={`px-4 py-3 rounded-lg shadow-lg border-2 transition-all cursor-pointer
-        ${isRoot ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-300'}
-        ${isSelected ? 'ring-4 ring-blue-300' : ''}
-        hover:shadow-xl hover:scale-105`}
-      style={{ width: NODE_WIDTH, minHeight: NODE_HEIGHT }}
-    >
-      <div className="flex items-start gap-2 mb-2">
-        <FileText className={`w-5 h-5 flex-shrink-0 ${isRoot ? 'text-blue-600' : 'text-gray-600'}`} />
-        <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-tight">
-          {data.title}
-        </h3>
-      </div>
+    <>
+      {/* Handle en haut pour les connexions entrantes */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="top"
+        style={{
+          width: 12,
+          height: 12,
+          background: '#3B82F6',
+          border: '2px solid white',
+        }}
+      />
       
-      <div className="space-y-1 text-xs text-gray-600">
-        {data.author && (
-          <div className="flex items-center gap-1">
-            <User className="w-3 h-3" />
-            <span className="truncate">{data.author}</span>
-          </div>
-        )}
+      <div 
+        className={`px-4 py-3 rounded-lg shadow-lg border-2 transition-all cursor-pointer
+          ${isRoot ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-300'}
+          ${isSelected ? 'ring-4 ring-blue-300' : ''}
+          hover:shadow-xl hover:scale-105`}
+        style={{ width: NODE_WIDTH, minHeight: NODE_HEIGHT }}
+      >
+        <div className="flex items-start gap-2 mb-2">
+          <FileText className={`w-5 h-5 flex-shrink-0 ${isRoot ? 'text-blue-600' : 'text-gray-600'}`} />
+          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-tight">
+            {data.title}
+          </h3>
+        </div>
         
-        <div className="flex items-center justify-between">
-          <span className="px-2 py-0.5 bg-gray-100 rounded text-xs font-medium">
-            Token #{data.tokenId}
-          </span>
-          {data.citationsCount > 0 && (
-            <span className="text-xs text-gray-500">
-              {data.citationsCount} ref{data.citationsCount > 1 ? 's' : ''}
-            </span>
+        <div className="space-y-1 text-xs text-gray-600">
+          {data.author && (
+            <div className="flex items-center gap-1">
+              <User className="w-3 h-3" />
+              <span className="truncate">{data.author}</span>
+            </div>
           )}
+          
+          <div className="flex items-center justify-between">
+            <span className="px-2 py-0.5 bg-gray-100 rounded text-xs font-medium">
+              Token #{data.tokenId}
+            </span>
+            {data.citationsCount > 0 && (
+              <span className="text-xs text-gray-500">
+                {data.citationsCount} ref{data.citationsCount > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+      
+      {/* Handle en bas pour les connexions sortantes */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="bottom"
+        style={{
+          width: 12,
+          height: 12,
+          background: '#3B82F6',
+          border: '2px solid white',
+        }}
+      />
+    </>
   );
 };
 
@@ -156,21 +186,20 @@ const DocumentGenealogy = ({ tokenId }) => {
             id: `edge-${nodeId}-${childNodeId}`,
             source: nodeId,
             target: childNodeId,
-            type: 'default',
+            sourceHandle: 'bottom',
+            targetHandle: 'top',
+            type: 'smoothstep',
             animated: true,
             style: { 
-              stroke: '#6B7280', 
-              strokeWidth: 2,
+              stroke: '#3B82F6', 
+              strokeWidth: 3,
             },
             markerEnd: {
               type: MarkerType.ArrowClosed,
               width: 20,
               height: 20,
-              color: '#6B7280',
+              color: '#3B82F6',
             },
-            label: 'cite',
-            labelStyle: { fill: '#6B7280', fontSize: 10 },
-            labelBgStyle: { fill: 'white' },
           });
 
           calculateLayout(child, depth + 1, startPos + index, childrenWidth);
