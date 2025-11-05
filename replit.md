@@ -4,6 +4,18 @@ I4T Knowledge Network is a comprehensive web application designed for digital go
 
 # Recent Changes (November 2024)
 
+## Critical Blockchain/Firestore Sync Fix (November 5, 2024)
+- **Fixed critical bug preventing documents from saving to Firestore** - Documents were tokenized on blockchain but never persisted to Firestore database
+- **Root cause** - `extractTokenIdFromEvent()` returned `undefined` when tokenId couldn't be found in blockchain logs, causing `Cannot read property 'toString' of undefined` error
+- **Solution implemented**:
+  - Modified `extractTokenIdFromEvent()` to return `null` explicitly (instead of `undefined`) when parsing fails
+  - Updated receipt processing handler to save documents to Firestore EVEN when tokenId extraction fails
+  - Implemented fallback tokenId mechanism: `PENDING_${txHash.slice(0, 10)}` for documents awaiting tokenId reconciliation
+  - Added `tokenIdPending: true` flag to enable future automated recovery of missing tokenIds
+  - Warning message now persists (form doesn't reset) when tokenId extraction fails, displaying transaction hash for admin follow-up
+- **Impact** - No more data loss during blockchain submission, all documents now save successfully to Firestore
+- **Next steps** - Design UI/workflow to reconcile documents with `tokenIdPending` flag once tokenIds become available
+
 ## Production Deployment Architecture (November 4, 2024)
 - **Changed deployment from "static" to "autoscale"** - Backend Express server now serves both API endpoints AND frontend static files
 - **Express v5 wildcard syntax** - Updated catch-all route from `/{*catchall}` (required by Express v5)
