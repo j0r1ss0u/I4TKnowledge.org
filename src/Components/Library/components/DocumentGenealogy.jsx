@@ -182,14 +182,10 @@ const DocumentGenealogy = ({ tokenId }) => {
         node.children.forEach((child, index) => {
           const childNodeId = `node-${child.id}`;
           
-          // Les flèches vont de la référence (child) vers le document principal (parent)
-          // L'arbre va de HAUT en BAS : doc principal en haut, références en bas
-          // Source: référence en BAS, part du BOTTOM (vers le haut)
-          // Target: document en HAUT, arrive par le TOP (par le haut)
           edges.push({
-            id: `edge-${childNodeId}-${nodeId}`,
-            source: childNodeId,
-            target: nodeId,
+            id: `edge-${nodeId}-${childNodeId}`,
+            source: nodeId,
+            target: childNodeId,
             sourceHandle: 'bottom',
             targetHandle: 'top',
             type: 'smoothstep',
