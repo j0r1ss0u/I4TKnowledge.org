@@ -441,9 +441,9 @@ const DocumentGenealogy = ({ tokenId }) => {
 
   return (
     <ReactFlowProvider>
-      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 h-full">
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 h-full min-h-0">
         {/* React Flow Visualization */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden h-[400px] md:h-[500px] lg:h-[600px]">
+        <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden h-[500px] md:h-[600px] lg:h-[700px] flex-shrink-0">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -494,8 +494,8 @@ const DocumentGenealogy = ({ tokenId }) => {
         </div>
 
       {/* Document Details Panel */}
-      <div className="lg:col-span-1 max-h-[400px] lg:max-h-full">
-        <div className="bg-white rounded-lg shadow h-full overflow-auto">
+      <div className="lg:col-span-1 h-[400px] lg:h-auto flex-shrink-0">
+        <div className="bg-white rounded-lg shadow h-full overflow-y-auto">
           <div className="border-b border-gray-200 p-3 md:p-4 bg-gray-50">
             <h2 className="text-base md:text-lg font-semibold text-gray-900">Document Details</h2>
           </div>

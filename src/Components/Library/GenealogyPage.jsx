@@ -89,9 +89,9 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
       </div>
 
       {/* Genealogy Visualization - Full width */}
-      <div className="w-full h-[50vh] md:h-[60vh] bg-white/50">
+      <div className="w-full px-2 md:px-4 py-4">
         {loading ? (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex justify-center items-center h-96">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
           </div>
         ) : (
@@ -100,23 +100,6 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
             currentLang={currentLang}
           />
         )}
-      </div>
-
-      {/* Document Details Panel - Below visualization */}
-      <div className="px-4 py-4 md:px-6 md:py-6 bg-white/80">
-        <div className="max-w-3xl mx-auto">
-          {documentTitle && (
-            <div className="space-y-4">
-              <h2 className="text-lg md:text-xl font-medium text-gray-900">
-                {currentLang === 'fr' ? 'Détails du document' : 'Document Details'}
-              </h2>
-              <div className="bg-white rounded-lg shadow p-4">
-                <h3 className="font-medium text-gray-900">{documentTitle}</h3>
-                {/* Add more document details here as needed */}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );
