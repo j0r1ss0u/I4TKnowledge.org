@@ -122,11 +122,14 @@ const DocumentGenealogy = ({ tokenId }) => {
   // Find documents that cite the given document (descendants)
   const findDescendants = async (tokenId) => {
     try {
+      console.log('🔍 Finding descendants for tokenId:', tokenId);
       const { collection, query, where, getDocs } = await import('firebase/firestore');
       const { db } = await import('../../../services/firebase');
       
       const documentsRef = collection(db, 'web3IP');
       const allDocsSnapshot = await getDocs(documentsRef);
+      
+      console.log('📚 Total documents to scan:', allDocsSnapshot.size);
       
       const descendants = [];
       allDocsSnapshot.forEach((doc) => {
@@ -135,7 +138,10 @@ const DocumentGenealogy = ({ tokenId }) => {
           ? data.references.split(',').map(ref => ref.trim()).filter(Boolean) 
           : [];
         
+        console.log(`📄 Doc ${data.tokenId} references:`, references);
+        
         if (references.includes(tokenId.toString())) {
+          console.log(`✅ Found descendant: ${data.title} (Token #${data.tokenId})`);
           descendants.push({
             id: data.tokenId,
             title: data.title || `Document #${data.tokenId}`,
@@ -148,6 +154,7 @@ const DocumentGenealogy = ({ tokenId }) => {
         }
       });
       
+      console.log(`🎯 Total descendants found: ${descendants.length}`, descendants);
       return descendants;
     } catch (error) {
       console.error('Error finding descendants:', error);
