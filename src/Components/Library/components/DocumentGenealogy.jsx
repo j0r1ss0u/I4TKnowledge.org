@@ -21,11 +21,29 @@ import DocumentViewer from './DocumentViewer';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
 
-// Layout configuration
-const NODE_WIDTH = 280;
-const NODE_HEIGHT = 120;
-const VERTICAL_SPACING = 150;
-const HORIZONTAL_SPACING = 50;
+// Layout configuration - responsive
+const getNodeDimensions = () => {
+  if (typeof window !== 'undefined') {
+    const isMobile = window.innerWidth < 768;
+    return {
+      width: isMobile ? 220 : 280,
+      height: isMobile ? 100 : 120,
+      verticalSpacing: isMobile ? 120 : 150,
+      horizontalSpacing: isMobile ? 30 : 50,
+    };
+  }
+  return {
+    width: 280,
+    height: 120,
+    verticalSpacing: 150,
+    horizontalSpacing: 50,
+  };
+};
+
+const NODE_WIDTH = getNodeDimensions().width;
+const NODE_HEIGHT = getNodeDimensions().height;
+const VERTICAL_SPACING = getNodeDimensions().verticalSpacing;
+const HORIZONTAL_SPACING = getNodeDimensions().horizontalSpacing;
 
 // Custom node component
 const DocumentNode = ({ data }) => {
@@ -57,33 +75,33 @@ const DocumentNode = ({ data }) => {
       />
       
       <div 
-        className={`px-4 py-3 rounded-lg shadow-lg border-2 transition-all cursor-pointer
+        className={`px-3 md:px-4 py-2 md:py-3 rounded-lg shadow-lg border-2 transition-all cursor-pointer
           ${bgColor}
-          ${isSelected ? 'ring-4 ring-blue-300' : ''}
+          ${isSelected ? 'ring-2 md:ring-4 ring-blue-300' : ''}
           hover:shadow-xl hover:scale-105`}
         style={{ width: NODE_WIDTH, minHeight: NODE_HEIGHT }}
       >
-        <div className="flex items-start gap-2 mb-2">
-          <FileText className={`w-5 h-5 flex-shrink-0 ${isRoot ? 'text-blue-600' : isDescendant ? 'text-green-600' : 'text-gray-600'}`} />
-          <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-tight">
+        <div className="flex items-start gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+          <FileText className={`w-4 h-4 md:w-5 md:h-5 flex-shrink-0 ${isRoot ? 'text-blue-600' : isDescendant ? 'text-green-600' : 'text-gray-600'}`} />
+          <h3 className="text-xs md:text-sm font-semibold text-gray-900 line-clamp-2 leading-tight">
             {data.title}
           </h3>
         </div>
         
-        <div className="space-y-1 text-xs text-gray-600">
+        <div className="space-y-0.5 md:space-y-1 text-xs text-gray-600">
           {data.author && (
             <div className="flex items-center gap-1">
-              <User className="w-3 h-3" />
-              <span className="truncate">{data.author}</span>
+              <User className="w-2.5 h-2.5 md:w-3 md:h-3" />
+              <span className="truncate text-[10px] md:text-xs">{data.author}</span>
             </div>
           )}
           
           <div className="flex items-center justify-between">
-            <span className="px-2 py-0.5 bg-gray-100 rounded text-xs font-medium">
-              Token #{data.tokenId}
+            <span className="px-1.5 md:px-2 py-0.5 bg-gray-100 rounded text-[10px] md:text-xs font-medium">
+              #{data.tokenId}
             </span>
             {data.citationsCount > 0 && (
-              <span className="text-xs text-gray-500">
+              <span className="text-[10px] md:text-xs text-gray-500">
                 {data.citationsCount} ref{data.citationsCount > 1 ? 's' : ''}
               </span>
             )}
@@ -423,9 +441,9 @@ const DocumentGenealogy = ({ tokenId }) => {
 
   return (
     <ReactFlowProvider>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+      <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 h-full">
         {/* React Flow Visualization */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden" style={{ height: '600px' }}>
+        <div className="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden h-[400px] md:h-[500px] lg:h-[600px]">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -447,27 +465,28 @@ const DocumentGenealogy = ({ tokenId }) => {
             proOptions={{ hideAttribution: true }}
           >
             <Background color="#E5E7EB" gap={16} size={1} />
-            <Controls showInteractive={false} />
+            <Controls showInteractive={false} className="md:block" />
             <MiniMap 
-              nodeColor={(node) => node.data.isRoot ? '#3B82F6' : '#D1D5DB'}
+              nodeColor={(node) => node.data.isRoot ? '#3B82F6' : node.data.isDescendant ? '#10B981' : '#D1D5DB'}
               maskColor="rgba(0, 0, 0, 0.1)"
               nodeStrokeWidth={3}
               zoomable
               pannable
+              className="hidden md:block"
             />
-            <Panel position="top-left" className="bg-white/90 backdrop-blur-sm p-2 rounded shadow text-sm">
-              <div className="flex flex-wrap items-center gap-3 text-gray-600">
+            <Panel position="top-left" className="bg-white/90 backdrop-blur-sm p-1.5 md:p-2 rounded shadow text-xs md:text-sm">
+              <div className="flex flex-col md:flex-row md:flex-wrap items-start md:items-center gap-1.5 md:gap-3 text-gray-600">
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-500 rounded" />
-                  <span>Descendants</span>
+                  <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-green-500 rounded" />
+                  <span className="text-xs md:text-sm">Descendants</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-blue-500 rounded" />
-                  <span>Main Document</span>
+                  <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-blue-500 rounded" />
+                  <span className="text-xs md:text-sm">Main Doc</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-gray-300 rounded" />
-                  <span>References</span>
+                  <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-gray-300 rounded" />
+                  <span className="text-xs md:text-sm">References</span>
                 </div>
               </div>
             </Panel>
@@ -475,49 +494,49 @@ const DocumentGenealogy = ({ tokenId }) => {
         </div>
 
       {/* Document Details Panel */}
-      <div className="lg:col-span-1">
+      <div className="lg:col-span-1 max-h-[400px] lg:max-h-full">
         <div className="bg-white rounded-lg shadow h-full overflow-auto">
-          <div className="border-b border-gray-200 p-4 bg-gray-50">
-            <h2 className="text-lg font-semibold text-gray-900">Document Details</h2>
+          <div className="border-b border-gray-200 p-3 md:p-4 bg-gray-50">
+            <h2 className="text-base md:text-lg font-semibold text-gray-900">Document Details</h2>
           </div>
-          <div className="p-4">
+          <div className="p-3 md:p-4">
             {selectedNode ? (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div>
-                  <h3 className="font-bold text-lg text-gray-900 mb-1">{selectedNode.name}</h3>
-                  <p className="text-sm text-gray-600">Token #{selectedNode.attributes.tokenId}</p>
+                  <h3 className="font-bold text-base md:text-lg text-gray-900 mb-1">{selectedNode.name}</h3>
+                  <p className="text-xs md:text-sm text-gray-600">Token #{selectedNode.attributes.tokenId}</p>
                 </div>
                 
                 {selectedNode.attributes.author && (
                   <div>
-                    <h4 className="font-semibold text-sm text-gray-700 mb-1 flex items-center gap-1">
-                      <User className="w-4 h-4" />
+                    <h4 className="font-semibold text-xs md:text-sm text-gray-700 mb-1 flex items-center gap-1">
+                      <User className="w-3 h-3 md:w-4 md:h-4" />
                       Author
                     </h4>
-                    <p className="text-sm text-gray-800">{selectedNode.attributes.author}</p>
+                    <p className="text-xs md:text-sm text-gray-800">{selectedNode.attributes.author}</p>
                   </div>
                 )}
                 
                 {selectedNode.attributes.description && (
                   <div>
-                    <h4 className="font-semibold text-sm text-gray-700 mb-1">Description</h4>
-                    <p className="text-sm text-gray-800">{selectedNode.attributes.description}</p>
+                    <h4 className="font-semibold text-xs md:text-sm text-gray-700 mb-1">Description</h4>
+                    <p className="text-xs md:text-sm text-gray-800">{selectedNode.attributes.description}</p>
                   </div>
                 )}
                 
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-700 mb-2">Citations</h4>
+                  <h4 className="font-semibold text-xs md:text-sm text-gray-700 mb-2">Citations</h4>
                   {selectedNode.attributes.citations?.length > 0 ? (
                     <ul className="space-y-1">
                       {selectedNode.attributes.citations.map((citation, index) => (
-                        <li key={index} className="text-sm text-gray-600 flex items-center gap-1">
+                        <li key={index} className="text-xs md:text-sm text-gray-600 flex items-center gap-1">
                           <ExternalLink className="w-3 h-3" />
                           Reference #{citation}
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-sm text-gray-500 italic">No citations</p>
+                    <p className="text-xs md:text-sm text-gray-500 italic">No citations</p>
                   )}
                 </div>
                 
@@ -528,9 +547,9 @@ const DocumentGenealogy = ({ tokenId }) => {
                 )}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">
+              <div className="text-center py-6 md:py-8">
+                <FileText className="w-10 h-10 md:w-12 md:h-12 text-gray-300 mx-auto mb-2 md:mb-3" />
+                <p className="text-gray-500 text-xs md:text-sm">
                   Click on a document to view details
                 </p>
               </div>
