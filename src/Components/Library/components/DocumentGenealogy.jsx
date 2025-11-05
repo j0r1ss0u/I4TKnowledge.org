@@ -134,9 +134,16 @@ const DocumentGenealogy = ({ tokenId }) => {
       const descendants = [];
       allDocsSnapshot.forEach((doc) => {
         const data = doc.data();
-        const references = data.references 
-          ? data.references.split(',').map(ref => ref.trim()).filter(Boolean) 
-          : [];
+        
+        // Handle both string and array references
+        let references = [];
+        if (data.references) {
+          if (Array.isArray(data.references)) {
+            references = data.references.filter(Boolean);
+          } else if (typeof data.references === 'string') {
+            references = data.references.split(',').map(ref => ref.trim()).filter(Boolean);
+          }
+        }
         
         console.log(`📄 Doc ${data.tokenId} (${data.title}) references:`, references);
         
