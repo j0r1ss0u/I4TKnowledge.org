@@ -93,11 +93,55 @@ Automatic periodic table element suggestions for uploaded documents:
 - **Batch operations** - Apply individual tags or all suggestions at once
 
 ## Blockchain Integration
+
+### Smart Contracts (Internalized - November 5, 2024)
+The I4TK Knowledge Network uses two smart contracts deployed on Sepolia testnet:
+
+**I4TKdocToken** (`0x06Fc114E58b8Be5d03b5B7b03ab7f0D3C9605288`):
+- ERC1155 token contract representing ownership of research documents
+- Manages token minting, contribution tracking, and on-chain metadata
+- Implements intelligent distribution system (40% to creator, 60% shared with referenced documents)
+- Source code: `contracts/contracts/I4TKdocToken.sol`
+
+**I4TKnetwork** (`0xa9870f477E6362E0810948fd87c0398c2c0a4F55`):
+- Governance contract managing community protocol
+- Handles member registration with roles (Admin, Contributor, Validator)
+- Implements peer validation system (4 validations required for publication)
+- Automatic token distribution upon validation
+- Source code: `contracts/contracts/I4TKnetwork.sol`
+
+### Smart Contract Development Workflow
+**Structure**:
+```
+contracts/
+├── contracts/          # Solidity source files (.sol)
+├── scripts/            # Deployment scripts
+├── test/               # Contract tests
+├── artifacts/          # Compiled contracts (generated)
+├── hardhat.config.js   # Hardhat configuration
+└── package.json        # Dependencies
+```
+
+**Commands**:
+- `cd contracts && npm run compile` - Compile contracts and generate ABIs
+- `cd contracts && npm run test` - Run contract tests
+- `cd contracts && npm run deploy:sepolia` - Deploy to Sepolia testnet
+- `cd contracts && npm run deploy:mainnet` - Deploy to Ethereum mainnet (use with caution!)
+
+**Multi-Network Support**:
+- ABIs automatically imported from `src/config/contracts/` (generated from compilation)
+- Contract addresses configured per network in `src/config/contracts/addresses.json`
+- Environment variable `VITE_CHAIN_ID` determines active network (default: Sepolia)
+- Supports Sepolia testnet (11155111) and Ethereum mainnet (1)
+
+### Web3 Integration
 The application integrates Web3 functionality through:
 - **Wagmi** and **RainbowKit** for wallet connectivity
 - **Viem** for Ethereum blockchain interactions
-- Support for the Sepolia testnet
-- Smart contract integration for tokenizing research contributions and managing governance roles
+- **Hardhat** for smart contract development and testing
+- Support for Sepolia testnet with planned Ethereum mainnet migration
+- ABIs dynamically loaded from compiled artifacts (`contracts/artifacts/`)
+- Multi-network configuration in `src/config/wagmiConfig.js` and `src/constants/index.js`
 
 ## Data Storage Strategy
 The application uses a hybrid storage approach:

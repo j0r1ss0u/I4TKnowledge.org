@@ -1,0 +1,13 @@
+{
+  "11155111": {
+    "name": "sepolia",
+    "I4TKdocToken": "0x06Fc114E58b8Be5d03b5B7b03ab7f0D3C9605288",
+    "I4TKnetwork": "0xa9870f477E6362E0810948fd87c0398c2c0a4F55"
+  },
+  "1": {
+    "name": "mainnet",
+    "I4TKdocToken": "NOT_DEPLOYED_YET",
+    "I4TKnetwork": "NOT_DEPLOYED_YET",
+    "_comment": "⚠️ WARNING: Mainnet contracts not deployed yet. Application will throw an error if VITE_CHAIN_ID=1. Deploy contracts to mainnet and update these addresses before enabling mainnet support."
+  }
+}

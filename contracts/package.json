@@ -1,0 +1,23 @@
+{
+  "name": "i4tk-smart-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for I4TK Knowledge Network",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:mainnet": "hardhat run scripts/deploy.js --network mainnet",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost"
+  },
+  "keywords": ["blockchain", "ethereum", "smart-contracts", "hardhat"],
+  "author": "I4TK Knowledge Network",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "solidity-json-writer": "^1.0.2"
+  }
+}
