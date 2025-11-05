@@ -108,7 +108,7 @@ export default function SubmitContribution() {
       if (log.topics && log.topics.length >= 3) {
         const potentialId = parseInt(log.topics[2], 16);
         if (!isNaN(potentialId) && potentialId > 0) {
-          console.log('TokenId found in topics[2]:', potentialId);
+          console.log('✅ TokenId found in topics[2]:', potentialId);
           return potentialId;
         }
       }
@@ -121,13 +121,14 @@ export default function SubmitContribution() {
         const potentialIdHex = log.data.substring(2, 66);
         const potentialId = parseInt(potentialIdHex, 16);
         if (!isNaN(potentialId) && potentialId > 0 && potentialId < 1000) {
-          console.log('TokenId found in data field:', potentialId);
+          console.log('✅ TokenId found in data field:', potentialId);
           return potentialId;
         }
       }
     }
 
     // Inspection détaillée des logs
+    console.error('❌ TokenId NOT found in transaction logs');
     console.log('Detailed log inspection:');
     logs.forEach((log, index) => {
       console.log(`Log ${index}:`, log);
@@ -136,6 +137,8 @@ export default function SubmitContribution() {
       }
     });
 
+    // Retourner null au lieu de undefined pour permettre un fallback gracieux
+    return null;
   };
   // =============== RECEIPT PROCESSING ===============
   useEffect(() => {
@@ -146,25 +149,41 @@ export default function SubmitContribution() {
         setProcessingReceipt(true);
         console.log('=== Processing Transaction Receipt ===');
 
+        // Tenter d'extraire le tokenId des logs
         const tokenId = extractTokenIdFromEvent(receipt.logs);
+        
+        if (tokenId === null) {
+          console.warn('⚠️ TokenId extraction failed, but saving document anyway with transaction hash');
+        }
 
+        // Préparer les données du document
+        // IMPORTANT: Sauvegarder MÊME si tokenId est null pour éviter la perte de données
         const docData = {
           ...formData,
           creatorAddress: address,
           transactionHash: txHash,
-          tokenId: tokenId.toString(),
+          tokenId: tokenId !== null ? tokenId.toString() : `PENDING_${txHash.slice(0, 10)}`,
           validationStatus: "0/4",
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          // Ajouter un flag pour indiquer que le tokenId doit être récupéré plus tard
+          ...(tokenId === null && { tokenIdPending: true })
         };
 
         const newDocId = await documentsService.addDocument(docData);
-        console.log('Document sauvegardé avec succès, ID:', newDocId);
+        console.log('✅ Document sauvegardé avec succès dans Firestore, ID:', newDocId);
         setDocumentId(newDocId);
 
-        resetForm();
+        // Ne réinitialiser le formulaire QUE si le tokenId a été trouvé
+        if (tokenId !== null) {
+          resetForm();
+        } else {
+          // Afficher un avertissement persistant si le tokenId n'a pas été trouvé
+          console.warn('⚠️ Document saved but tokenId could not be extracted from blockchain logs. Please update manually.');
+          setError('Document sauvegardé mais le tokenId n\'a pas pu être extrait automatiquement. Transaction hash: ' + txHash + '. Veuillez contacter un administrateur.');
+        }
 
       } catch (err) {
-        console.error('Receipt processing error:', err);
+        console.error('❌ Receipt processing error:', err);
         setError('Erreur lors du traitement: ' + (err.message || 'Erreur inconnue'));
       } finally {
         setProcessingReceipt(false);
