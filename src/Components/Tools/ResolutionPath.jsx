@@ -101,7 +101,7 @@ const translations = {
     newResolutionPath: "New Resolution Path",
     editing: "Editing",
     titleLabel: "Title",
-    titleRequired: "Required",
+    titleFieldLabel: "Required",
     descriptionLabel: "Description",
     statusLabel: "Status",
     selectedElements: "Selected elements",
@@ -126,7 +126,7 @@ const translations = {
     commentButton: "Comment",
 
     // Alerts
-    titleRequired: "Please enter a title for your Resolution Path.",
+    titleRequiredAlert: "Please enter a title for your Resolution Path.",
     elementRequired: "Please select at least one element for your Resolution Path.",
     saveError: "An error occurred while saving. Please try again.",
     alreadySelected: "This element is already in your Resolution Path.",
@@ -189,7 +189,7 @@ const translations = {
     newResolutionPath: "Nouveau Chemin de Résolution",
     editing: "Édition",
     titleLabel: "Titre",
-    titleRequired: "Obligatoire",
+    titleFieldLabel: "Obligatoire",
     descriptionLabel: "Description",
     statusLabel: "Statut",
     selectedElements: "Éléments sélectionnés",
@@ -214,7 +214,7 @@ const translations = {
     commentButton: "Commenter",
 
     // Alerts
-    titleRequired: "Veuillez saisir un titre pour votre Chemin de Résolution.",
+    titleRequiredAlert: "Veuillez saisir un titre pour votre Chemin de Résolution.",
     elementRequired: "Veuillez sélectionner au moins un élément pour votre Chemin de Résolution.",
     saveError: "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
     alreadySelected: "Cet élément est déjà dans votre Chemin de Résolution.",
@@ -366,7 +366,7 @@ const ResolutionPath = ({ elements, onBack }) => {
   // Sauvegarde un nouveau path ou met à jour un path existant
   const handleSavePath = async () => {
     if (!formData.title) {
-      alert(t.titleRequired);
+      alert(t.titleRequiredAlert);
       return;
     }
 

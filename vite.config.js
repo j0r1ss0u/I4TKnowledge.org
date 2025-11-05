@@ -41,7 +41,6 @@ export default defineConfig({
           // Large specific libraries
           'pdfjs': ['pdfjs-dist'],
           'tensorflow': ['@tensorflow/tfjs', '@tensorflow-models/universal-sentence-encoder'],
-          'd3-tree': ['react-d3-tree'],
           'query-client': ['@tanstack/react-query'],
           
           // Language and localization
