@@ -241,6 +241,7 @@ const NetworkPublications = ({
         const cleaned = str
           .replace(/[\r\n\t\v\f\u0085\u2028\u2029]+/g, ' ')  // Tous types de retours à la ligne et tabulations
           .replace(/\s+/g, ' ')      // Remplacer multiples espaces par un seul
+          .replace(/;/g, ',')        // Remplacer tous les point-virgules par des virgules
           .trim();                    // Enlever espaces au début/fin
         // Échapper les guillemets en les doublant
         const escaped = cleaned.replace(/"/g, '""');
