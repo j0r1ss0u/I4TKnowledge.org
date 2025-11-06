@@ -1,4 +1,4 @@
-o# I4TK Knowledge Network
+## I4TK Knowledge Network
 
 A comprehensive web application for digital governance research and collaboration, featuring AI-powered document management, blockchain for IP tokenization, and semantic search capabilities.
 
