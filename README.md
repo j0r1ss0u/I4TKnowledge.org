@@ -23,7 +23,7 @@ A comprehensive web application for digital governance research and collaboratio
 
 ## Overview
 
-I4TK Knowledge Network is a platform designed for digital governance research and collaboration. Researchers can:
+I4T Knowledge Network is a platform designed for digital governance research and collaboration. Researchers can:
 - Upload and share research documents with IPFS decentralized storage
 - Tokenize contributions on the Ethereum blockchain (ERC-1155) for IP tracking
 - Engage with an AI assistant for semantic document search
