@@ -228,11 +228,12 @@ const NetworkPublications = ({
       };
 
       // Créer le contenu CSV avec BOM UTF-8 pour Excel
+      // Utiliser point-virgule (;) comme séparateur pour Excel français/européen
       const BOM = '\uFEFF';
       const csvContent = BOM + [
-        headers.map(h => formatCSVValue(h)).join(','),
+        headers.map(h => formatCSVValue(h)).join(';'),
         ...csvData.map(row => 
-          headers.map(header => formatCSVValue(row[header])).join(',')
+          headers.map(header => formatCSVValue(row[header])).join(';')
         )
       ].join('\n');
 
