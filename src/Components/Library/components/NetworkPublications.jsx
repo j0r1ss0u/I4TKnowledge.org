@@ -236,12 +236,12 @@ const NetworkPublications = ({
       // Fonction pour échapper et encadrer une valeur CSV
       const escapeCSV = (value) => {
         const str = String(value);
-        // NETTOYER les retours à la ligne, tabulations et autres caractères problématiques
+        // NETTOYER TOUS les caractères de contrôle (retours à la ligne, tabulations, etc.)
+        // Utiliser une regex globale pour capturer TOUS les caractères de contrôle
         const cleaned = str
-          .replace(/\r\n/g, ' ')   // Retour à la ligne Windows
-          .replace(/\n/g, ' ')      // Retour à la ligne Unix
-          .replace(/\r/g, ' ')      // Retour chariot
-          .replace(/\t/g, ' ');     // Tabulations
+          .replace(/[\r\n\t\v\f\u0085\u2028\u2029]+/g, ' ')  // Tous types de retours à la ligne et tabulations
+          .replace(/\s+/g, ' ')      // Remplacer multiples espaces par un seul
+          .trim();                    // Enlever espaces au début/fin
         // Échapper les guillemets en les doublant
         const escaped = cleaned.replace(/"/g, '""');
         // Encadrer entre guillemets
