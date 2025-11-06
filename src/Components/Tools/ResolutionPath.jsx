@@ -61,22 +61,22 @@ const CATEGORIES = {
 const translations = {
   en: {
     // Titles and main sections
-    title: "Resolution Paths",
+    title: "Regulation Pathways",
     backButton: "Back to periodic table",
-    description: "Create and share resolution paths by selecting and organizing elements from the periodic table of digital platform regulation.",
+    description: "Create and share regulation pathways by selecting and organizing elements from the periodic table of digital platform regulation.",
 
     // Search and filters
-    searchPlaceholder: "Search a Resolution Path...",
-    allPaths: "All paths",
+    searchPlaceholder: "Search a Regulation Pathway...",
+    allPaths: "All pathways",
     publishedOnly: "Published only",
-    myPaths: "My paths",
+    myPaths: "My pathways",
     drafts: "Drafts",
-    newPath: "+ New Resolution Path",
+    newPath: "+ New Regulation Pathway",
 
     // No paths message
-    noPathsFound: "No Resolution Path found.",
-    createFirstPath: "Create my first Resolution Path",
-    loginToCreate: "Log in to create a Resolution Path.",
+    noPathsFound: "No Regulation Pathway found.",
+    createFirstPath: "Create my first Regulation Pathway",
+    loginToCreate: "Log in to create a Regulation Pathway.",
 
     // Table headers
     titleHeader: "Title",
@@ -98,7 +98,7 @@ const translations = {
     delete: "Delete",
 
     // Creation window
-    newResolutionPath: "New Resolution Path",
+    newResolutionPath: "New Regulation Pathway",
     editing: "Editing",
     titleLabel: "Title",
     titleFieldLabel: "Required",
@@ -112,7 +112,7 @@ const translations = {
 
     // Save prompt
     saveChanges: "Save changes?",
-    savePromptMessage: "Do you want to save changes made to this Resolution Path?",
+    savePromptMessage: "Do you want to save changes made to this Regulation Pathway?",
     dontSave: "Don't save",
 
     // View modal
@@ -126,45 +126,45 @@ const translations = {
     commentButton: "Comment",
 
     // Alerts
-    titleRequiredAlert: "Please enter a title for your Resolution Path.",
-    elementRequired: "Please select at least one element for your Resolution Path.",
+    titleRequiredAlert: "Please enter a title for your Regulation Pathway.",
+    elementRequired: "Please select at least one element for your Regulation Pathway.",
     saveError: "An error occurred while saving. Please try again.",
-    alreadySelected: "This element is already in your Resolution Path.",
-    limitReached: "You have reached the limit of 15 elements for a Resolution Path.",
-    deleteConfirm: "Are you sure you want to delete this Resolution Path?",
-    loadingError: "Failed to load resolution paths. Please try again later.",
+    alreadySelected: "This element is already in your Regulation Pathway.",
+    limitReached: "You have reached the limit of 15 elements for a Regulation Pathway.",
+    deleteConfirm: "Are you sure you want to delete this Regulation Pathway?",
+    loadingError: "Failed to load regulation pathways. Please try again later.",
     fetchDetailsError: "An error occurred while loading details. Please try again.",
     addCommentError: "An error occurred while adding the comment. Please try again.",
     ratingError: "An error occurred while rating. Please try again.",
     deleteError: "An error occurred while deleting. Please try again.",
     publishError: "An error occurred while publishing. Please try again.",
-    elementRequiredForPublished: "Please select at least one element before publishing your Resolution Path.",
+    elementRequiredForPublished: "Please select at least one element before publishing your Regulation Pathway.",
 
 
     // Other elements
     moveUp: "Move up",
     moveDown: "Move down",
     remove: "Remove",
-    sequence: "Resolution sequence"
+    sequence: "Regulation sequence"
   },
   fr: {
     // Titles and main sections
-    title: "Chemins de résolution",
+    title: "Parcours de régulation",
     backButton: "Retour au tableau périodique",
-    description: "Créez et partagez des chemins de résolution en sélectionnant et en organisant les éléments du tableau périodique de régulation des plateformes numériques.",
+    description: "Créez et partagez des parcours de régulation en sélectionnant et en organisant les éléments du tableau périodique de régulation des plateformes numériques.",
 
     // Search and filters
-    searchPlaceholder: "Rechercher un Chemin de Résolution...",
-    allPaths: "Tous les chemins",
+    searchPlaceholder: "Rechercher un Parcours de Régulation...",
+    allPaths: "Tous les parcours",
     publishedOnly: "Publiés uniquement",
-    myPaths: "Mes chemins",
+    myPaths: "Mes parcours",
     drafts: "Brouillons",
-    newPath: "+ Nouveau Chemin de Résolution",
+    newPath: "+ Nouveau Parcours de Régulation",
 
     // No paths message
-    noPathsFound: "Aucun Chemin de Résolution trouvé.",
-    createFirstPath: "Créer mon premier Chemin de Résolution",
-    loginToCreate: "Connectez-vous pour créer un Chemin de Résolution.",
+    noPathsFound: "Aucun Parcours de Régulation trouvé.",
+    createFirstPath: "Créer mon premier Parcours de Régulation",
+    loginToCreate: "Connectez-vous pour créer un Parcours de Régulation.",
 
     // Table headers
     titleHeader: "Titre",
@@ -186,7 +186,7 @@ const translations = {
     delete: "Supprimer",
 
     // Creation window
-    newResolutionPath: "Nouveau Chemin de Résolution",
+    newResolutionPath: "Nouveau Parcours de Régulation",
     editing: "Édition",
     titleLabel: "Titre",
     titleFieldLabel: "Obligatoire",
@@ -200,7 +200,7 @@ const translations = {
 
     // Save prompt
     saveChanges: "Sauvegarder les modifications ?",
-    savePromptMessage: "Voulez-vous sauvegarder les modifications apportées à ce Chemin de Résolution ?",
+    savePromptMessage: "Voulez-vous sauvegarder les modifications apportées à ce Parcours de Régulation ?",
     dontSave: "Ne pas sauvegarder",
 
     // View modal
@@ -214,25 +214,25 @@ const translations = {
     commentButton: "Commenter",
 
     // Alerts
-    titleRequiredAlert: "Veuillez saisir un titre pour votre Chemin de Résolution.",
-    elementRequired: "Veuillez sélectionner au moins un élément pour votre Chemin de Résolution.",
+    titleRequiredAlert: "Veuillez saisir un titre pour votre Parcours de Régulation.",
+    elementRequired: "Veuillez sélectionner au moins un élément pour votre Parcours de Régulation.",
     saveError: "Une erreur s'est produite lors de la sauvegarde. Veuillez réessayer.",
-    alreadySelected: "Cet élément est déjà dans votre Chemin de Résolution.",
-    limitReached: "Vous avez atteint la limite de 15 éléments pour un Chemin de Résolution.",
-    deleteConfirm: "Êtes-vous sûr de vouloir supprimer ce Chemin de Résolution ?",
-    loadingError: "Échec du chargement des chemins de résolution. Veuillez réessayer plus tard.",
+    alreadySelected: "Cet élément est déjà dans votre Parcours de Régulation.",
+    limitReached: "Vous avez atteint la limite de 15 éléments pour un Parcours de Régulation.",
+    deleteConfirm: "Êtes-vous sûr de vouloir supprimer ce Parcours de Régulation ?",
+    loadingError: "Échec du chargement des parcours de régulation. Veuillez réessayer plus tard.",
     fetchDetailsError: "Une erreur s'est produite lors du chargement des détails. Veuillez réessayer.",
     addCommentError: "Une erreur s'est produite lors de l'ajout du commentaire. Veuillez réessayer.",
     ratingError: "Une erreur s'est produite lors de la notation. Veuillez réessayer.",
     deleteError: "Une erreur s'est produite lors de la suppression. Veuillez réessayer.",
     publishError: "Une erreur s'est produite lors de la publication. Veuillez réessayer.",
-    elementRequiredForPublished: "Veuillez sélectionner au moins un élément avant de publier votre Chemin de Résolution.",
+    elementRequiredForPublished: "Veuillez sélectionner au moins un élément avant de publier votre Parcours de Régulation.",
 
     // Other elements
     moveUp: "Monter",
     moveDown: "Descendre",
     remove: "Supprimer",
-    sequence: "Séquence de résolution"
+    sequence: "Séquence de régulation"
   }
 };
 

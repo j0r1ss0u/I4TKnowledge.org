@@ -4,6 +4,13 @@ I4T Knowledge Network is a comprehensive web application designed for digital go
 
 # Recent Changes (November 2024)
 
+## UI Terminology Update (November 6, 2024)
+- **Renamed "Resolution Paths" to "Regulation Pathways"** - Updated all visible text throughout the application
+- **English translations** - "Resolution Path" → "Regulation Pathway", "Resolution Paths" → "Regulation Pathways"
+- **French translations** - "Chemin de Résolution" → "Parcours de Régulation", "Chemins de résolution" → "Parcours de régulation"
+- **Files updated** - ResolutionPath.jsx, Globaltoolkit.jsx, resolutionPathService.js
+- Database collection name remains `resolutionPaths` for backward compatibility
+
 ## Critical Blockchain/Firestore Sync Fix (November 5, 2024)
 - **Fixed critical bug preventing documents from saving to Firestore** - Documents were tokenized on blockchain but never persisted to Firestore database
 - **Root cause** - `extractTokenIdFromEvent()` returned `undefined` when tokenId couldn't be found in blockchain logs, causing `Cannot read property 'toString' of undefined` error

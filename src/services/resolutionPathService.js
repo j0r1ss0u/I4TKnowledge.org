@@ -17,10 +17,10 @@ import { db } from './firebase';
 // =============== CONSTANTS ===============
 const COLLECTION_NAME = 'resolutionPaths';
 
-// =============== RESOLUTION PATH SERVICE ===============
+// =============== REGULATION PATHWAY SERVICE ===============
 export const resolutionPathService = {
   /**
-   * Récupère tous les resolution paths
+   * Récupère tous les parcours de régulation
    */
   async getAllResolutionPaths() {
     try {
@@ -52,13 +52,13 @@ export const resolutionPathService = {
 
       return paths;
     } catch (error) {
-      console.error('Error fetching resolution paths:', error);
+      console.error('Error fetching regulation pathways:', error);
       throw error;
     }
   },
 
   /**
-   * Récupère les resolution paths d'un utilisateur spécifique
+   * Récupère les parcours de régulation d'un utilisateur spécifique
    */
   async getUserResolutionPaths(userId) {
     try {
@@ -96,13 +96,13 @@ export const resolutionPathService = {
 
       return paths;
     } catch (error) {
-      console.error(`Error fetching resolution paths for user ${userId}:`, error);
+      console.error(`Error fetching regulation pathways for user ${userId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Récupère un resolution path par son ID
+   * Récupère un parcours de régulation par son ID
    */
   async getResolutionPathById(pathId) {
     try {
@@ -110,7 +110,7 @@ export const resolutionPathService = {
       const docSnap = await getDoc(pathRef);
 
       if (!docSnap.exists()) {
-        throw new Error(`Resolution path with ID ${pathId} not found`);
+        throw new Error(`Regulation pathway with ID ${pathId} not found`);
       }
 
       const data = docSnap.data();
@@ -137,17 +137,17 @@ export const resolutionPathService = {
         }))
       };
     } catch (error) {
-      console.error(`Error fetching resolution path with ID ${pathId}:`, error);
+      console.error(`Error fetching regulation pathway with ID ${pathId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Crée un nouveau resolution path
+   * Crée un nouveau parcours de régulation
    */
   async createResolutionPath(pathData) {
     try {
-      console.log("Starting creation of resolution path with data:", JSON.stringify(pathData));
+      console.log("Starting creation of regulation pathway with data:", JSON.stringify(pathData));
       const pathsRef = collection(db, COLLECTION_NAME);
       console.log("Collection reference created:", COLLECTION_NAME);
 
@@ -193,7 +193,7 @@ export const resolutionPathService = {
   },
 
   /**
-   * Met à jour un resolution path existant
+   * Met à jour un parcours de régulation existant
    */
   async updateResolutionPath(pathId, updateData) {
     try {
@@ -202,7 +202,7 @@ export const resolutionPathService = {
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
       if (!docSnap.exists()) {
-        throw new Error(`Resolution path with ID ${pathId} not found`);
+        throw new Error(`Regulation pathway with ID ${pathId} not found`);
       }
 
       // Préparer les données à mettre à jour
@@ -217,13 +217,13 @@ export const resolutionPathService = {
       // Retourner le document mis à jour
       return await this.getResolutionPathById(pathId);
     } catch (error) {
-      console.error(`Error updating resolution path with ID ${pathId}:`, error);
+      console.error(`Error updating regulation pathway with ID ${pathId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Met à jour le statut d'un resolution path (draft ou published)
+   * Met à jour le statut d'un parcours de régulation (draft ou published)
    */
   async updateResolutionPathStatus(pathId, status) {
     try {
@@ -233,13 +233,13 @@ export const resolutionPathService = {
 
       return await this.updateResolutionPath(pathId, { status });
     } catch (error) {
-      console.error(`Error updating status for resolution path ${pathId}:`, error);
+      console.error(`Error updating status for regulation pathway ${pathId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Ajoute un commentaire à un resolution path
+   * Ajoute un commentaire à un parcours de régulation
    */
   async addComment(pathId, commentData) {
     try {
@@ -248,7 +248,7 @@ export const resolutionPathService = {
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
       if (!docSnap.exists()) {
-        throw new Error(`Resolution path with ID ${pathId} not found`);
+        throw new Error(`Regulation pathway with ID ${pathId} not found`);
       }
 
       const data = docSnap.data();
@@ -271,13 +271,13 @@ export const resolutionPathService = {
 
       return newComment;
     } catch (error) {
-      console.error(`Error adding comment to resolution path ${pathId}:`, error);
+      console.error(`Error adding comment to regulation pathway ${pathId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Ajoute ou met à jour une note d'un utilisateur sur un resolution path
+   * Ajoute ou met à jour une note d'un utilisateur sur un parcours de régulation
    */
   async ratePath(pathId, userId, rating) {
     try {
@@ -291,7 +291,7 @@ export const resolutionPathService = {
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
       if (!docSnap.exists()) {
-        throw new Error(`Resolution path with ID ${pathId} not found`);
+        throw new Error(`Regulation pathway with ID ${pathId} not found`);
       }
 
       const data = docSnap.data();
@@ -308,13 +308,13 @@ export const resolutionPathService = {
 
       return ratings;
     } catch (error) {
-      console.error(`Error rating resolution path ${pathId}:`, error);
+      console.error(`Error rating regulation pathway ${pathId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Supprime un resolution path
+   * Supprime un parcours de régulation
    */
   async deleteResolutionPath(pathId) {
     try {
@@ -323,20 +323,20 @@ export const resolutionPathService = {
       // Vérifier que le document existe
       const docSnap = await getDoc(pathRef);
       if (!docSnap.exists()) {
-        throw new Error(`Resolution path with ID ${pathId} not found`);
+        throw new Error(`Regulation pathway with ID ${pathId} not found`);
       }
 
       // Supprimer le document
       await deleteDoc(pathRef);
       return true;
     } catch (error) {
-      console.error(`Error deleting resolution path with ID ${pathId}:`, error);
+      console.error(`Error deleting regulation pathway with ID ${pathId}:`, error);
       throw error;
     }
   },
 
   /**
-   * Récupère les resolution paths les plus notés
+   * Récupère les parcours de régulation les plus notés
    */
   async getTopRatedPaths(limit = 5) {
     try {
@@ -351,13 +351,13 @@ export const resolutionPathService = {
       // Limiter le nombre de résultats
       return sortedPaths.slice(0, limit);
     } catch (error) {
-      console.error('Error getting top rated paths:', error);
+      console.error('Error getting top rated pathways:', error);
       throw error;
     }
   },
 
   /**
-   * Récupère les resolution paths les plus récents
+   * Récupère les parcours de régulation les plus récents
    */
   async getRecentPaths(limit = 5) {
     try {
