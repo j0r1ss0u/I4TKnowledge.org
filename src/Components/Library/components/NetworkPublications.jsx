@@ -236,8 +236,14 @@ const NetworkPublications = ({
       // Fonction pour échapper et encadrer une valeur CSV
       const escapeCSV = (value) => {
         const str = String(value);
+        // NETTOYER les retours à la ligne, tabulations et autres caractères problématiques
+        const cleaned = str
+          .replace(/\r\n/g, ' ')   // Retour à la ligne Windows
+          .replace(/\n/g, ' ')      // Retour à la ligne Unix
+          .replace(/\r/g, ' ')      // Retour chariot
+          .replace(/\t/g, ' ');     // Tabulations
         // Échapper les guillemets en les doublant
-        const escaped = str.replace(/"/g, '""');
+        const escaped = cleaned.replace(/"/g, '""');
         // Encadrer entre guillemets
         return `"${escaped}"`;
       };
@@ -257,24 +263,33 @@ const NetworkPublications = ({
         rows.push(row.join(','));
       });
 
-      // Créer le contenu CSV avec BOM UTF-8
+      // Créer le contenu avec BOM UTF-8
       const BOM = '\uFEFF';
       const csvContent = BOM + rows.join('\n');
 
-      // Créer un blob et télécharger
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
+      // Créer deux fichiers : CSV et TXT pour debug
+      const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const txtBlob = new Blob([csvContent], { type: 'text/plain;charset=utf-8;' });
       
-      link.setAttribute('href', url);
-      link.setAttribute('download', `i4tk-library-export-${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
+      // Télécharger CSV
+      const csvLink = document.createElement('a');
+      csvLink.setAttribute('href', URL.createObjectURL(csvBlob));
+      csvLink.setAttribute('download', `i4tk-library-export-${new Date().toISOString().split('T')[0]}.csv`);
+      csvLink.style.visibility = 'hidden';
+      document.body.appendChild(csvLink);
+      csvLink.click();
+      document.body.removeChild(csvLink);
       
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Télécharger TXT (pour debug)
+      const txtLink = document.createElement('a');
+      txtLink.setAttribute('href', URL.createObjectURL(txtBlob));
+      txtLink.setAttribute('download', `i4tk-library-export-${new Date().toISOString().split('T')[0]}.txt`);
+      txtLink.style.visibility = 'hidden';
+      document.body.appendChild(txtLink);
+      txtLink.click();
+      document.body.removeChild(txtLink);
       
-      console.log(`✅ Exported ${documents.length} documents to CSV`);
+      console.log(`✅ Exported ${documents.length} documents to CSV and TXT`);
     } catch (error) {
       console.error('Error exporting CSV:', error);
       alert('Error exporting CSV. Please try again.');
