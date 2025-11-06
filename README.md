@@ -1,6 +1,6 @@
-# I4TK Knowledge Network
+o# I4TK Knowledge Network
 
-A comprehensive web application for digital governance research and collaboration, featuring AI-powered document management, blockchain tokenization, and semantic search capabilities.
+A comprehensive web application for digital governance research and collaboration, featuring AI-powered document management, blockchain for IP tokenization, and semantic search capabilities.
 
 ## 📋 Table of Contents
 
@@ -25,7 +25,7 @@ A comprehensive web application for digital governance research and collaboratio
 
 I4TK Knowledge Network is a platform designed for digital governance research and collaboration. Researchers can:
 - Upload and share research documents with IPFS decentralized storage
-- Tokenize contributions on the Ethereum blockchain (ERC-1155)
+- Tokenize contributions on the Ethereum blockchain (ERC-1155) for IP tracking
 - Engage with an AI assistant for semantic document search
 - Collaborate on policy research projects
 - Manage events and track research progress
@@ -73,7 +73,7 @@ The platform integrates Firebase for authentication/database, OpenAI GPT-4o-mini
 
 ### 📤 Export & Integration
 - **CSV export** with 14 metadata columns (Token ID, Title, Authors, Description, etc.)
-- **SendGrid email integration** for invitations and notifications
+- **Resend email integration** for invitations and notifications
 - **GitHub synchronization** for code versioning
 
 ---
