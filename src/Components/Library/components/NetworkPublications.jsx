@@ -268,29 +268,20 @@ const NetworkPublications = ({
       const BOM = '\uFEFF';
       const csvContent = BOM + rows.join('\n');
 
-      // Créer deux fichiers : CSV et TXT pour debug
-      const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const txtBlob = new Blob([csvContent], { type: 'text/plain;charset=utf-8;' });
+      // Créer et télécharger le fichier CSV
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
       
-      // Télécharger CSV
-      const csvLink = document.createElement('a');
-      csvLink.setAttribute('href', URL.createObjectURL(csvBlob));
-      csvLink.setAttribute('download', `i4tk-library-export-${new Date().toISOString().split('T')[0]}.csv`);
-      csvLink.style.visibility = 'hidden';
-      document.body.appendChild(csvLink);
-      csvLink.click();
-      document.body.removeChild(csvLink);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `i4tk-library-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
       
-      // Télécharger TXT (pour debug)
-      const txtLink = document.createElement('a');
-      txtLink.setAttribute('href', URL.createObjectURL(txtBlob));
-      txtLink.setAttribute('download', `i4tk-library-export-${new Date().toISOString().split('T')[0]}.txt`);
-      txtLink.style.visibility = 'hidden';
-      document.body.appendChild(txtLink);
-      txtLink.click();
-      document.body.removeChild(txtLink);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      console.log(`✅ Exported ${documents.length} documents to CSV and TXT`);
+      console.log(`✅ Exported ${documents.length} documents to CSV`);
     } catch (error) {
       console.error('Error exporting CSV:', error);
       alert('Error exporting CSV. Please try again.');
