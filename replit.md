@@ -4,6 +4,14 @@ I4T Knowledge Network is a comprehensive web application designed for digital go
 
 # Recent Changes (November 2024)
 
+## Library CSV Export Feature (November 6, 2024)
+- **Added CSV export functionality** - Administrators can now export all library metadata to a CSV file
+- **Export includes** - Token ID, Title, Authors, Description, Programme, Collection, Categories, Periodic Elements, References, IPFS CID, Creator Address, Created At, Validation Status, Transaction Hash
+- **Access control** - Export button only visible to admin users (isWebAdmin)
+- **File format** - CSV with proper escaping for special characters (commas, quotes, line breaks)
+- **Filename** - Auto-generated with date: `i4tk-library-export-YYYY-MM-DD.csv`
+- **Location** - Export button appears at the top of the Library Network Publications tab
+
 ## UI Terminology Update (November 6, 2024)
 - **Renamed "Resolution Paths" to "Regulation Pathways"** - Updated all visible text throughout the application
 - **English translations** - "Resolution Path" → "Regulation Pathway", "Resolution Paths" → "Regulation Pathways"

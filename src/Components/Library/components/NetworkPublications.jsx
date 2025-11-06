@@ -1,7 +1,7 @@
 // =============== IMPORTS ===============
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
-import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet } from 'lucide-react';
 import DocumentValidator from "./DocumentValidator";
 import DocumentViewer from './DocumentViewer';
 import DocumentMetadataEditor from './DocumentMetadataEditor';
@@ -172,6 +172,90 @@ const NetworkPublications = ({
            address.toLowerCase() === doc.creatorAddress.toLowerCase();
   };
 
+  // =============== CSV EXPORT FUNCTION ===============
+  const handleExportCSV = () => {
+    try {
+      // Préparer les données pour l'export CSV
+      const csvData = documents.map(doc => {
+        // Formater les catégories et éléments périodiques
+        const categories = Array.isArray(doc.categories) 
+          ? doc.categories.join('; ') 
+          : doc.categories || '';
+        
+        const periodicElements = Array.isArray(doc.periodicElementIds)
+          ? doc.periodicElementIds.join('; ')
+          : doc.periodicElementIds || '';
+        
+        // Formater la date
+        let formattedDate = '';
+        if (doc.createdAt) {
+          if (doc.createdAt.seconds) {
+            formattedDate = new Date(doc.createdAt.seconds * 1000).toISOString();
+          } else {
+            formattedDate = new Date(doc.createdAt).toISOString();
+          }
+        }
+
+        return {
+          'Token ID': doc.tokenId || '',
+          'Title': doc.title || '',
+          'Authors': doc.authors || doc.author || '',
+          'Description': doc.description || '',
+          'Programme': doc.programme || '',
+          'Collection': doc.collection || '',
+          'Categories': categories,
+          'Periodic Elements': periodicElements,
+          'References': doc.references || '',
+          'IPFS CID': doc.ipfsCid || '',
+          'Creator Address': doc.creatorAddress || '',
+          'Created At': formattedDate,
+          'Validation Status': doc.validationStatus || '',
+          'Transaction Hash': doc.transactionHash || ''
+        };
+      });
+
+      // Créer les en-têtes CSV
+      const headers = Object.keys(csvData[0]);
+      
+      // Fonction pour échapper les caractères spéciaux CSV
+      const escapeCSV = (value) => {
+        if (value === null || value === undefined) return '';
+        const stringValue = String(value);
+        // Si la valeur contient des virgules, guillemets ou retours à la ligne, l'encadrer de guillemets
+        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+          return `"${stringValue.replace(/"/g, '""')}"`;
+        }
+        return stringValue;
+      };
+
+      // Créer le contenu CSV
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => 
+          headers.map(header => escapeCSV(row[header])).join(',')
+        )
+      ].join('\n');
+
+      // Créer un blob et télécharger
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `i4tk-library-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log(`✅ Exported ${csvData.length} documents to CSV`);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      alert('Error exporting CSV. Please try again.');
+    }
+  };
+
   // =============== DOCUMENTS DISPLAY LOGIC ===============
   if (loading || isSearching) {
     return (
@@ -220,6 +304,20 @@ const NetworkPublications = ({
           onSave={handleSaveMetadata}
         />
       )}
+      
+      {/* Export CSV Button */}
+      {isWebAdmin && documents.length > 0 && (
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+          >
+            <FileSpreadsheet className="w-5 h-5" />
+            Export CSV ({documents.length} documents)
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6">
         {displayedDocuments.map((doc) => {
         if (!doc) return null;
