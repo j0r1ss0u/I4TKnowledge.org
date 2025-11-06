@@ -175,67 +175,91 @@ const NetworkPublications = ({
   // =============== CSV EXPORT FUNCTION ===============
   const handleExportCSV = () => {
     try {
-      // Préparer les données pour l'export CSV
-      const csvData = documents.map(doc => {
-        // Formater les catégories et éléments périodiques
-        const categories = Array.isArray(doc.categories) 
-          ? doc.categories.join('; ') 
-          : doc.categories || '';
-        
-        const periodicElements = Array.isArray(doc.periodicElementIds)
-          ? doc.periodicElementIds.join('; ')
-          : doc.periodicElementIds || '';
-        
-        // Formater la date
-        let formattedDate = '';
-        if (doc.createdAt) {
-          if (doc.createdAt.seconds) {
-            formattedDate = new Date(doc.createdAt.seconds * 1000).toISOString();
-          } else {
-            formattedDate = new Date(doc.createdAt).toISOString();
-          }
+      // Définir les colonnes dans l'ordre exact
+      const headers = [
+        'Token ID',
+        'Title',
+        'Authors',
+        'Description',
+        'Programme',
+        'Collection',
+        'Categories',
+        'Periodic Elements',
+        'References',
+        'IPFS CID',
+        'Creator Address',
+        'Created At',
+        'Validation Status',
+        'Transaction Hash'
+      ];
+
+      // Fonction pour extraire et formater une valeur (toujours retourner une chaîne)
+      const getValue = (doc, field) => {
+        switch(field) {
+          case 'Token ID':
+            return String(doc.tokenId || '');
+          case 'Title':
+            return String(doc.title || '');
+          case 'Authors':
+            return String(doc.authors || doc.author || '');
+          case 'Description':
+            return String(doc.description || '');
+          case 'Programme':
+            return String(doc.programme || '');
+          case 'Collection':
+            return String(doc.collection || '');
+          case 'Categories':
+            return Array.isArray(doc.categories) ? doc.categories.join('; ') : String(doc.categories || '');
+          case 'Periodic Elements':
+            return Array.isArray(doc.periodicElementIds) ? doc.periodicElementIds.join('; ') : String(doc.periodicElementIds || '');
+          case 'References':
+            return String(doc.references || '');
+          case 'IPFS CID':
+            return String(doc.ipfsCid || '');
+          case 'Creator Address':
+            return String(doc.creatorAddress || '');
+          case 'Created At':
+            if (!doc.createdAt) return '';
+            if (doc.createdAt.seconds) {
+              return new Date(doc.createdAt.seconds * 1000).toISOString();
+            }
+            return new Date(doc.createdAt).toISOString();
+          case 'Validation Status':
+            return String(doc.validationStatus || '');
+          case 'Transaction Hash':
+            return String(doc.transactionHash || '');
+          default:
+            return '';
         }
-
-        return {
-          'Token ID': doc.tokenId || '',
-          'Title': doc.title || '',
-          'Authors': doc.authors || doc.author || '',
-          'Description': doc.description || '',
-          'Programme': doc.programme || '',
-          'Collection': doc.collection || '',
-          'Categories': categories,
-          'Periodic Elements': periodicElements,
-          'References': doc.references || '',
-          'IPFS CID': doc.ipfsCid || '',
-          'Creator Address': doc.creatorAddress || '',
-          'Created At': formattedDate,
-          'Validation Status': doc.validationStatus || '',
-          'Transaction Hash': doc.transactionHash || ''
-        };
-      });
-
-      // Créer les en-têtes CSV
-      const headers = Object.keys(csvData[0]);
-      
-      // Fonction pour formater les valeurs CSV (encadrer toutes les valeurs entre guillemets)
-      const formatCSVValue = (value) => {
-        // Convertir en chaîne, même si c'est vide/null/undefined
-        const stringValue = value === null || value === undefined ? '' : String(value);
-        // Échapper les guillemets en les doublant
-        const escapedValue = stringValue.replace(/"/g, '""');
-        // Encadrer TOUTES les valeurs entre guillemets pour garantir la structure CSV
-        return `"${escapedValue}"`;
       };
 
-      // Créer le contenu CSV avec BOM UTF-8 pour Excel
-      // Utiliser point-virgule (;) comme séparateur pour Excel français/européen
+      // Fonction pour échapper et encadrer une valeur CSV
+      const escapeCSV = (value) => {
+        const str = String(value);
+        // Échapper les guillemets en les doublant
+        const escaped = str.replace(/"/g, '""');
+        // Encadrer entre guillemets
+        return `"${escaped}"`;
+      };
+
+      // Créer les lignes CSV
+      const rows = [];
+      
+      // Ligne d'en-tête
+      rows.push(headers.map(h => escapeCSV(h)).join(','));
+      
+      // Lignes de données
+      documents.forEach(doc => {
+        const row = headers.map(header => {
+          const value = getValue(doc, header);
+          return escapeCSV(value);
+        });
+        rows.push(row.join(','));
+      });
+
+      // Créer le contenu CSV avec BOM UTF-8
       const BOM = '\uFEFF';
-      const csvContent = BOM + [
-        headers.map(h => formatCSVValue(h)).join(';'),
-        ...csvData.map(row => 
-          headers.map(header => formatCSVValue(row[header])).join(';')
-        )
-      ].join('\n');
+      const csvContent = BOM + rows.join('\n');
 
       // Créer un blob et télécharger
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -250,7 +274,7 @@ const NetworkPublications = ({
       link.click();
       document.body.removeChild(link);
       
-      console.log(`✅ Exported ${csvData.length} documents to CSV`);
+      console.log(`✅ Exported ${documents.length} documents to CSV`);
     } catch (error) {
       console.error('Error exporting CSV:', error);
       alert('Error exporting CSV. Please try again.');
