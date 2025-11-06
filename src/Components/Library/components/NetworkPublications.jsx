@@ -209,9 +209,9 @@ const NetworkPublications = ({
           case 'Collection':
             return String(doc.collection || '');
           case 'Categories':
-            return Array.isArray(doc.categories) ? doc.categories.join('; ') : String(doc.categories || '');
+            return Array.isArray(doc.categories) ? doc.categories.join(', ') : String(doc.categories || '');
           case 'Periodic Elements':
-            return Array.isArray(doc.periodicElementIds) ? doc.periodicElementIds.join('; ') : String(doc.periodicElementIds || '');
+            return Array.isArray(doc.periodicElementIds) ? doc.periodicElementIds.join(', ') : String(doc.periodicElementIds || '');
           case 'References':
             return String(doc.references || '');
           case 'IPFS CID':
@@ -248,11 +248,11 @@ const NetworkPublications = ({
         return `"${escaped}"`;
       };
 
-      // Créer les lignes CSV
+      // Créer les lignes CSV avec séparateur point-virgule (;)
       const rows = [];
       
       // Ligne d'en-tête
-      rows.push(headers.map(h => escapeCSV(h)).join(','));
+      rows.push(headers.map(h => escapeCSV(h)).join(';'));
       
       // Lignes de données
       documents.forEach(doc => {
@@ -260,7 +260,7 @@ const NetworkPublications = ({
           const value = getValue(doc, header);
           return escapeCSV(value);
         });
-        rows.push(row.join(','));
+        rows.push(row.join(';'));
       });
 
       // Créer le contenu avec BOM UTF-8
