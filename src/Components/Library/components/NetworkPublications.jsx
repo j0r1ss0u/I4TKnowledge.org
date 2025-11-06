@@ -217,22 +217,22 @@ const NetworkPublications = ({
       // Créer les en-têtes CSV
       const headers = Object.keys(csvData[0]);
       
-      // Fonction pour échapper les caractères spéciaux CSV
-      const escapeCSV = (value) => {
-        if (value === null || value === undefined) return '';
-        const stringValue = String(value);
-        // Si la valeur contient des virgules, guillemets ou retours à la ligne, l'encadrer de guillemets
-        if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
-          return `"${stringValue.replace(/"/g, '""')}"`;
-        }
-        return stringValue;
+      // Fonction pour formater les valeurs CSV (encadrer toutes les valeurs entre guillemets)
+      const formatCSVValue = (value) => {
+        // Convertir en chaîne, même si c'est vide/null/undefined
+        const stringValue = value === null || value === undefined ? '' : String(value);
+        // Échapper les guillemets en les doublant
+        const escapedValue = stringValue.replace(/"/g, '""');
+        // Encadrer TOUTES les valeurs entre guillemets pour garantir la structure CSV
+        return `"${escapedValue}"`;
       };
 
-      // Créer le contenu CSV
-      const csvContent = [
-        headers.join(','),
+      // Créer le contenu CSV avec BOM UTF-8 pour Excel
+      const BOM = '\uFEFF';
+      const csvContent = BOM + [
+        headers.map(h => formatCSVValue(h)).join(','),
         ...csvData.map(row => 
-          headers.map(header => escapeCSV(row[header])).join(',')
+          headers.map(header => formatCSVValue(row[header])).join(',')
         )
       ].join('\n');
 
