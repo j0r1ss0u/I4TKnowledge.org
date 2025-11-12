@@ -693,8 +693,8 @@ const Globaltoolkit = () => {
         {/* =================================================================
             SECTION 16: REGULATION PATHWAYS
             ================================================================= */}
-        {/* Regulation Pathways section (visible uniquement pour les admins) */}
-        {isAdmin && (
+        {/* Regulation Pathways section (visible pour tous les membres) */}
+        {user && (
           <div className="mt-12">
             <ResolutionPath elements={elements} />
           </div>
