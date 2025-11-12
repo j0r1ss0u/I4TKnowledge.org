@@ -48,6 +48,7 @@ const LibraryPage = React.lazy(() => import('./Components/Library/LibraryPage'))
 const ProtectedForumPage = React.lazy(() => import('./Components/Forum/ForumPage').then(module => ({ default: module.ProtectedForumPage })));
 const GenealogyPage = React.lazy(() => import('./Components/Library/GenealogyPage'));
 const LibraryChat = React.lazy(() => import('./Components/Library/LibraryChat'));
+const WalkThrough = React.lazy(() => import('./Components/WalkThrough/WalkThrough'));
 const FinalizeInvitation = React.lazy(() => import('./Components/Members/FinalizeInvitation'));
 const Pressrelease = React.lazy(() => import('./Components/About/Pressrelease'));
 const ForgotPassword = React.lazy(() => import('./Components/Members/ForgotPassword'));
@@ -79,6 +80,7 @@ const VALID_PAGES = [
   'press-releases',
   'forum',
   'chat',
+  'walkthrough',
   'genealogy',
   'finalize-invitation',
   'reset-password',
@@ -854,6 +856,11 @@ function AppContent() {
           {currentPage === "chat" && user?.role === "admin" && (
             <Suspense fallback={<PageLoader />}>
               <LibraryChat currentLang={currentLang} />
+            </Suspense>
+          )}
+          {currentPage === "walkthrough" && (
+            <Suspense fallback={<PageLoader />}>
+              <WalkThrough />
             </Suspense>
           )}
           {currentPage === "members" && (
