@@ -649,16 +649,20 @@ const Globaltoolkit = () => {
 
           {/* Contrôles de zoom et export */}
           <div className="flex items-center justify-between gap-2 mb-3">
-            {/* Bouton Export CSV */}
-            <button
-              onClick={exportToCSV}
-              disabled={exportingCSV || elements.length === 0}
-              className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              title="Export to CSV"
-            >
-              <Download className="h-4 w-4" />
-              {exportingCSV ? 'Exporting...' : 'Export CSV'}
-            </button>
+            {/* Bouton Export CSV - Admin only */}
+            {isAdmin ? (
+              <button
+                onClick={exportToCSV}
+                disabled={exportingCSV || elements.length === 0}
+                className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                title="Export to CSV"
+              >
+                <Download className="h-4 w-4" />
+                {exportingCSV ? 'Exporting...' : 'Export CSV'}
+              </button>
+            ) : (
+              <div></div>
+            )}
 
             {/* Contrôles de zoom */}
             <div className="flex items-center gap-2">
