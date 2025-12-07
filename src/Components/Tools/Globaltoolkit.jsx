@@ -9,7 +9,7 @@ import { globaltoolkitService } from '../../services/globaltoolkitService';
 import { documentsService } from '../../services/documentsService';
 import { useAuth } from '../AuthContext';
 import ResolutionPath from './ResolutionPath'; // Importation du composant ResolutionPath
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Download } from 'lucide-react';
 
 // =================================================================
 // SECTION 1: CONFIGURATION DES CATÉGORIES
@@ -83,6 +83,9 @@ const Globaltoolkit = () => {
   // États pour les documents liés
   const [linkedDocuments, setLinkedDocuments] = useState([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
+  
+  // État pour l'export CSV
+  const [exportingCSV, setExportingCSV] = useState(false);
 
   // États pour le zoom et le déplacement
   const [scale, setScale] = useState(1);
@@ -479,6 +482,84 @@ const Globaltoolkit = () => {
   };
 
   // =================================================================
+  // SECTION 9bis: EXPORT CSV
+  // =================================================================
+
+  const escapeCSVField = (field) => {
+    if (field === null || field === undefined) return '';
+    const str = String(field);
+    if (str.includes(';') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  };
+
+  const exportToCSV = async () => {
+    try {
+      setExportingCSV(true);
+      console.log('📊 Starting CSV export...');
+
+      const allDocuments = await documentsService.getDocuments();
+      console.log(`📄 Found ${allDocuments.length} documents`);
+
+      const csvRows = [];
+      csvRows.push([
+        'Nom',
+        'Symbole',
+        'Description',
+        'Context',
+        'Application Examples',
+        'Related Documents'
+      ].join(';'));
+
+      for (const element of elements) {
+        const exampleTitles = (element.examples || [])
+          .map(ex => ex.title || ex.description || '')
+          .filter(t => t)
+          .join(', ');
+
+        const relatedDocs = allDocuments.filter(doc => 
+          doc.periodicElementIds && doc.periodicElementIds.includes(element.id)
+        );
+        const relatedDocTitles = relatedDocs
+          .map(doc => doc.title || '')
+          .filter(t => t)
+          .join(', ');
+
+        const row = [
+          escapeCSVField(element.name || ''),
+          escapeCSVField(element.id || ''),
+          escapeCSVField(element.description || ''),
+          escapeCSVField(element.context || ''),
+          escapeCSVField(exampleTitles),
+          escapeCSVField(relatedDocTitles)
+        ].join(';');
+
+        csvRows.push(row);
+      }
+
+      const csvContent = '\uFEFF' + csvRows.join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `periodic_table_export_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      console.log('✅ CSV export completed successfully');
+    } catch (err) {
+      console.error('❌ CSV export error:', err);
+      alert('Export failed: ' + err.message);
+    } finally {
+      setExportingCSV(false);
+    }
+  };
+
+  // =================================================================
   // SECTION 10: ORGANISATION DES ÉLÉMENTS
   // =================================================================
 
@@ -566,36 +647,50 @@ const Globaltoolkit = () => {
             />
           </div>
 
-          {/* Contrôles de zoom */}
-          <div className="flex items-center justify-end gap-2 mb-3">
+          {/* Contrôles de zoom et export */}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            {/* Bouton Export CSV */}
             <button
-              onClick={zoomOut}
-              className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-              title="Zoom Out"
+              onClick={exportToCSV}
+              disabled={exportingCSV || elements.length === 0}
+              className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              title="Export to CSV"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M3 10h12" />
-              </svg>
+              <Download className="h-4 w-4" />
+              {exportingCSV ? 'Exporting...' : 'Export CSV'}
             </button>
-            <span className="text-xs text-gray-700 min-w-[40px] text-center">{Math.round(scale * 100)}%</span>
-            <button
-              onClick={zoomIn}
-              className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-              title="Zoom In"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M12 10V6m0 4v4m0-4h6m-6 0H6" />
-              </svg>
-            </button>
-            <button
-              onClick={resetView}
-              className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-              title="Reset View"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-              </svg>
-            </button>
+
+            {/* Contrôles de zoom */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={zoomOut}
+                className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
+                title="Zoom Out"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M3 10h12" />
+                </svg>
+              </button>
+              <span className="text-xs text-gray-700 min-w-[40px] text-center">{Math.round(scale * 100)}%</span>
+              <button
+                onClick={zoomIn}
+                className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
+                title="Zoom In"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M12 10V6m0 4v4m0-4h6m-6 0H6" />
+                </svg>
+              </button>
+              <button
+                onClick={resetView}
+                className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
+                title="Reset View"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div className="text-xs text-gray-500 mb-3 text-center">
