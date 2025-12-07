@@ -504,6 +504,7 @@ const Globaltoolkit = () => {
 
       const csvRows = [];
       csvRows.push([
+        'Category',
         'Nom',
         'Symbole',
         'Description',
@@ -526,7 +527,10 @@ const Globaltoolkit = () => {
           .filter(t => t)
           .join(', ');
 
+        const categoryName = CATEGORIES[element.category]?.name || element.category || '';
+
         const row = [
+          escapeCSVField(categoryName),
           escapeCSVField(element.name || ''),
           escapeCSVField(element.id || ''),
           escapeCSVField(element.description || ''),
