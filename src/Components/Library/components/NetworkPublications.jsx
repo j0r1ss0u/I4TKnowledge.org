@@ -1,7 +1,8 @@
 // =============== IMPORTS ===============
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
-import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet } from 'lucide-react';
+import { globaltoolkitService } from '../../../services/globaltoolkitService';
+import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet, Grid3X3 } from 'lucide-react';
 import DocumentValidator from "./DocumentValidator";
 import DocumentViewer from './DocumentViewer';
 import DocumentMetadataEditor from './DocumentMetadataEditor';
@@ -288,6 +289,85 @@ const NetworkPublications = ({
     }
   };
 
+  // =============== HEATMAP CSV EXPORT FUNCTION ===============
+  const [exportingHeatmap, setExportingHeatmap] = useState(false);
+
+  const handleExportHeatmapCSV = async () => {
+    try {
+      setExportingHeatmap(true);
+      console.log('📊 Starting Heatmap CSV export...');
+
+      const allElements = await globaltoolkitService.getAllElements();
+      console.log(`📋 Found ${allElements.length} periodic elements`);
+
+      const sortedElements = allElements.sort((a, b) => {
+        if (a.category !== b.category) {
+          return a.category.localeCompare(b.category);
+        }
+        return a.id.localeCompare(b.id);
+      });
+
+      const escapeCSV = (value) => {
+        const str = String(value || '');
+        const cleaned = str
+          .replace(/[\r\n\t\v\f\u0085\u2028\u2029]+/g, ' ')
+          .replace(/\s+/g, ' ')
+          .replace(/;/g, ',')
+          .trim();
+        const escaped = cleaned.replace(/"/g, '""');
+        return `"${escaped}"`;
+      };
+
+      const metaHeaders = ['Title', 'Authors', 'Programme', 'Collection'];
+      const elementHeaders = sortedElements.map(el => el.id);
+      const allHeaders = [...metaHeaders, ...elementHeaders];
+
+      const rows = [];
+      rows.push(allHeaders.map(h => escapeCSV(h)).join(';'));
+
+      documents.forEach(doc => {
+        const docElementIds = Array.isArray(doc.periodicElementIds) ? doc.periodicElementIds : [];
+        
+        const metaValues = [
+          doc.title || '',
+          doc.authors || doc.author || '',
+          doc.programme || '',
+          doc.collection || ''
+        ];
+
+        const elementValues = sortedElements.map(el => 
+          docElementIds.includes(el.id) ? 'X' : ''
+        );
+
+        const row = [...metaValues, ...elementValues].map(v => escapeCSV(v)).join(';');
+        rows.push(row);
+      });
+
+      const BOM = '\uFEFF';
+      const csvContent = BOM + rows.join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `i4tk-heatmap-export-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      console.log(`✅ Exported ${documents.length} documents to Heatmap CSV with ${sortedElements.length} element columns`);
+    } catch (error) {
+      console.error('Error exporting Heatmap CSV:', error);
+      alert('Error exporting Heatmap CSV. Please try again.');
+    } finally {
+      setExportingHeatmap(false);
+    }
+  };
+
   // =============== DOCUMENTS DISPLAY LOGIC ===============
   if (loading || isSearching) {
     return (
@@ -337,15 +417,23 @@ const NetworkPublications = ({
         />
       )}
       
-      {/* Export CSV Button */}
+      {/* Export Buttons */}
       {isWebAdmin && documents.length > 0 && (
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex justify-end gap-3">
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm"
           >
             <FileSpreadsheet className="w-5 h-5" />
-            Export CSV ({documents.length} documents)
+            Export CSV ({documents.length})
+          </button>
+          <button
+            onClick={handleExportHeatmapCSV}
+            disabled={exportingHeatmap}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <Grid3X3 className="w-5 h-5" />
+            {exportingHeatmap ? 'Exporting...' : 'Export Heatmap'}
           </button>
         </div>
       )}
