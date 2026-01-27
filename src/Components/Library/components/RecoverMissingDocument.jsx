@@ -113,25 +113,59 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
       if (uriToUse.startsWith('ipfs://')) {
         ipfsCid = uriToUse.replace('ipfs://', '');
       }
+      if (uriToUse.startsWith('https://')) {
+        const match = uriToUse.match(/\/ipfs\/([^/?]+)/);
+        if (match) {
+          ipfsCid = match[1];
+        }
+      }
 
       const gatewayUrl = `https://gateway.pinata.cloud/ipfs/${ipfsCid}`;
-      console.log('Fetching from IPFS:', gatewayUrl);
+      console.log('Fetching from IPFS via backend proxy:', ipfsCid);
 
-      const response = await fetch(gatewayUrl, { 
-        method: 'HEAD',
-        mode: 'no-cors'
-      });
-
+      const response = await fetch(`/api/ipfs-proxy?cid=${encodeURIComponent(ipfsCid)}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('IPFS metadata retrieved:', data);
+        
+        if (data.name) {
+          setFormData(prev => ({
+            ...prev,
+            ipfsCid: ipfsCid,
+            title: data.name || prev.title,
+            description: data.description || prev.description
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            ipfsCid: ipfsCid
+          }));
+        }
+        
+        setIpfsData({ cid: ipfsCid, url: gatewayUrl, metadata: data });
+        setSuccess(`CID IPFS récupéré: ${ipfsCid}${data.name ? ` - "${data.name}"` : ''}`);
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          ipfsCid: ipfsCid
+        }));
+        setIpfsData({ cid: ipfsCid, url: gatewayUrl });
+        setSuccess(`CID IPFS défini: ${ipfsCid} (métadonnées non disponibles)`);
+      }
+    } catch (err) {
+      console.error('Error fetching IPFS:', err);
+      const uriToUse = resolvedURI || tokenURI;
+      let ipfsCid = uriToUse;
+      if (uriToUse.startsWith('ipfs://')) {
+        ipfsCid = uriToUse.replace('ipfs://', '');
+      }
       setFormData(prev => ({
         ...prev,
         ipfsCid: ipfsCid
       }));
-
-      setIpfsData({ cid: ipfsCid, url: gatewayUrl });
-      setSuccess(`CID IPFS récupéré: ${ipfsCid}`);
-    } catch (err) {
-      console.error('Error fetching IPFS:', err);
-      setError('Erreur lors de la récupération IPFS: ' + err.message);
+      setIpfsData({ cid: ipfsCid, url: `https://gateway.pinata.cloud/ipfs/${ipfsCid}` });
+      setSuccess(`CID IPFS défini: ${ipfsCid} (récupération des métadonnées échouée)`);
     } finally {
       setLoading(false);
     }

@@ -27,6 +27,54 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
+app.get('/api/ipfs-proxy', async (req, res) => {
+  try {
+    const { cid } = req.query;
+    
+    if (!cid) {
+      return res.status(400).json({ error: 'CID parameter required' });
+    }
+
+    console.log('Fetching IPFS content for CID:', cid);
+
+    const gateways = [
+      `https://gateway.pinata.cloud/ipfs/${cid}`,
+      `https://ipfs.io/ipfs/${cid}`,
+      `https://cloudflare-ipfs.com/ipfs/${cid}`,
+      `https://dweb.link/ipfs/${cid}`
+    ];
+
+    let lastError = null;
+    
+    for (const gatewayUrl of gateways) {
+      try {
+        console.log('Trying gateway:', gatewayUrl);
+        const response = await axios.get(gatewayUrl, {
+          timeout: 15000,
+          headers: {
+            'Accept': 'application/json, */*'
+          }
+        });
+        
+        console.log('IPFS content retrieved successfully from:', gatewayUrl);
+        return res.json(response.data);
+      } catch (err) {
+        console.log('Gateway failed:', gatewayUrl, err.message);
+        lastError = err;
+      }
+    }
+
+    console.error('All IPFS gateways failed:', lastError?.message);
+    res.status(502).json({ 
+      error: 'Failed to fetch from IPFS gateways',
+      cid: cid 
+    });
+  } catch (error) {
+    console.error('IPFS proxy error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/send-invitation-email', async (req, res) => {
   try {
     console.log('Invitation email request received:', req.body);
