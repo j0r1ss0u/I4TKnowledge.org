@@ -4,7 +4,7 @@ const axios = require('axios');
 const { Resend } = require('resend');
 const OpenAI = require('openai');
 const path = require('path');
-const pdfParse = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 
 const app = express();
 const OLLAMA_URL = 'http://localhost:11434/api';
@@ -65,8 +65,9 @@ app.get('/api/ipfs-proxy', async (req, res) => {
         if (contentType.includes('application/pdf') || buffer.slice(0, 4).toString() === '%PDF') {
           console.log('Detected PDF, extracting metadata...');
           try {
-            const pdfData = await pdfParse(buffer);
-            const metadata = pdfData.info || {};
+            const pdfParser = new PDFParse();
+            const pdfData = await pdfParser.loadBuffer(buffer);
+            const metadata = pdfData.metadata || {};
             
             let title = metadata.Title || '';
             if (title.endsWith('.docx') || title.endsWith('.doc')) {
@@ -81,7 +82,7 @@ app.get('/api/ipfs-proxy', async (req, res) => {
               name: title || null,
               author: metadata.Author || null,
               description: null,
-              pageCount: pdfData.numpages,
+              pageCount: pdfData.numPages || null,
               cid: cid
             });
           } catch (pdfErr) {
