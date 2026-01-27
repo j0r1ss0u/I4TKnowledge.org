@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
 import { globaltoolkitService } from '../../../services/globaltoolkitService';
-import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet, Grid3X3 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet, Grid3X3, Wrench } from 'lucide-react';
 import DocumentValidator from "./DocumentValidator";
 import DocumentViewer from './DocumentViewer';
 import DocumentMetadataEditor from './DocumentMetadataEditor';
+import RecoverMissingDocument from './RecoverMissingDocument';
 
 // =============== CONSTANTS ===============
 const ValidationStatus = {
@@ -37,6 +38,7 @@ const NetworkPublications = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingDocument, setEditingDocument] = useState(null);
+  const [showRecoverModal, setShowRecoverModal] = useState(false);
 
   // =============== DATA LOADING ===============
   useEffect(() => {
@@ -417,25 +419,48 @@ const NetworkPublications = ({
         />
       )}
       
-      {/* Export Buttons */}
-      {isWebAdmin && documents.length > 0 && (
-        <div className="mb-6 flex justify-end gap-3">
+      {/* Admin Tools & Export Buttons */}
+      {isWebAdmin && (
+        <div className="mb-6 flex flex-wrap justify-between items-center gap-3">
           <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+            onClick={() => setShowRecoverModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors shadow-sm"
           >
-            <FileSpreadsheet className="w-5 h-5" />
-            Export CSV ({documents.length})
+            <Wrench className="w-5 h-5" />
+            Récupérer Document Manquant
           </button>
-          <button
-            onClick={handleExportHeatmapCSV}
-            disabled={exportingHeatmap}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-          >
-            <Grid3X3 className="w-5 h-5" />
-            {exportingHeatmap ? 'Exporting...' : 'Export Heatmap'}
-          </button>
+          
+          {documents.length > 0 && (
+            <div className="flex gap-3">
+              <button
+                onClick={handleExportCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+              >
+                <FileSpreadsheet className="w-5 h-5" />
+                Export CSV ({documents.length})
+              </button>
+              <button
+                onClick={handleExportHeatmapCSV}
+                disabled={exportingHeatmap}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                <Grid3X3 className="w-5 h-5" />
+                {exportingHeatmap ? 'Exporting...' : 'Export Heatmap'}
+              </button>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Recover Missing Document Modal */}
+      {showRecoverModal && (
+        <RecoverMissingDocument
+          onClose={() => setShowRecoverModal(false)}
+          onSuccess={async () => {
+            const docs = await documentsService.getDocuments();
+            setDocuments(docs.filter(Boolean));
+          }}
+        />
       )}
 
       <div className="grid grid-cols-1 gap-6">
