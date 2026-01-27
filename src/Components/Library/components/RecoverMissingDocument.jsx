@@ -129,11 +129,12 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
         const data = await response.json();
         console.log('IPFS metadata retrieved:', data);
         
-        if (data.name) {
+        if (data.name || data.author) {
           setFormData(prev => ({
             ...prev,
             ipfsCid: ipfsCid,
             title: data.name || prev.title,
+            authors: data.author || prev.authors,
             description: data.description || prev.description
           }));
         } else {
@@ -144,7 +145,8 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
         }
         
         setIpfsData({ cid: ipfsCid, url: gatewayUrl, metadata: data });
-        setSuccess(`CID IPFS récupéré: ${ipfsCid}${data.name ? ` - "${data.name}"` : ''}`);
+        const typeInfo = data.type === 'pdf' ? ' (PDF)' : '';
+        setSuccess(`CID IPFS récupéré: ${ipfsCid}${typeInfo}${data.name ? ` - "${data.name}"` : ''}`);
       } else {
         setFormData(prev => ({
           ...prev,

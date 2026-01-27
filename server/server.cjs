@@ -51,13 +51,70 @@ app.get('/api/ipfs-proxy', async (req, res) => {
         console.log('Trying gateway:', gatewayUrl);
         const response = await axios.get(gatewayUrl, {
           timeout: 15000,
+          responseType: 'arraybuffer',
           headers: {
-            'Accept': 'application/json, */*'
+            'Accept': '*/*'
           }
         });
         
-        console.log('IPFS content retrieved successfully from:', gatewayUrl);
-        return res.json(response.data);
+        const buffer = Buffer.from(response.data);
+        const contentType = response.headers['content-type'] || '';
+        
+        console.log('IPFS content retrieved, content-type:', contentType);
+        
+        if (contentType.includes('application/pdf') || buffer.slice(0, 4).toString() === '%PDF') {
+          console.log('Detected PDF, extracting metadata...');
+          try {
+            const pdfData = await pdfParse(buffer);
+            const metadata = pdfData.info || {};
+            
+            let title = metadata.Title || '';
+            if (title.endsWith('.docx') || title.endsWith('.doc')) {
+              title = title.replace(/\.docx?$/, '');
+            }
+            title = title.replace(/_/g, ' ').trim();
+            
+            console.log('PDF metadata extracted:', { title, author: metadata.Author });
+            
+            return res.json({
+              type: 'pdf',
+              name: title || null,
+              author: metadata.Author || null,
+              description: null,
+              pageCount: pdfData.numpages,
+              cid: cid
+            });
+          } catch (pdfErr) {
+            console.log('PDF parsing failed, returning basic info:', pdfErr.message);
+            return res.json({
+              type: 'pdf',
+              name: null,
+              description: null,
+              cid: cid,
+              error: 'Could not extract PDF metadata'
+            });
+          }
+        }
+        
+        if (contentType.includes('application/json')) {
+          const jsonData = JSON.parse(buffer.toString('utf8'));
+          console.log('JSON content retrieved');
+          return res.json(jsonData);
+        }
+        
+        try {
+          const jsonData = JSON.parse(buffer.toString('utf8'));
+          console.log('Content parsed as JSON');
+          return res.json(jsonData);
+        } catch {
+          console.log('Content is not JSON, returning file info');
+          return res.json({
+            type: 'file',
+            contentType: contentType,
+            size: buffer.length,
+            cid: cid
+          });
+        }
       } catch (err) {
         console.log('Gateway failed:', gatewayUrl, err.message);
         lastError = err;
