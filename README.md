@@ -51,6 +51,8 @@ The platform integrates Firebase for authentication/database, OpenAI GPT-4o-mini
 - **Citation tree visualization** showing document references and descendants
 - **Periodic table element tagging** for categorization
 - **CSV export** of library metadata (admin-only)
+- **Heatmap CSV export** - Document coverage analysis with X-marked columns per periodic element
+- **Blockchain document recovery** - Recover documents from blockchain that failed to sync to Firebase
 
 ### 🤖 AI-Powered Features
 - **RAG (Retrieval-Augmented Generation) chat** - Conversational AI assistant for document search
@@ -142,7 +144,8 @@ src/
 - `/api/rag-chat` - Secure OpenAI RAG chat endpoint
 - `/api/suggest-tags` - AI-powered document tag suggestions
 - `/api/extract-pdf-text` - Server-side PDF text extraction
-- `/api/send-invitation-email` - SendGrid invitation emails
+- `/api/ipfs-proxy` - Multi-gateway IPFS content retrieval with PDF metadata extraction
+- `/api/send-invitation-email` - Resend invitation emails
 - `/api/send-reset-password-email` - Password reset emails
 
 ### Smart Contracts (contracts/)
@@ -453,8 +456,9 @@ I4TKnowledge.org/
 │   ├── Components/
 │   │   ├── Library/            # Document management
 │   │   │   ├── components/
-│   │   │   │   ├── NetworkPublications.jsx  # CSV export
-│   │   │   │   └── DocumentGenealogy.jsx    # Citation tree
+│   │   │   │   ├── NetworkPublications.jsx     # CSV exports (standard + heatmap)
+│   │   │   │   ├── RecoverMissingDocument.jsx  # Blockchain document recovery
+│   │   │   │   └── DocumentGenealogy.jsx       # Citation tree
 │   │   │   └── GenealogyPage.jsx
 │   │   ├── Chat/               # RAG chat interface
 │   │   ├── Tools/              # Regulation pathways, projects
@@ -499,6 +503,7 @@ I4TKnowledge.org/
 | `/api/rag-chat` | POST | RAG conversational AI | Public |
 | `/api/suggest-tags` | POST | AI auto-tagging | Public |
 | `/api/extract-pdf-text` | POST | PDF text extraction | Public |
+| `/api/ipfs-proxy` | GET | IPFS content retrieval with PDF metadata extraction | Public |
 | `/api/send-invitation-email` | POST | Send invitation email | Admin |
 | `/api/send-reset-password-email` | POST | Password reset email | Public |
 
@@ -546,11 +551,13 @@ Content-Type: application/json
 
 ---
 
-## CSV Export Feature
+## CSV Export Features
 
-**Admin-only** feature to export library metadata.
+**Admin-only** features for exporting library data.
 
-### Export Columns (14 total)
+### Standard CSV Export
+
+Export library metadata with 14 columns:
 1. Token ID
 2. Title
 3. Authors
@@ -566,17 +573,50 @@ Content-Type: application/json
 13. Validation Status
 14. Transaction Hash
 
-### Technical Details
+**Technical Details:**
 - **Delimiter**: Semicolon (`;`) for Excel compatibility
 - **Encoding**: UTF-8 with BOM
-- **Character handling**: 
-  - All newlines/tabs replaced with spaces
-  - All semicolons in data converted to commas
-  - Values quoted for CSV safety
 - **Filename**: `i4tk-library-export-YYYY-MM-DD.csv`
 
+### Heatmap CSV Export
+
+Export document coverage analysis for periodic table elements:
+- **Format**: Document-per-row with X-marked columns for each element
+- **Purpose**: Analyze which regulatory elements are covered across the document collection
+- **Columns**: Token ID, Title, Authors, + one column per periodic element (marked with "X" if present)
+- **Filename**: `i4tk-heatmap-export-YYYY-MM-DD.csv`
+
 ### Access Control
-Only users with `isWebAdmin: true` in Firestore can see the export button.
+Only users with `isWebAdmin: true` in Firestore can see the export buttons.
+
+---
+
+## Blockchain Document Recovery
+
+**Admin-only** tool for recovering documents that exist on blockchain but failed to sync to Firebase.
+
+### Features
+- **Token ID Search**: Search by Token ID on Sepolia network
+- **ERC-1155 URI Resolution**: Automatic `{id}` placeholder handling in token URIs
+- **IPFS Metadata Fetching**: Backend proxy retrieves content from multiple IPFS gateways
+- **PDF Metadata Extraction**: Automatically extracts title and author from PDF files
+- **Manual Entry**: Fill in metadata manually if auto-extraction fails
+- **Duplicate Detection**: Prevents re-adding documents that already exist in Firebase
+
+### How to Use
+1. Navigate to Library (admin only)
+2. Click "Récupérer Document Manquant" button
+3. Enter the Token ID from the blockchain
+4. Click "Rechercher" to verify the token exists
+5. Click "Récupérer depuis IPFS" to auto-fill metadata
+6. Complete any missing fields
+7. Click "Sauvegarder dans Firebase"
+
+### Technical Details
+- Uses `/api/ipfs-proxy` endpoint to bypass CORS restrictions
+- Tries multiple IPFS gateways: Pinata, ipfs.io, Cloudflare, dweb.link
+- Supports both JSON metadata and PDF files
+- Component: `src/Components/Library/components/RecoverMissingDocument.jsx`
 
 ---
 
