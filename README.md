@@ -56,7 +56,14 @@ The platform integrates Firebase for authentication/database, OpenAI GPT-4o-mini
 
 ### 🤖 AI-Powered Features
 - **RAG (Retrieval-Augmented Generation) chat** - Conversational AI assistant for document search
-- **Auto-tagging system** - GPT-4o-mini suggests relevant tags with confidence scores
+- **AI Auto-Tagging for Periodic Table Elements**:
+  - Extracts text from PDF documents via IPFS
+  - Generates semantic embeddings using TensorFlow.js
+  - Pre-selects candidate elements based on cosine similarity
+  - GPT-4o-mini validates and scores each suggestion (0-100% confidence)
+  - Only displays suggestions with ≥60% confidence
+  - Interactive UI with color-coded confidence badges (green/yellow/orange)
+  - One-click "Apply All" or individual element selection
 - **Bilingual support** - French/English automatic detection and responses
 - **Backend-only OpenAI calls** for secure API key management
 
@@ -67,8 +74,23 @@ The platform integrates Firebase for authentication/database, OpenAI GPT-4o-mini
 - **Sepolia testnet** deployment with mainnet support
 - **Hardhat tooling** for contract development and testing
 
+### 🧪 Periodic Table of Platform Regulation
+A unique visualization tool for categorizing regulatory elements:
+- **54 regulatory elements** organized in a periodic table layout
+- **6 thematic categories** with color coding:
+  - 🟢 **Institutional framework** - Governance structures and institutions
+  - 🟢 **Legislating platforms** - Legal and regulatory frameworks
+  - 🔴 **Human Rights and Rule of Law** - Rights protection mechanisms
+  - 🔵 **Content governance** - Content moderation approaches
+  - 🔵 **Systemic risks + due diligence** - Risk assessment frameworks
+  - 🔵 **Pro-social design** - Design for positive outcomes
+- **Interactive element cards** with detailed descriptions and linked documents
+- **Document linking** - Each document can be tagged with relevant periodic elements
+- **Resolution Paths** - Create and visualize regulatory pathways combining multiple elements
+
 ### 📊 Data Visualization
 - **Interactive citation trees** with ReactFlow (references in gray, descendants in green)
+- **Periodic table heatmap** showing document coverage per element
 - **Leaflet maps** for geographic data visualization
 - **Project management** with milestone tracking
 - **Event calendar** for research activities
@@ -617,6 +639,78 @@ Only users with `isWebAdmin: true` in Firestore can see the export buttons.
 - Tries multiple IPFS gateways: Pinata, ipfs.io, Cloudflare, dweb.link
 - Supports both JSON metadata and PDF files
 - Component: `src/Components/Library/components/RecoverMissingDocument.jsx`
+
+---
+
+## Periodic Table of Platform Regulation
+
+The platform features a unique **Periodic Table** visualization for categorizing regulatory approaches to digital platforms.
+
+### Overview
+The periodic table contains **54 regulatory elements** organized into **6 thematic categories**, similar to the chemical periodic table but for platform governance concepts.
+
+### Categories
+
+| Category | Color | Description |
+|----------|-------|-------------|
+| Institutional Framework | 🟢 Green | Governance structures, regulatory bodies, oversight mechanisms |
+| Legislating Platforms | 🟢 Green | Legal frameworks, compliance requirements, enforcement tools |
+| Human Rights & Rule of Law | 🔴 Red | Rights protection, due process, legal safeguards |
+| Content Governance | 🔵 Blue | Content moderation, community standards, appeals processes |
+| Systemic Risks + Due Diligence | 🔵 Blue | Risk assessment, algorithmic audits, transparency reports |
+| Pro-social Design | 🔵 Blue | Design patterns for positive outcomes, user wellbeing |
+
+### Features
+- **Interactive Element Cards**: Click any element to view detailed description and related documents
+- **Document Linking**: Tag documents with relevant periodic elements for categorization
+- **Resolution Paths**: Create custom pathways combining multiple elements to visualize regulatory approaches
+- **Bilingual Support**: Element names and descriptions in both English and French
+
+### Data Storage
+- Elements stored in Firestore (`globalToolkit` collection)
+- Document-element relationships stored in document metadata (`periodicElementIds` array)
+- Resolution paths stored separately for collaborative analysis
+
+---
+
+## AI Auto-Tagging System
+
+The platform uses AI to automatically suggest periodic table elements for documents.
+
+### How It Works
+
+1. **PDF Text Extraction**
+   - When a document is uploaded to IPFS, the system extracts text content
+   - Uses backend `/api/extract-pdf-text` endpoint with `pdf-parse` library
+
+2. **Semantic Embedding Generation**
+   - Document text is converted to semantic embeddings using TensorFlow.js
+   - Uses Universal Sentence Encoder model (loaded client-side)
+
+3. **Candidate Pre-Selection**
+   - All 54 periodic elements have pre-computed embeddings
+   - Cosine similarity identifies top candidate elements (typically 10-15)
+
+4. **GPT-4o-mini Validation**
+   - Backend `/api/suggest-tags` sends candidates to GPT-4o-mini
+   - AI analyzes document content and provides:
+     - Confidence score (0-100%)
+     - Rationale explaining why the element applies
+
+5. **User Review**
+   - Only suggestions with ≥60% confidence are displayed
+   - Color-coded badges: 🟢 High (≥80%) | 🟡 Medium (60-79%)
+   - Users can apply all suggestions or select individually
+
+### Technical Components
+- `autoTaggingService.js` - Orchestrates the tagging pipeline
+- `DocumentMetadataEditor.jsx` - UI for reviewing and applying suggestions
+- `/api/suggest-tags` - Backend endpoint for GPT-4o-mini calls
+
+### Cost Optimization
+- Pre-filtering with embeddings reduces GPT-4o-mini API calls
+- Only ~10-15 elements sent per document (not all 54)
+- GPT-4o-mini is highly cost-effective (~$0.002 per document)
 
 ---
 
