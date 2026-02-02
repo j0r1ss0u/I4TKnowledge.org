@@ -6,6 +6,30 @@ I4T Knowledge Network is a web application for digital governance research and c
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Features (January 2026)
+
+## Library Heatmap CSV Export
+Admin-only feature allowing export of document coverage analysis:
+- Document-per-row format with X-marked columns for each periodic table element
+- Enables analysis of which regulatory elements are covered across the document collection
+- Available via "Export Heatmap CSV" button in the Library admin interface
+
+## Blockchain Document Recovery Tool
+`RecoverMissingDocument.jsx` - Admin tool for recovering documents that exist on blockchain but failed to sync to Firebase:
+- Search by Token ID on Sepolia network
+- Automatic ERC-1155 URI template resolution (`{id}` placeholder handling)
+- IPFS metadata fetching via backend proxy (bypasses CORS)
+- PDF metadata extraction (title, author) from IPFS documents
+- Manual metadata entry with validation
+- Duplicate detection to prevent re-adding existing documents
+
+## IPFS Proxy Endpoint
+`/api/ipfs-proxy` - Backend endpoint for reliable IPFS content retrieval:
+- Tries multiple IPFS gateways (Pinata, ipfs.io, Cloudflare, dweb.link)
+- Automatic PDF detection and metadata extraction
+- JSON metadata parsing for NFT-style documents
+- Bypasses browser CORS restrictions
+
 # System Architecture
 
 ## Frontend Architecture
@@ -16,7 +40,8 @@ An Express.js backend (`server.cjs`) handles:
 - **OpenAI RAG Chat**: Secure server-side OpenAI API calls for conversational AI.
 - **Auto-Tagging AI**: GPT-4o-mini powered document tag suggestions.
 - **PDF Text Extraction**: Server-side PDF content extraction from IPFS.
-- **Email Services**: SendGrid integration for invitations and password resets.
+- **Email Services**: Resend integration for invitations and password resets.
+- **IPFS Proxy**: Multi-gateway IPFS content retrieval with PDF metadata extraction.
 - **Ollama Proxy**: Endpoint for local LLM integration (optional).
 All frontend API calls to `/api/*` are proxied through Vite in development.
 
