@@ -63,14 +63,14 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
 
   const [formData, setFormData] = useState({
     title: document.title || '',
-    authors: document.authors || '',
-    description: document.description || '',
+    authors: document.authors || document.author || '',
+    description: document.description || document.excerpt || '',
     programme: document.programme || '',
     collection: document.collection || '',
-    categories: document.categories || [],
-    geographies: document.geographies || [...GEOGRAPHIES],
+    categories: Array.isArray(document.categories) ? document.categories : [],
+    geographies: Array.isArray(document.geographies) ? document.geographies : [...GEOGRAPHIES],
     references: document.references || '',
-    periodicElementIds: document.periodicElementIds || []
+    periodicElementIds: Array.isArray(document.periodicElementIds) ? document.periodicElementIds : []
   });
 
   useEffect(() => {
