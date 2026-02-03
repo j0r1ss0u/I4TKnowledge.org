@@ -424,17 +424,10 @@ export const documentsService = {
         // Seuil minimal de pertinence
         if (combinedScore > 0.75) {
           results.push({
+            ...data,  // Include all document metadata
             id: doc.id,
-            title: data.title,
-            description: data.description || data.excerpt,
-            author: data.author || data.authors || data.creatorAddress,
-            createdAt: data.createdAt,
-            relevance: combinedScore,
-            validationStatus: data.validationStatus,  // Ajout du status
-            ipfsCid: data.ipfsCid,
-            collection: data.collection  // Ajout de la collection
+            relevance: combinedScore
           });
-
         }
       });
 
