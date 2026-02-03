@@ -29,6 +29,16 @@ const COLLECTIONS = [
   "Collection 3"
 ];
 
+const GEOGRAPHIES = [
+  "EUROPE",
+  "MIDDLE EAST",
+  "AFRICA",
+  "LATAM",
+  "ASIA",
+  "OCEANIA",
+  "NORTH AMERICA"
+];
+
 const CATEGORY_NAMES = {
   INSTITUTIONAL: 'Institutional framework',
   LEGISLATING: 'Legislating platforms',
@@ -58,6 +68,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
     programme: document.programme || '',
     collection: document.collection || '',
     categories: document.categories || [],
+    geographies: document.geographies || [...GEOGRAPHIES],
     references: document.references || '',
     periodicElementIds: document.periodicElementIds || []
   });
@@ -91,6 +102,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
         programme: formData.programme,
         collection: formData.collection,
         categories: formData.categories,
+        geographies: formData.geographies,
         references: formData.references,
         periodicElementIds: formData.periodicElementIds
       });
@@ -125,6 +137,15 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
       categories: prev.categories.includes(category)
         ? prev.categories.filter(c => c !== category)
         : [...prev.categories, category]
+    }));
+  };
+
+  const toggleGeography = (geo) => {
+    setFormData(prev => ({
+      ...prev,
+      geographies: prev.geographies.includes(geo)
+        ? prev.geographies.filter(g => g !== geo)
+        : [...prev.geographies, geo]
     }));
   };
 
@@ -317,6 +338,26 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                   </label>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Geographic Scope
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {GEOGRAPHIES.map(geo => (
+                  <label key={geo} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      checked={formData.geographies.includes(geo)}
+                      onChange={() => toggleGeography(geo)}
+                    />
+                    <span className="text-sm text-gray-700">{geo}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">All regions selected by default. Uncheck regions where this document does not apply.</p>
             </div>
 
             <div>

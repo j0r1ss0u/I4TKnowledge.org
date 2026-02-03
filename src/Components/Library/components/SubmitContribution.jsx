@@ -31,6 +31,16 @@ const COLLECTIONS = [
   "Collection 3"
 ];
 
+const GEOGRAPHIES = [
+  "EUROPE",
+  "MIDDLE EAST",
+  "AFRICA",
+  "LATAM",
+  "ASIA",
+  "OCEANIA",
+  "NORTH AMERICA"
+];
+
 // =============== AUXILIARY COMPONENTS ===============
 const NetworkHelp = () => (
   <div className="mt-4 p-4 bg-gray-50 rounded-md text-sm">
@@ -74,6 +84,7 @@ export default function SubmitContribution() {
     programme: '',
     collection: '',
     categories: [],
+    geographies: [...GEOGRAPHIES],
     references: ''
   });
 
@@ -263,12 +274,22 @@ export default function SubmitContribution() {
       programme: '',
       collection: '',
       categories: [],
+      geographies: [...GEOGRAPHIES],
       references: ''
     });
     setTxHash(null);
     setDocumentId(null);
     setError('');
     setShowNetworkHelp(false);
+  };
+
+  const toggleGeography = (geo) => {
+    setFormData(prev => ({
+      ...prev,
+      geographies: prev.geographies.includes(geo)
+        ? prev.geographies.filter(g => g !== geo)
+        : [...prev.geographies, geo]
+    }));
   };
 
   // =============== RENDER CONDITIONS ===============
@@ -457,6 +478,27 @@ export default function SubmitContribution() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            {/* Geographic Scope Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Zone géographique
+              </label>
+              <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3">
+                {GEOGRAPHIES.map(geo => (
+                  <label key={geo} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      checked={formData.geographies.includes(geo)}
+                      onChange={() => toggleGeography(geo)}
+                    />
+                    <span className="text-sm text-gray-700">{geo}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Toutes les régions sont sélectionnées par défaut. Décochez les régions non concernées.</p>
             </div>
 
             {/* References Selector */}

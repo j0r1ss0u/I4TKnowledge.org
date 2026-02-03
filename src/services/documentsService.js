@@ -560,6 +560,53 @@ export const documentsService = {
           console.error('❌ Error updating periodic elements:', error);
           throw error;
         }
+      },
+
+      // =============== MIGRATE GEOGRAPHIES ===============
+      // Add geographies field to all existing documents (admin only)
+      async migrateAddGeographies() {
+        const ALL_GEOGRAPHIES = [
+          "EUROPE",
+          "MIDDLE EAST",
+          "AFRICA",
+          "LATAM",
+          "ASIA",
+          "OCEANIA",
+          "NORTH AMERICA"
+        ];
+
+        try {
+          console.log('=== Starting Geographies Migration ===');
+          const documentsRef = collection(db, 'web3IP');
+          const snapshot = await getDocs(documentsRef);
+          
+          let updated = 0;
+          let skipped = 0;
+
+          for (const docSnap of snapshot.docs) {
+            const data = docSnap.data();
+            
+            // Skip documents that already have geographies
+            if (data.geographies && Array.isArray(data.geographies) && data.geographies.length > 0) {
+              skipped++;
+              continue;
+            }
+
+            // Add all geographies to documents without the field
+            const docRef = doc(db, 'web3IP', docSnap.id);
+            await updateDoc(docRef, {
+              geographies: ALL_GEOGRAPHIES,
+              updatedAt: serverTimestamp()
+            });
+            updated++;
+          }
+
+          console.log(`✅ Migration complete: ${updated} documents updated, ${skipped} skipped`);
+          return { updated, skipped, total: snapshot.docs.length };
+        } catch (error) {
+          console.error('❌ Error during geographies migration:', error);
+          throw error;
+        }
       }
     };
 
