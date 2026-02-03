@@ -39,8 +39,6 @@ const NetworkPublications = ({
   const [error, setError] = useState(null);
   const [editingDocument, setEditingDocument] = useState(null);
   const [showRecoverModal, setShowRecoverModal] = useState(false);
-  const [migrationStatus, setMigrationStatus] = useState(null);
-  const [isMigrating, setIsMigrating] = useState(false);
 
   // =============== DATA LOADING ===============
   useEffect(() => {
@@ -65,32 +63,6 @@ const NetworkPublications = ({
     const status = doc.validationStatus;
     const isPublished = status === ValidationStatus.PUBLISHED;
     return !doc ? false : isWebMember ? true : isPublished;
-  };
-
-  // =============== MIGRATION FUNCTION (TEMPORARY) ===============
-  const handleMigrateGeographies = async () => {
-    if (!isWebAdmin) return;
-    
-    try {
-      setIsMigrating(true);
-      setMigrationStatus(null);
-      const result = await documentsService.migrateAddGeographies();
-      setMigrationStatus({
-        success: true,
-        message: `Migration complete: ${result.updated} documents updated, ${result.skipped} already had geographies.`
-      });
-      // Refresh documents list
-      const docs = await documentsService.getDocuments();
-      setDocuments(docs.filter(Boolean));
-    } catch (err) {
-      console.error('Migration error:', err);
-      setMigrationStatus({
-        success: false,
-        message: 'Migration failed: ' + err.message
-      });
-    } finally {
-      setIsMigrating(false);
-    }
   };
 
   const canViewStatus = () => isWebMember;
@@ -476,28 +448,6 @@ const NetworkPublications = ({
                   <Grid3X3 className="w-5 h-5" />
                   {exportingHeatmap ? 'Exporting...' : 'Export Heatmap'}
                 </button>
-              </div>
-            )}
-          </div>
-          
-          {/* TEMPORARY: Migration button for adding geographies to existing documents */}
-          <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-orange-800">Migration: Add Geographic Scope</p>
-                <p className="text-xs text-orange-600">Add all geographies to documents missing this field (one-time operation)</p>
-              </div>
-              <button
-                onClick={handleMigrateGeographies}
-                disabled={isMigrating}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {isMigrating ? 'Migrating...' : 'Run Migration'}
-              </button>
-            </div>
-            {migrationStatus && (
-              <div className={`mt-2 p-2 rounded text-sm ${migrationStatus.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                {migrationStatus.message}
               </div>
             )}
           </div>
