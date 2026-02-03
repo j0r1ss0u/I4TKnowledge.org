@@ -101,6 +101,7 @@ const Globaltoolkit = () => {
   
   // États pour les documents liés
   const [linkedDocuments, setLinkedDocuments] = useState([]);
+  const [allLinkedDocuments, setAllLinkedDocuments] = useState([]);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   
   // État pour l'export CSV
@@ -358,11 +359,13 @@ const Globaltoolkit = () => {
     });
     setExpandedExampleId(null);
 
-    // Charger les documents liés à cet élément (filtrés par géographies)
+    // Charger les documents liés à cet élément
     setLoadingDocuments(true);
     setLinkedDocuments([]);
+    setAllLinkedDocuments([]);
     try {
       const docs = await documentsService.getDocumentsByPeriodicElement(element.id);
+      setAllLinkedDocuments(docs);
       // Filtrer par géographies sélectionnées
       const filteredDocs = docs.filter(doc => {
         if (!doc.geographies || doc.geographies.length === 0) return true;
@@ -373,10 +376,22 @@ const Globaltoolkit = () => {
     } catch (err) {
       console.error('Error loading linked documents:', err);
       setLinkedDocuments([]);
+      setAllLinkedDocuments([]);
     } finally {
       setLoadingDocuments(false);
     }
   };
+
+  // Re-filtrer les documents liés quand les géographies changent (si un élément est sélectionné)
+  useEffect(() => {
+    if (!selectedElement || allLinkedDocuments.length === 0) return;
+    
+    const filteredDocs = allLinkedDocuments.filter(doc => {
+      if (!doc.geographies || doc.geographies.length === 0) return true;
+      return doc.geographies.some(geo => selectedGeographies.includes(geo));
+    });
+    setLinkedDocuments(filteredDocs);
+  }, [selectedGeographies, allLinkedDocuments, selectedElement]);
 
   // Gestionnaire pour fermer les détails d'un élément
   const handleCloseDetail = () => {
@@ -386,7 +401,9 @@ const Globaltoolkit = () => {
     setNewExample('');
     setNewExampleUrl('');
     setNewExampleTitle('');
+    setNewExampleGeographies([...GEOGRAPHIES]);
     setExpandedExampleId(null);
+    setAllLinkedDocuments([]);
   };
 
   // Gestionnaire pour le clic sur une catégorie
