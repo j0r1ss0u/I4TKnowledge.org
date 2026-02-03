@@ -39,6 +39,8 @@ const NetworkPublications = ({
   const [error, setError] = useState(null);
   const [editingDocument, setEditingDocument] = useState(null);
   const [showRecoverModal, setShowRecoverModal] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState(null);
+  const [isMigrating, setIsMigrating] = useState(false);
 
   // =============== DATA LOADING ===============
   useEffect(() => {
@@ -63,6 +65,32 @@ const NetworkPublications = ({
     const status = doc.validationStatus;
     const isPublished = status === ValidationStatus.PUBLISHED;
     return !doc ? false : isWebMember ? true : isPublished;
+  };
+
+  // =============== MIGRATION FUNCTION (TEMPORARY) ===============
+  const handleMigrateGeographies = async () => {
+    if (!isWebAdmin) return;
+    
+    try {
+      setIsMigrating(true);
+      setMigrationStatus(null);
+      const result = await documentsService.migrateAddGeographies();
+      setMigrationStatus({
+        success: true,
+        message: `Migration complete: ${result.updated} documents updated, ${result.skipped} already had geographies.`
+      });
+      // Refresh documents list
+      const docs = await documentsService.getDocuments();
+      setDocuments(docs.filter(Boolean));
+    } catch (err) {
+      console.error('Migration error:', err);
+      setMigrationStatus({
+        success: false,
+        message: 'Migration failed: ' + err.message
+      });
+    } finally {
+      setIsMigrating(false);
+    }
   };
 
   const canViewStatus = () => isWebMember;
@@ -421,34 +449,58 @@ const NetworkPublications = ({
       
       {/* Admin Tools & Export Buttons */}
       {isWebAdmin && (
-        <div className="mb-6 flex flex-wrap justify-between items-center gap-3">
-          <button
-            onClick={() => setShowRecoverModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors shadow-sm"
-          >
-            <Wrench className="w-5 h-5" />
-            Récupérer Document Manquant
-          </button>
+        <div className="mb-6 space-y-3">
+          <div className="flex flex-wrap justify-between items-center gap-3">
+            <button
+              onClick={() => setShowRecoverModal(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+            >
+              <Wrench className="w-5 h-5" />
+              Récupérer Document Manquant
+            </button>
+            
+            {documents.length > 0 && (
+              <div className="flex gap-3">
+                <button
+                  onClick={handleExportCSV}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+                >
+                  <FileSpreadsheet className="w-5 h-5" />
+                  Export CSV ({documents.length})
+                </button>
+                <button
+                  onClick={handleExportHeatmapCSV}
+                  disabled={exportingHeatmap}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  <Grid3X3 className="w-5 h-5" />
+                  {exportingHeatmap ? 'Exporting...' : 'Export Heatmap'}
+                </button>
+              </div>
+            )}
+          </div>
           
-          {documents.length > 0 && (
-            <div className="flex gap-3">
+          {/* TEMPORARY: Migration button for adding geographies to existing documents */}
+          <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-orange-800">Migration: Add Geographic Scope</p>
+                <p className="text-xs text-orange-600">Add all geographies to documents missing this field (one-time operation)</p>
+              </div>
               <button
-                onClick={handleExportCSV}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-sm"
+                onClick={handleMigrateGeographies}
+                disabled={isMigrating}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                <FileSpreadsheet className="w-5 h-5" />
-                Export CSV ({documents.length})
-              </button>
-              <button
-                onClick={handleExportHeatmapCSV}
-                disabled={exportingHeatmap}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                <Grid3X3 className="w-5 h-5" />
-                {exportingHeatmap ? 'Exporting...' : 'Export Heatmap'}
+                {isMigrating ? 'Migrating...' : 'Run Migration'}
               </button>
             </div>
-          )}
+            {migrationStatus && (
+              <div className={`mt-2 p-2 rounded text-sm ${migrationStatus.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                {migrationStatus.message}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
