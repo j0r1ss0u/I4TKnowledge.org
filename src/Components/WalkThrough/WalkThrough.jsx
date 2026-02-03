@@ -69,14 +69,31 @@ Démonstration progressive des fonctionnalités selon 4 niveaux d'accès :
 **Script** :
 > "L'assistant IA utilise GPT-4o-mini et la recherche sémantique pour répondre aux questions en s'appuyant sur les documents de la bibliothèque. Il détecte automatiquement la langue et fournit des citations précises."
 
-### 2.4 Regulation Pathways (30 sec)
-- **Navigation** : Aller dans "Tools" → "Regulation Pathways"
+### 2.4 Tableau Périodique de Régulation (1 min)
+- **Navigation** : Aller dans "Tools" → "Periodic Table"
 - **Ce qu'on montre** :
-  - Carte interactive des réglementations
-  - Visualisation des connexions entre documents
+  - **54 éléments réglementaires** organisés comme un tableau périodique
+  - **6 catégories thématiques** avec codes couleur :
+    - 🟢 **Cadre institutionnel** (vert) - Structures de gouvernance
+    - 🟢 **Législation des plateformes** (vert) - Cadres légaux
+    - 🔴 **Droits humains & État de droit** (rouge) - Mécanismes de protection
+    - 🔵 **Gouvernance des contenus** (bleu) - Modération des contenus
+    - 🔵 **Risques systémiques** (bleu) - Évaluation des risques
+    - 🔵 **Design pro-social** (bleu) - Design pour le bien commun
+  - **Clic sur un élément** : Affiche description détaillée et documents liés
+  - **Lien avec les documents** : Chaque document peut être tagué avec les éléments pertinents
 
 **Script** :
-> "Les Regulation Pathways visualisent les liens entre les documents réglementaires, permettant de comprendre l'évolution des politiques."
+> "Le Tableau Périodique de Régulation est un outil unique qui catégorise 54 concepts réglementaires en 6 familles. En cliquant sur un élément, on voit sa description et les documents de la bibliothèque qui y sont associés."
+
+### 2.5 Regulation Pathways (30 sec)
+- **Navigation** : Aller dans "Tools" → "Regulation Pathways"
+- **Ce qu'on montre** :
+  - Création de parcours réglementaires combinant plusieurs éléments
+  - Visualisation des connexions entre concepts
+
+**Script** :
+> "Les Regulation Pathways permettent de créer des parcours combinant plusieurs éléments du tableau périodique pour visualiser des approches réglementaires complètes."
 
 ---
 
@@ -95,16 +112,21 @@ Démonstration progressive des fonctionnalités selon 4 niveaux d'accès :
   - **Upload PDF** : Glisser-déposer un document
   - **Métadonnées** : Remplir titre, auteurs, catégories
   - **Sélection des références** : Choisir des documents existants référencés
-  - **Tags IA automatiques** :
-    - Cliquer sur "Suggest Tags with AI"
-    - Affichage des éléments du tableau périodique suggérés avec niveau de confiance
-    - Badges colorés (vert ≥80%, jaune ≥60%)
-    - Possibilité d'accepter/refuser chaque suggestion
+  - **AI Auto-Tagging** (lien avec le Tableau Périodique) :
+    - Cliquer sur "Suggest Tags with AI" (bouton avec icône ✨)
+    - **Pipeline en 5 étapes** :
+      1. Extraction du texte PDF depuis IPFS
+      2. Génération d'embeddings sémantiques (TensorFlow.js)
+      3. Pré-sélection des candidats par similarité cosinus
+      4. Validation GPT-4o-mini avec scores de confiance
+      5. Affichage des suggestions (seuil ≥60%)
+    - Badges colorés : 🟢 vert (≥80%) | 🟡 jaune (60-79%)
+    - Possibilité d'accepter individuellement ou "Apply All"
   - **Upload vers IPFS** : Document stocké de façon décentralisée
   - **Blockchain** : Mint du token ERC1155 sur Sepolia
 
 **Script** :
-> "Un Validateur peut soumettre de nouveaux documents. Le système suggère automatiquement des tags (éléments du tableau périodique) grâce à l'IA. Le PDF est stocké sur IPFS et un token ERC1155 est créé sur la blockchain, établissant la propriété intellectuelle."
+> "L'AI Auto-Tagging analyse le contenu du document et suggère les éléments pertinents du Tableau Périodique. Le système combine embeddings sémantiques et GPT-4o-mini pour des suggestions précises avec niveaux de confiance. Le PDF est stocké sur IPFS et un token ERC1155 est créé sur la blockchain."
 
 ### 3.3 Valider un Document Soumis (1 min 15 sec)
 - **Navigation** : Library → Network Publications
@@ -192,12 +214,13 @@ Démonstration progressive des fonctionnalités selon 4 niveaux d'accès :
 ## 🎬 CONCLUSION (30 sec)
 
 ### Récapitulatif des Points Clés
-1. ✅ **Collaboration** : Système de validation peer-to-peer (4 validations)
-2. ✅ **IA Intégrée** : Auto-tagging et assistant RAG pour la recherche intelligente
-3. ✅ **Blockchain** : Propriété intellectuelle tokenisée (ERC1155) avec distribution automatique
-4. ✅ **Décentralisation** : Documents sur IPFS, métadonnées immuables on-chain
-5. ✅ **Multilingue** : Support français/anglais natif
-6. ✅ **Open Source** : Architecture transparente, smart contracts vérifiables
+1. ✅ **Tableau Périodique** : 54 éléments réglementaires en 6 catégories pour catégoriser la recherche
+2. ✅ **AI Auto-Tagging** : Suggestion automatique des éléments du tableau périodique avec GPT-4o-mini
+3. ✅ **Collaboration** : Système de validation peer-to-peer (4 validations)
+4. ✅ **IA Intégrée** : Assistant RAG pour la recherche intelligente avec citations
+5. ✅ **Blockchain** : Propriété intellectuelle tokenisée (ERC1155) avec distribution automatique
+6. ✅ **Décentralisation** : Documents sur IPFS, métadonnées immuables on-chain
+7. ✅ **Multilingue** : Support français/anglais natif
 
 **Message final** :
 > "I4TK Knowledge Network combine gouvernance numérique, intelligence artificielle et blockchain pour créer un écosystème collaboratif transparent où chaque contribution est reconnue et valorisée."

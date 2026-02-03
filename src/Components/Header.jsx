@@ -58,7 +58,7 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
     { id: "forum", label: "Forum", requiredRole: 'member' },
     { id: "tools", label: "Tools", requiredRole: 'member' },
     { id: "walkthrough", label: "Walk through", public: true },
-    { id: "chat", label: "Chat", requiredRole: 'admin' }
+    { id: "draft", label: "Draft", requiredRole: 'admin' }
   ];
 
   const userAccess = getUserAccess(user);

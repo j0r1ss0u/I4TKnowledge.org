@@ -79,7 +79,7 @@ const VALID_PAGES = [
   'library',
   'press-releases',
   'forum',
-  'chat',
+  'draft',
   'walkthrough',
   'genealogy',
   'finalize-invitation',
@@ -853,7 +853,7 @@ function AppContent() {
               <ForgotPassword />
             </Suspense>
           )}
-          {currentPage === "chat" && user?.role === "admin" && (
+          {currentPage === "draft" && user?.role === "admin" && (
             <Suspense fallback={<PageLoader />}>
               <LibraryChat currentLang={currentLang} />
             </Suspense>
