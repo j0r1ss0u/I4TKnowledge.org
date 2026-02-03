@@ -57,7 +57,7 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
     { id: "press-releases", label: "Press Releases", public: true },
     { id: "forum", label: "Forum", requiredRole: 'member' },
     { id: "tools", label: "Tools", requiredRole: 'member' },
-    { id: "walkthrough", label: "Walk through", public: true },
+    { id: "walkthrough", label: "Guide", requiredRole: 'member' },
     { id: "draft", label: "Draft", requiredRole: 'admin' }
   ];
 
