@@ -2,261 +2,188 @@ import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
-const markdownContent = `# 🎯 Scénario de Démonstration I4TK Knowledge Network
-**Durée : 10 minutes**
+const markdownContent = `# I4TK Knowledge Network - User Guide
 
 ---
 
-## 📋 Vue d'ensemble
-Démonstration progressive des fonctionnalités selon 4 niveaux d'accès :
-1. **Visiteur non authentifié** (1 min)
-2. **Membre authentifié** (3 min)
-3. **Validateur** (3 min)
-4. **Administrateur** (3 min)
+## Overview
+
+This guide presents the platform features organized by access level:
+1. **Visitor** (not logged in)
+2. **Member** (authenticated user)
+3. **Validator** (can submit and validate documents)
+4. **Administrator** (full platform control)
 
 ---
 
-## 🌐 PARTIE 1 : Visiteur Non Authentifié (1 min)
+## Visitor (Not Logged In)
 
-### Page d'Accueil
-- **Ce qu'on montre** : Page d'accueil avec message de bienvenue
-- **Message clé** : "Plateforme collaborative pour la recherche en gouvernance numérique"
-- **Actions disponibles** :
-  - ✅ Créer un compte
-  - ✅ Se connecter
-  - ❌ Pas d'accès aux documents ou outils
+### Home Page
+- Welcome page with platform introduction
+- Key message: "Collaborative platform for digital governance research"
+- Available actions:
+  - Create an account
+  - Log in
+  - No access to documents or tools without authentication
 
-**Script** :
-> "I4TK Knowledge Network est une plateforme de gestion des connaissances pour la recherche collaborative. Un visiteur non connecté ne peut que créer un compte ou se connecter. Toutes les fonctionnalités nécessitent une authentification."
-
----
-
-## 👤 PARTIE 2 : Membre Authentifié (3 min)
-
-### 2.1 Connexion & Tableau de Bord (30 sec)
-- **Action** : Se connecter avec un compte Member
-- **Ce qu'on montre** : Navigation principale débloquée
-- **Fonctionnalités visibles** :
-  - 📚 Library (Bibliothèque)
-  - 🤖 AI Assistant
-  - 🧪 Tools (Regulation Pathways)
-  - 📰 News
-
-**Script** :
-> "Une fois connecté comme Membre, l'utilisateur accède à toutes les sections principales de la plateforme."
-
-### 2.2 Bibliothèque de Documents (1 min)
-- **Navigation** : Aller dans "Library"
-- **Ce qu'on montre** :
-  - Liste des documents publiés avec métadonnées
-  - Filtres par catégorie (Research Paper, Regulation, Guideline, etc.)
-  - Recherche sémantique par titre/contenu
-  - Visualisation d'un document PDF
-  - **Arbre de citations** : Cliquer sur un document pour voir les références (gris, en bas) et descendants (vert, en haut)
-
-**Script** :
-> "La bibliothèque contient tous les documents validés. Chaque document affiche ses métadonnées, catégories, et éléments du tableau périodique associés. L'arbre de citations montre en gris les documents référencés (cités) et en vert les documents qui citent celui-ci (descendants)."
-
-### 2.3 Assistant IA RAG (1 min)
-- **Navigation** : Aller dans "AI Assistant"
-- **Ce qu'on montre** :
-  - Interface de chat conversationnel
-  - Détection automatique français/anglais
-  - **Démo** : Poser une question sur un sujet (ex: "Quelles sont les principales réglementations sur l'IA ?")
-  - Affichage de la réponse avec citations des documents pertinents
-  - Liens cliquables vers les documents sources
-
-**Script** :
-> "L'assistant IA utilise GPT-4o-mini et la recherche sémantique pour répondre aux questions en s'appuyant sur les documents de la bibliothèque. Il détecte automatiquement la langue et fournit des citations précises."
-
-### 2.4 Tableau Périodique de Régulation (1 min)
-- **Navigation** : Aller dans "Tools" → "Periodic Table"
-- **Ce qu'on montre** :
-  - **54 éléments réglementaires** organisés comme un tableau périodique
-  - **6 catégories thématiques** avec codes couleur :
-    - 🟢 **Cadre institutionnel** (vert) - Structures de gouvernance
-    - 🟢 **Législation des plateformes** (vert) - Cadres légaux
-    - 🔴 **Droits humains & État de droit** (rouge) - Mécanismes de protection
-    - 🔵 **Gouvernance des contenus** (bleu) - Modération des contenus
-    - 🔵 **Risques systémiques** (bleu) - Évaluation des risques
-    - 🔵 **Design pro-social** (bleu) - Design pour le bien commun
-  - **Clic sur un élément** : Affiche description détaillée et documents liés
-  - **Lien avec les documents** : Chaque document peut être tagué avec les éléments pertinents
-
-**Script** :
-> "Le Tableau Périodique de Régulation est un outil unique qui catégorise 54 concepts réglementaires en 6 familles. En cliquant sur un élément, on voit sa description et les documents de la bibliothèque qui y sont associés."
-
-### 2.5 Regulation Pathways (30 sec)
-- **Navigation** : Aller dans "Tools" → "Regulation Pathways"
-- **Ce qu'on montre** :
-  - Création de parcours réglementaires combinant plusieurs éléments
-  - Visualisation des connexions entre concepts
-
-**Script** :
-> "Les Regulation Pathways permettent de créer des parcours combinant plusieurs éléments du tableau périodique pour visualiser des approches réglementaires complètes."
+> I4TK Knowledge Network is a knowledge management platform for collaborative research. Visitors must create an account or log in to access all features.
 
 ---
 
-## ✅ PARTIE 3 : Validateur (3 min)
+## Member (Authenticated User)
 
-### 3.1 Connexion comme Validateur (15 sec)
-- **Action** : Se déconnecter et se reconnecter avec un compte Validator
-- **Ce qu'on montre** : Nouvelles fonctionnalités débloquées
+### Dashboard & Navigation
+After logging in as a Member, you gain access to all main sections:
+- Library (Document collection)
+- AI Assistant
+- Tools (Regulation Pathways)
+- News
 
-**Script** :
-> "Les Validateurs ont accès à des fonctionnalités supplémentaires pour gérer le processus de validation collaborative."
+### Document Library
+Navigate to **Library** to access:
+- List of published documents with metadata
+- Category filters (Research Paper, Regulation, Guideline, etc.)
+- Semantic search by title/content
+- PDF document viewer
+- **Citation Tree**: Click on a document to see references (gray, below) and descendants (green, above)
 
-### 3.2 Soumettre un Document (1 min 15 sec)
-- **Navigation** : Library → "Submit Document"
-- **Ce qu'on montre** :
-  - **Upload PDF** : Glisser-déposer un document
-  - **Métadonnées** : Remplir titre, auteurs, catégories
-  - **Sélection des références** : Choisir des documents existants référencés
-  - **AI Auto-Tagging** (lien avec le Tableau Périodique) :
-    - Cliquer sur "Suggest Tags with AI" (bouton avec icône ✨)
-    - **Pipeline en 5 étapes** :
-      1. Extraction du texte PDF depuis IPFS
-      2. Génération d'embeddings sémantiques (TensorFlow.js)
-      3. Pré-sélection des candidats par similarité cosinus
-      4. Validation GPT-4o-mini avec scores de confiance
-      5. Affichage des suggestions (seuil ≥60%)
-    - Badges colorés : 🟢 vert (≥80%) | 🟡 jaune (60-79%)
-    - Possibilité d'accepter individuellement ou "Apply All"
-  - **Upload vers IPFS** : Document stocké de façon décentralisée
-  - **Blockchain** : Mint du token ERC1155 sur Sepolia
+> The library contains all validated documents. Each document displays its metadata, categories, and associated periodic table elements. The citation tree shows referenced documents in gray and citing documents in green.
 
-**Script** :
-> "L'AI Auto-Tagging analyse le contenu du document et suggère les éléments pertinents du Tableau Périodique. Le système combine embeddings sémantiques et GPT-4o-mini pour des suggestions précises avec niveaux de confiance. Le PDF est stocké sur IPFS et un token ERC1155 est créé sur la blockchain."
+### RAG AI Assistant
+Navigate to **AI Assistant** to access:
+- Conversational chat interface
+- Automatic French/English language detection
+- Ask questions about any topic (e.g., "What are the main AI regulations?")
+- Responses include citations from relevant documents
+- Clickable links to source documents
 
-### 3.3 Valider un Document Soumis (1 min 15 sec)
-- **Navigation** : Library → Network Publications
-- **Ce qu'on montre** :
-  - Liste des documents en attente de validation
-  - Statut de validation (0/4, 1/4, 2/4, 3/4)
-  - Barre de progression visuelle
-  - **Action** : Cliquer sur "Validate" pour un document
-  - **MetaMask** : Confirmation de la transaction blockchain (~30,000 gas)
-  - Mise à jour du statut (ex: 0/4 → 1/4)
+> The AI assistant uses GPT-4o-mini and semantic search to answer questions based on the library documents. It automatically detects the language and provides accurate citations.
 
-**Script** :
-> "Le système de validation est collaboratif : 4 validations sont nécessaires pour publier un document. Chaque validation est enregistrée sur la blockchain via le smart contract I4TKnetwork. À la 4ème validation, les tokens sont automatiquement distribués : 40% au créateur, 60% aux documents référencés de façon récursive."
+### Periodic Table of Platform Regulation
+Navigate to **Tools** to access:
+- **54 regulatory elements** organized in a periodic table layout
+- **6 thematic categories** with color coding:
+  - Institutional Framework (green) - Governance structures
+  - Legislating Platforms (green) - Legal frameworks
+  - Human Rights & Rule of Law (red) - Protection mechanisms
+  - Content Governance (blue) - Content moderation
+  - Systemic Risks + Due Diligence (blue) - Risk assessment
+  - Pro-social Design (blue) - Design for positive outcomes
+- Click any element to view detailed description and linked documents
+- Each document can be tagged with relevant periodic elements
 
-### 3.4 Distribution des Tokens (30 sec)
-- **Ce qu'on montre** :
-  - Expliquer le mécanisme de distribution
-  - Montrer le statut "Published" après 4 validations
-  - Expliquer que les tokens représentent la contribution intellectuelle
+> The Periodic Table of Regulation is a unique tool that categorizes 54 regulatory concepts into 6 families. Clicking an element shows its description and associated library documents.
 
-**Script** :
-> "Une fois publié, le document reçoit 100 millions de tokens. Si le document référence d'autres travaux, la distribution est automatique et récursive sur toute la chaîne de références, valorisant ainsi toute la lignée de recherche."
+### Regulation Pathways
+Navigate to **Tools** > **Regulation Pathways** to access:
+- Create regulatory pathways combining multiple elements
+- Visualize connections between concepts
+
+> Regulation Pathways allow you to create pathways combining multiple periodic table elements to visualize complete regulatory approaches.
 
 ---
 
-## 🔧 PARTIE 4 : Administrateur (3 min)
+## Validator
 
-### 4.1 Connexion comme Admin (15 sec)
-- **Action** : Se connecter avec un compte Admin
-- **Ce qu'on montre** : Section "Admin Tools" visible
+Validators have additional capabilities for managing the collaborative validation process.
 
-**Script** :
-> "Les Administrateurs ont un contrôle total sur la plateforme : gestion des utilisateurs, des rôles blockchain, et export des données."
+### Submit a Document
+Navigate to **Library** > **Submit Document**:
+- **Upload PDF**: Drag and drop a document
+- **Metadata**: Fill in title, authors, categories
+- **Reference Selection**: Choose existing documents as references
+- **AI Auto-Tagging** (links to Periodic Table):
+  - Click "Suggest Tags with AI" button
+  - **5-step pipeline**:
+    1. PDF text extraction from IPFS
+    2. Semantic embeddings generation (TensorFlow.js)
+    3. Candidate pre-selection by cosine similarity
+    4. GPT-4o-mini validation with confidence scores
+    5. Display suggestions (threshold: 60%+)
+  - Color-coded badges: Green (80%+) | Yellow (60-79%)
+  - Accept individually or use "Apply All"
+- **IPFS Upload**: Document stored in decentralized storage
+- **Blockchain**: ERC1155 token minted on Sepolia
 
-### 4.2 Gestion des Utilisateurs (1 min)
-- **Navigation** : Admin Tools → User Management
-- **Ce qu'on montre** :
-  - Liste de tous les utilisateurs avec rôles Firestore
-  - Filtrage par rôle (Admin, Validator, Member)
-  - **Action** : Promouvoir un Member en Validator
-  - **Synchronisation blockchain** : Option de synchroniser le rôle sur le smart contract
-  - **Invitations** : Envoyer un email d'invitation avec SendGrid
+> AI Auto-Tagging analyzes document content and suggests relevant Periodic Table elements. The system combines semantic embeddings and GPT-4o-mini for accurate suggestions with confidence levels. PDFs are stored on IPFS and an ERC1155 token is created on the blockchain.
 
-**Script** :
-> "L'admin peut gérer les rôles dans Firestore et les synchroniser sur la blockchain. Le système d'invitation par email permet d'onboarder de nouveaux chercheurs facilement."
+### Validate a Submitted Document
+Navigate to **Library** > **Network Publications**:
+- List of documents pending validation
+- Validation status (0/4, 1/4, 2/4, 3/4)
+- Visual progress bar
+- Click "Validate" for a document
+- MetaMask confirmation for blockchain transaction
+- Status updates (e.g., 0/4 to 1/4)
 
-### 4.3 Gestion des Rôles Blockchain (45 sec)
-- **Navigation** : Admin Tools → Blockchain Roles
-- **Ce qu'on montre** :
-  - Interface pour attribuer les rôles on-chain :
-    - CONTRIBUTOR_ROLE (peut soumettre)
-    - VALIDATOR_ROLE (peut valider)
-    - MINTER_ROLE (peut créer des tokens)
-    - ADMIN_ROLE (contrôle total)
-  - **Action** : Accorder VALIDATOR_ROLE à une adresse
-  - **Transaction blockchain** : Confirmation MetaMask
+> The validation system is collaborative: 4 validations are required to publish a document. Each validation is recorded on the blockchain via the I4TKnetwork smart contract. At the 4th validation, tokens are automatically distributed: 40% to the creator, 60% to referenced documents recursively.
 
-**Script** :
-> "Les rôles blockchain sont gérés via le système AccessControl d'OpenZeppelin. L'admin peut accorder/révoquer des permissions directement depuis l'interface, sans avoir à interagir avec Etherscan."
+### Token Distribution
+- Each published document receives 100 million tokens
+- If the document references other works, distribution is automatic and recursive
+- Tokens represent intellectual contribution across the entire research lineage
 
-### 4.4 Export CSV & Analytics (45 sec)
-- **Navigation** : Admin Tools → Export Library
-- **Ce qu'on montre** :
-  - Bouton "Export to CSV"
-  - Téléchargement d'un fichier CSV avec toutes les métadonnées
-  - **Format** : UTF-8 avec BOM, délimiteur point-virgule (Excel-compatible)
-  - **Nettoyage automatique** : Suppression des sauts de ligne, remplacement des point-virgules
-  - **Colonnes** : Titre, auteurs, catégories, IPFS CID, Token ID, statut de validation, etc.
-
-**Script** :
-> "L'export CSV permet d'analyser la bibliothèque dans Excel ou des outils d'analyse de données. Le format est optimisé pour la compatibilité Excel avec encodage UTF-8 et nettoyage automatique des caractères spéciaux."
-
-### 4.5 Monitoring Blockchain (15 sec)
-- **Ce qu'on montre** :
-  - Liens vers Sepolia Etherscan pour les smart contracts
-  - I4TKnetwork : 0xa9870f477E6362E0810948fd87c0398c2c0a4F55
-  - I4TKdocToken : 0x06Fc114E58b8Be5d03b5B7b03ab7f0D3C9605288
-  - Possibilité de voir toutes les transactions on-chain
-
-**Script** :
-> "Tous les événements blockchain sont publics et vérifiables sur Sepolia Etherscan. La plateforme est prête pour un déploiement mainnet futur."
+> Once published, the document receives 100 million tokens. If the document references other works, distribution is automatic and recursive throughout the reference chain, valuing the entire research lineage.
 
 ---
 
-## 🎬 CONCLUSION (30 sec)
+## Administrator
 
-### Récapitulatif des Points Clés
-1. ✅ **Tableau Périodique** : 54 éléments réglementaires en 6 catégories pour catégoriser la recherche
-2. ✅ **AI Auto-Tagging** : Suggestion automatique des éléments du tableau périodique avec GPT-4o-mini
-3. ✅ **Collaboration** : Système de validation peer-to-peer (4 validations)
-4. ✅ **IA Intégrée** : Assistant RAG pour la recherche intelligente avec citations
-5. ✅ **Blockchain** : Propriété intellectuelle tokenisée (ERC1155) avec distribution automatique
-6. ✅ **Décentralisation** : Documents sur IPFS, métadonnées immuables on-chain
-7. ✅ **Multilingue** : Support français/anglais natif
+Administrators have full control over the platform: user management, blockchain roles, and data export.
 
-**Message final** :
-> "I4TK Knowledge Network combine gouvernance numérique, intelligence artificielle et blockchain pour créer un écosystème collaboratif transparent où chaque contribution est reconnue et valorisée."
+### User Management
+Navigate to **Admin Tools** > **User Management**:
+- List of all users with Firestore roles
+- Filter by role (Admin, Validator, Member)
+- Promote a Member to Validator
+- Blockchain synchronization option for roles
+- Email invitations via SendGrid
+
+> Admins can manage roles in Firestore and synchronize them to the blockchain. The email invitation system makes onboarding new researchers easy.
+
+### Blockchain Role Management
+Navigate to **Admin Tools** > **Blockchain Roles**:
+- Interface for assigning on-chain roles:
+  - CONTRIBUTOR_ROLE (can submit)
+  - VALIDATOR_ROLE (can validate)
+  - MINTER_ROLE (can create tokens)
+  - ADMIN_ROLE (full control)
+- Grant roles to wallet addresses
+- MetaMask confirmation for transactions
+
+> Blockchain roles are managed via OpenZeppelin's AccessControl system. Admins can grant/revoke permissions directly from the interface without using Etherscan.
+
+### CSV Export & Analytics
+Navigate to **Admin Tools** > **Export Library**:
+- "Export to CSV" button
+- Download CSV file with all metadata
+- Format: UTF-8 with BOM, semicolon delimiter (Excel-compatible)
+- Automatic cleaning: line breaks removed, semicolons replaced
+- Columns: Title, Authors, Categories, IPFS CID, Token ID, validation status, etc.
+
+> CSV export allows analysis in Excel or data analysis tools. The format is optimized for Excel compatibility with UTF-8 encoding and automatic special character cleaning.
+
+### Blockchain Monitoring
+- Links to Sepolia Etherscan for smart contracts:
+  - I4TKnetwork: 0xa9870f477E6362E0810948fd87c0398c2c0a4F55
+  - I4TKdocToken: 0x06Fc114E58b8Be5d03b5B7b03ab7f0D3C9605288
+- View all on-chain transactions
+
+> All blockchain events are public and verifiable on Sepolia Etherscan. The platform is ready for future mainnet deployment.
 
 ---
 
-## 📌 NOTES POUR LA PRÉSENTATION
+## Key Features Summary
 
-### Préparation Technique
-- [ ] Avoir 3 comptes prêts : Member, Validator, Admin
-- [ ] Préparer un PDF de test à uploader
-- [ ] Avoir un document en attente de validation (0/4 ou 1/4)
-- [ ] Vérifier que MetaMask est connecté au réseau Sepolia
-- [ ] S'assurer d'avoir des SepoliaETH pour les transactions
+1. **Periodic Table**: 54 regulatory elements in 6 categories for research categorization
+2. **AI Auto-Tagging**: Automatic periodic table element suggestions with GPT-4o-mini
+3. **Collaboration**: Peer-to-peer validation system (4 validations required)
+4. **Integrated AI**: RAG assistant for intelligent search with citations
+5. **Blockchain**: Tokenized intellectual property (ERC1155) with automatic distribution
+6. **Decentralization**: Documents on IPFS, immutable metadata on-chain
+7. **Bilingual**: Native French/English support
 
-### Points d'Attention
-- **Temps de transaction blockchain** : Prévoir 10-15 secondes d'attente, expliquer pendant ce temps
-- **Auto-tagging IA** : Peut prendre 5-10 secondes, expliquer le processus pendant l'attente
-- **Upload IPFS** : Peut être lent selon la taille du fichier, préparer un petit PDF (<1MB)
-
-### Questions Anticipées
-1. **"Pourquoi utiliser la blockchain ?"**
-   → Immuabilité, transparence, distribution automatique des tokens, propriété vérifiable
-   
-2. **"Combien coûtent les transactions ?"**
-   → Sur Sepolia : gratuit (testnet). Sur mainnet : ~0.001-0.005 ETH selon la congestion
-   
-3. **"Les documents sont-ils vraiment décentralisés ?"**
-   → Oui, IPFS via Pinata, pas de point de défaillance central
-   
-4. **"Peut-on modifier un document après publication ?"**
-   → Non, l'immuabilité blockchain garantit l'intégrité du contenu historique
-
-### Variantes de Timing
-- **Version courte (5 min)** : Sauter 2.4 (Regulation Pathways) et 4.5 (Monitoring)
-- **Version longue (15 min)** : Ajouter NewsBlur, détailler l'architecture technique, montrer le code des smart contracts
+> I4TK Knowledge Network combines digital governance, artificial intelligence, and blockchain to create a transparent collaborative ecosystem where every contribution is recognized and valued.
 `;
 
 const WalkThrough = () => {
