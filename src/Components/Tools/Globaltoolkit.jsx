@@ -55,6 +55,20 @@ const CATEGORIES = {
 };
 
 // =================================================================
+// SECTION 1.1: CONFIGURATION DES GÉOGRAPHIES
+// =================================================================
+
+const GEOGRAPHIES = [
+  "EUROPE",
+  "MIDDLE EAST", 
+  "AFRICA",
+  "LATAM",
+  "ASIA",
+  "OCEANIA",
+  "NORTH AMERICA"
+];
+
+// =================================================================
 // SECTION 2: COMPOSANT PRINCIPAL
 // =================================================================
 
@@ -78,7 +92,12 @@ const Globaltoolkit = () => {
   const [newExample, setNewExample] = useState('');
   const [newExampleUrl, setNewExampleUrl] = useState('');
   const [newExampleTitle, setNewExampleTitle] = useState('');
+  const [newExampleGeographies, setNewExampleGeographies] = useState([...GEOGRAPHIES]);
   const [expandedExampleId, setExpandedExampleId] = useState(null);
+  
+  // États pour le filtrage par géographies
+  const [selectedGeographies, setSelectedGeographies] = useState([...GEOGRAPHIES]);
+  const [allDocuments, setAllDocuments] = useState([]);
   
   // États pour les documents liés
   const [linkedDocuments, setLinkedDocuments] = useState([]);
@@ -120,18 +139,8 @@ const Globaltoolkit = () => {
 
         // Récupérer tous les documents pour compter les références
         try {
-          const allDocuments = await documentsService.getDocuments();
-          const counts = {};
-          
-          fetchedElements.forEach(element => {
-            const count = allDocuments.filter(doc => 
-              doc.periodicElementIds && doc.periodicElementIds.includes(element.id)
-            ).length;
-            counts[element.id] = count;
-          });
-          
-          setDocumentCounts(counts);
-          console.log('Document counts per element:', counts);
+          const docs = await documentsService.getDocuments();
+          setAllDocuments(docs);
         } catch (docErr) {
           console.error("Error fetching documents for counts:", docErr);
         }
@@ -145,6 +154,28 @@ const Globaltoolkit = () => {
 
     fetchElements();
   }, []);
+
+  // Recalculer les compteurs quand les géographies ou les documents changent
+  useEffect(() => {
+    if (elements.length === 0 || allDocuments.length === 0) return;
+    
+    // Filtrer les documents par géographies sélectionnées
+    const filteredDocs = allDocuments.filter(doc => {
+      if (!doc.geographies || doc.geographies.length === 0) return true; // Documents sans géographie sont toujours visibles
+      return doc.geographies.some(geo => selectedGeographies.includes(geo));
+    });
+    
+    const counts = {};
+    elements.forEach(element => {
+      const count = filteredDocs.filter(doc => 
+        doc.periodicElementIds && doc.periodicElementIds.includes(element.id)
+      ).length;
+      counts[element.id] = count;
+    });
+    
+    setDocumentCounts(counts);
+    console.log('Document counts per element (filtered by geographies):', counts);
+  }, [elements, allDocuments, selectedGeographies]);
 
   // Effet pour le zoom avec la molette de la souris
   useEffect(() => {
@@ -292,6 +323,24 @@ const Globaltoolkit = () => {
   // SECTION 8: GESTIONNAIRES D'ÉVÉNEMENTS
   // =================================================================
 
+  // Gestionnaire pour toggle une géographie
+  const toggleGeography = (geo) => {
+    setSelectedGeographies(prev => 
+      prev.includes(geo)
+        ? prev.filter(g => g !== geo)
+        : [...prev, geo]
+    );
+  };
+
+  // Sélectionner/désélectionner toutes les géographies
+  const toggleAllGeographies = () => {
+    if (selectedGeographies.length === GEOGRAPHIES.length) {
+      setSelectedGeographies([]);
+    } else {
+      setSelectedGeographies([...GEOGRAPHIES]);
+    }
+  };
+
   // Gestionnaire pour le clic sur un élément
   const handleElementClick = async (element) => {
     if (isPanning.current) return; // Don't select elements while panning
@@ -309,13 +358,18 @@ const Globaltoolkit = () => {
     });
     setExpandedExampleId(null);
 
-    // Charger les documents liés à cet élément
+    // Charger les documents liés à cet élément (filtrés par géographies)
     setLoadingDocuments(true);
     setLinkedDocuments([]);
     try {
       const docs = await documentsService.getDocumentsByPeriodicElement(element.id);
-      setLinkedDocuments(docs);
-      console.log(`Found ${docs.length} documents linked to element ${element.id}`);
+      // Filtrer par géographies sélectionnées
+      const filteredDocs = docs.filter(doc => {
+        if (!doc.geographies || doc.geographies.length === 0) return true;
+        return doc.geographies.some(geo => selectedGeographies.includes(geo));
+      });
+      setLinkedDocuments(filteredDocs);
+      console.log(`Found ${filteredDocs.length} documents linked to element ${element.id} (filtered from ${docs.length})`);
     } catch (err) {
       console.error('Error loading linked documents:', err);
       setLinkedDocuments([]);
@@ -703,6 +757,37 @@ const Globaltoolkit = () => {
 
           <div className="text-xs text-gray-500 mb-3 text-center">
             Scroll to zoom • Hold Alt/Option + drag to pan • Double-click to reset view
+          </div>
+
+          {/* Filtre par géographies */}
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Filter by Geographic Scope:</span>
+              <button
+                onClick={toggleAllGeographies}
+                className="text-xs text-amber-600 hover:text-amber-800 font-medium"
+              >
+                {selectedGeographies.length === GEOGRAPHIES.length ? 'Deselect All' : 'Select All'}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {GEOGRAPHIES.map(geo => (
+                <label key={geo} className="flex items-center space-x-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                    checked={selectedGeographies.includes(geo)}
+                    onChange={() => toggleGeography(geo)}
+                  />
+                  <span className="text-xs text-gray-700">{geo}</span>
+                </label>
+              ))}
+            </div>
+            {selectedGeographies.length < GEOGRAPHIES.length && (
+              <p className="mt-2 text-xs text-amber-600">
+                Showing documents and examples from: {selectedGeographies.join(', ') || 'None'}
+              </p>
+            )}
           </div>
         </div>
 
