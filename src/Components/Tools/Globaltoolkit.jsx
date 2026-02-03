@@ -443,6 +443,15 @@ const Globaltoolkit = () => {
     }
   };
 
+  // Gestionnaire pour toggle une géographie dans le nouveau exemple
+  const toggleNewExampleGeography = (geo) => {
+    setNewExampleGeographies(prev => 
+      prev.includes(geo)
+        ? prev.filter(g => g !== geo)
+        : [...prev, geo]
+    );
+  };
+
   // Gestionnaire pour ajouter un exemple
   const handleAddExample = async () => {
     if (!newExample.trim() || !newExampleTitle.trim()) return;
@@ -454,6 +463,7 @@ const Globaltoolkit = () => {
         title: newExampleTitle,
         text: newExample,
         url: newExampleUrl || null,
+        geographies: newExampleGeographies,
         userId: user.uid,
         userName: user.displayName || user.email,
       };
@@ -477,6 +487,7 @@ const Globaltoolkit = () => {
       setNewExampleTitle('');
       setNewExample('');
       setNewExampleUrl('');
+      setNewExampleGeographies([...GEOGRAPHIES]);
 
     } catch (err) {
       console.error("Error adding example:", err);
@@ -847,7 +858,10 @@ const Globaltoolkit = () => {
                         {documentCounts[element.id] || 0}
                       </span>
                       <span className="absolute bottom-1 right-2 text-xs font-semibold text-gray-700">
-                        {element.examples?.length || 0}
+                        {(element.examples || []).filter(ex => {
+                          if (!ex.geographies || ex.geographies.length === 0) return true;
+                          return ex.geographies.some(geo => selectedGeographies.includes(geo));
+                        }).length}
                       </span>
                     </button>
                   ))}
@@ -984,10 +998,18 @@ const Globaltoolkit = () => {
                 <div className="mb-4">
                   <h4 className="font-semibold mb-2">Application Examples</h4>
 
-                  {/* Liste des exemples existants */}
-                  {selectedElement.examples && selectedElement.examples.length > 0 ? (
+                  {/* Liste des exemples existants (filtrés par géographies) */}
+                  {selectedElement.examples && selectedElement.examples.filter(ex => {
+                    // Les exemples sans géographie (anciens) sont toujours visibles
+                    if (!ex.geographies || ex.geographies.length === 0) return true;
+                    // Sinon, afficher si au moins une géographie correspond
+                    return ex.geographies.some(geo => selectedGeographies.includes(geo));
+                  }).length > 0 ? (
                     <ul className="divide-y divide-gray-200">
-                      {selectedElement.examples.map((example, index) => (
+                      {selectedElement.examples.filter(ex => {
+                        if (!ex.geographies || ex.geographies.length === 0) return true;
+                        return ex.geographies.some(geo => selectedGeographies.includes(geo));
+                      }).map((example, index) => (
                         <li key={example.id || index} className="py-3">
                           <div className="flex flex-col">
                             <div 
@@ -1053,6 +1075,12 @@ const Globaltoolkit = () => {
                                     Contributed by: {example.userName}
                                   </div>
                                 )}
+
+                                {example.geographies && example.geographies.length > 0 && (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    Geographic scope: {example.geographies.join(', ')}
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -1097,6 +1125,23 @@ const Globaltoolkit = () => {
                             className="w-full p-2 border rounded"
                             placeholder="https://example.com/reference"
                           />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-600 mb-1">Geographic Scope</label>
+                          <div className="flex flex-wrap gap-2 p-2 border rounded bg-gray-50">
+                            {GEOGRAPHIES.map(geo => (
+                              <label key={geo} className="flex items-center space-x-1 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  checked={newExampleGeographies.includes(geo)}
+                                  onChange={() => toggleNewExampleGeography(geo)}
+                                />
+                                <span className="text-xs text-gray-700">{geo}</span>
+                              </label>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">Uncheck regions where this example does not apply</p>
                         </div>
                         <button
                           onClick={handleAddExample}
