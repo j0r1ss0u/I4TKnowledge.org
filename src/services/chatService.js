@@ -64,25 +64,21 @@ class ChatService {
       let cid = ipfsCid.replace('ipfs://', '').trim();
       if (!cid.match(/^[a-zA-Z0-9]{46,62}$/)) return null;
 
-      console.log('📥 Fetching IPFS via backend proxy:', cid);
-      const response = await axios.get(`${this.backendURL}/api/ipfs-proxy`, {
-        params: { cid },
-        timeout: 20000
+      console.log('📥 Fetching IPFS:', cid);
+      const response = await axios.get(`${IPFS_GATEWAY}${cid}`, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
+        timeout: 5000
       });
-
-      if (response.data && response.data.text) {
-        return response.data.text;
-      }
-      if (typeof response.data === 'string') {
-        return response.data;
-      }
       return response.data;
     } catch (error) {
       if (retries > 0 && (error.code === 'ECONNABORTED' || error.response?.status === 504)) {
         await new Promise(r => setTimeout(r, RETRY_DELAY));
         return this.fetchIPFSContent(ipfsCid, retries - 1);
       }
-      console.error('❌ IPFS proxy error:', error.message || error);
+      console.error('❌ IPFS error:', error);
       return null;
     }
   }
