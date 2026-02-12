@@ -61,14 +61,22 @@ export const documentsService = {
       const documentsRef = collection(db, 'web3IP');
       console.log('2. Collection reference obtained');
 
-      const docRef = await addDoc(documentsRef, {
+      const dataToSave = {
         ...documentData,
         titleEmbedding: titleEmbedding ? titleEmbedding[0] : null,
         contentEmbedding: contentEmbedding ? contentEmbedding[0] : null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         validationStatus: "0/4"
+      };
+
+      Object.keys(dataToSave).forEach(key => {
+        if (dataToSave[key] === undefined) {
+          dataToSave[key] = null;
+        }
       });
+
+      const docRef = await addDoc(documentsRef, dataToSave);
 
       console.log('3. Document added with ID:', docRef.id);
       return docRef.id;

@@ -95,9 +95,9 @@ export default function SubmitContribution() {
     setFormData(prev => {
       const newData = {
         ...prev,
-        ipfsCid: metadata.ipfsCid,
-        title: metadata.title,
-        description: metadata.description
+        ipfsCid: metadata.ipfsCid || prev.ipfsCid,
+        title: metadata.title || prev.title,
+        description: metadata.description || prev.description || ''
       };
       console.log('Nouveau state du formulaire:', newData);
       return newData;
