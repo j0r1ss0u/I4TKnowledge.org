@@ -9,7 +9,12 @@ import { languageDetection } from './languageService';
 import { conversationRouter, ConversationRouter } from './conversationRouter';
 
 // Constantes de configuration
-const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
+const IPFS_GATEWAYS = [
+  'https://gateway.pinata.cloud/ipfs/',
+  'https://ipfs.io/ipfs/',
+  'https://dweb.link/ipfs/',
+  'https://4everland.io/ipfs/',
+];
 const MAX_RESULTS = 3;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
@@ -59,28 +64,24 @@ class ChatService {
   // ================================================================
   // GESTION IPFS - Récupération documents
   // ================================================================
-  async fetchIPFSContent(ipfsCid, retries = 3) {
-    try {
-      let cid = ipfsCid.replace('ipfs://', '').trim();
-      if (!cid.match(/^[a-zA-Z0-9]{46,62}$/)) return null;
+  async fetchIPFSContent(ipfsCid) {
+    let cid = ipfsCid.replace('ipfs://', '').trim();
+    if (!cid.match(/^[a-zA-Z0-9]{46,62}$/)) return null;
 
-      console.log('📥 Fetching IPFS:', cid);
-      const response = await axios.get(`${IPFS_GATEWAY}${cid}`, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json'
-        },
-        timeout: 5000
-      });
-      return response.data;
-    } catch (error) {
-      if (retries > 0 && (error.code === 'ECONNABORTED' || error.response?.status === 504)) {
-        await new Promise(r => setTimeout(r, RETRY_DELAY));
-        return this.fetchIPFSContent(ipfsCid, retries - 1);
+    for (const gateway of IPFS_GATEWAYS) {
+      try {
+        console.log(`📥 Fetching IPFS via ${gateway}...`);
+        const response = await axios.get(`${gateway}${cid}`, {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 8000
+        });
+        return response.data;
+      } catch (error) {
+        console.warn(`⚠️ Gateway ${gateway} failed:`, error.message);
       }
-      console.error('❌ IPFS error:', error);
-      return null;
     }
+    console.error('❌ All IPFS gateways failed for:', cid);
+    return null;
   }
 
   // ================================================================
@@ -232,7 +233,7 @@ class ChatService {
             authors: doc.authors,
             programme: doc.programme,
             similarity: doc.similarity,
-            url: `${IPFS_GATEWAY}${doc.ipfsCid.replace('ipfs://', '')}`
+            url: `${IPFS_GATEWAYS[0]}${doc.ipfsCid.replace('ipfs://', '')}`
           }))
         };
       } catch (error) {
