@@ -11,8 +11,12 @@ const loadPdfJs = async () => {
   return pdfjsLib;
 };
 
-const GATEWAY = 'https://ipfs.io/ipfs/';
-const FALLBACK_GATEWAY = 'https://dweb.link/ipfs/';
+const IPFS_GATEWAYS = [
+  'https://gateway.pinata.cloud/ipfs/',
+  'https://ipfs.io/ipfs/',
+  'https://dweb.link/ipfs/',
+  'https://4everland.io/ipfs/',
+];
 
 const LargeDocumentViewer = ({ documentCid, currentLang }) => {
   const [state, setState] = useState({
@@ -21,6 +25,7 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
     pdfLoaded: false,
     currentPage: 1,
     numPages: 0,
+    workingGateway: IPFS_GATEWAYS[0],
   });
 
   const canvasRef = React.useRef(null);
@@ -103,41 +108,48 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
     const loadPDF = async () => {
       if (!documentCid) return;
 
-      // Annuler tout rendu en cours lors du chargement d'un nouveau PDF
       cancelCurrentRender();
+      setState(prev => ({ ...prev, loading: true, error: null }));
 
-      try {
-        setState(prev => ({ ...prev, loading: true, error: null }));
+      const pdfjs = await loadPdfJs();
+      let lastError = null;
 
-        const pdfjs = await loadPdfJs();
-        const loadingTask = pdfjs.getDocument({
-          url: `${GATEWAY}${documentCid}`,
-          cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/cmaps/`,
-          cMapPacked: true
-        });
+      for (const gateway of IPFS_GATEWAYS) {
+        try {
+          console.log(`LargeViewer: Trying gateway ${gateway}...`);
+          const loadingTask = pdfjs.getDocument({
+            url: `${gateway}${documentCid}`,
+            cMapUrl: `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/cmaps/`,
+            cMapPacked: true
+          });
 
-        const pdf = await loadingTask.promise;
-        pdfDocRef.current = pdf;
+          const pdf = await loadingTask.promise;
+          pdfDocRef.current = pdf;
 
-        setState(prev => ({ 
-          ...prev, 
-          loading: false, 
-          pdfLoaded: true,
-          numPages: pdf.numPages,
-          error: null 
-        }));
+          setState(prev => ({ 
+            ...prev, 
+            loading: false, 
+            pdfLoaded: true,
+            numPages: pdf.numPages,
+            workingGateway: gateway,
+            error: null 
+          }));
 
-        await renderPage(1);
-
-      } catch (error) {
-        console.error('Error generating the preview - please open the document:', error);
-        setState(prev => ({ 
-          ...prev, 
-          loading: false,
-          pdfLoaded: false,
-          error 
-        }));
+          await renderPage(1);
+          return;
+        } catch (error) {
+          console.warn(`LargeViewer: Gateway ${gateway} failed:`, error.message);
+          lastError = error;
+        }
       }
+
+      console.error('LargeViewer: All gateways failed:', lastError);
+      setState(prev => ({ 
+        ...prev, 
+        loading: false,
+        pdfLoaded: false,
+        error: lastError 
+      }));
     };
 
     loadPDF();
@@ -222,7 +234,7 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
 
       <div className="p-4 border-t">
         <a
-          href={`${GATEWAY}${documentCid}`}
+          href={`${state.workingGateway}${documentCid}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 hover:underline text-sm flex items-center group"

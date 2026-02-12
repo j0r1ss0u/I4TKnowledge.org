@@ -11,9 +11,13 @@ const loadPdfJs = async () => {
   return pdfjsLib;
 };
 
-const GATEWAY = 'https://ipfs.io/ipfs/';
+const IPFS_GATEWAYS = [
+  'https://gateway.pinata.cloud/ipfs/',
+  'https://ipfs.io/ipfs/',
+  'https://dweb.link/ipfs/',
+  'https://4everland.io/ipfs/',
+];
 const CORS_PROXY = 'https://cors.eu.org/';
-const FALLBACK_GATEWAY = 'https://dweb.link/ipfs/';
 const FALLBACK_IMAGE = '/assets/logos/I4TK logo no text.png';
 
 // Stocker les miniatures plutôt que les PDFs bruts
@@ -113,14 +117,18 @@ const DocumentViewer = ({ documentCid }) => {
         return;
       }
 
-      // Sinon, charger et générer la miniature
-      const pdfBuffer = await fetchDocument(`${GATEWAY}${documentCid}`, state.useProxy)
-        .catch(async () => {
-          return await fetchDocument(`${GATEWAY}${documentCid}`, false)
-            .catch(async () => {
-              return await fetchDocument(`${FALLBACK_GATEWAY}${documentCid}`, false);
-            });
-        });
+      let pdfBuffer = null;
+      for (const gateway of IPFS_GATEWAYS) {
+        try {
+          pdfBuffer = await fetchDocument(`${gateway}${documentCid}`, false);
+          break;
+        } catch (e) {
+          console.warn(`DocViewer: Gateway ${gateway} failed`);
+        }
+      }
+      if (!pdfBuffer) {
+        throw new Error('All IPFS gateways failed');
+      }
 
       if (unmountedRef.current) return;
 
@@ -159,7 +167,7 @@ const DocumentViewer = ({ documentCid }) => {
   }, [documentCid]);
 
   const getOpenUrl = () => {
-    return !state.useProxy ? `${FALLBACK_GATEWAY}${documentCid}` : `${GATEWAY}${documentCid}`;
+    return `${IPFS_GATEWAYS[0]}${documentCid}`;
   };
 
   const renderContent = () => {

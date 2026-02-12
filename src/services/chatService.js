@@ -9,7 +9,7 @@ import { languageDetection } from './languageService';
 import { conversationRouter, ConversationRouter } from './conversationRouter';
 
 // Constantes de configuration
-const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
+const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
 const MAX_RESULTS = 3;
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;

@@ -163,7 +163,7 @@ const I4TDashboard = () => {
             if (URI && URI.startsWith('data:application/json;base64,')) {
               tokenData.tokenURIJson = parseBase64DataURL(URI);
             } else if (URI && URI.startsWith('Qm')) {
-              const response = await fetch(`https://ipfs.io/ipfs/${URI}`);
+              const response = await fetch(`https://gateway.pinata.cloud/ipfs/${URI}`);
               if (response.ok) {
                 const json = await response.json();
                 if (json.name && json.properties) {

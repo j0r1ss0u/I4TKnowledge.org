@@ -88,8 +88,7 @@ const NetworkPublications = ({
   const handleViewDetails = (doc) => {
     const cid = getDocumentCid(doc);
     if (cid) {
-      // Utiliser le gateway IPFS officiel qui est très fiable
-      window.open(`https://ipfs.io/ipfs/${cid}`, '_blank');
+      window.open(`https://gateway.pinata.cloud/ipfs/${cid}`, '_blank');
     } else {
       console.error('Invalid or missing IPFS CID:', doc);
     }

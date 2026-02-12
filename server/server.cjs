@@ -40,8 +40,8 @@ app.get('/api/ipfs-proxy', async (req, res) => {
     const gateways = [
       `https://gateway.pinata.cloud/ipfs/${cid}`,
       `https://ipfs.io/ipfs/${cid}`,
-      `https://cloudflare-ipfs.com/ipfs/${cid}`,
-      `https://dweb.link/ipfs/${cid}`
+      `https://dweb.link/ipfs/${cid}`,
+      `https://4everland.io/ipfs/${cid}`
     ];
 
     let lastError = null;
@@ -336,10 +336,10 @@ app.post('/api/extract-pdf-text', async (req, res) => {
 
     // Liste de gateways IPFS à essayer (même logique que frontend)
     const gateways = [
-      'https://cloudflare-ipfs.com/ipfs/',
-      'https://ipfs.io/ipfs/',
       'https://gateway.pinata.cloud/ipfs/',
-      'https://dweb.link/ipfs/'
+      'https://ipfs.io/ipfs/',
+      'https://dweb.link/ipfs/',
+      'https://4everland.io/ipfs/'
     ];
 
     let lastError = null;

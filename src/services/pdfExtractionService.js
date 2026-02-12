@@ -11,10 +11,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.j
 
 // Multi-gateways IPFS pour robustesse
 const IPFS_GATEWAYS = [
-  'https://cloudflare-ipfs.com/ipfs/',
-  'https://ipfs.io/ipfs/',
   'https://gateway.pinata.cloud/ipfs/',
-  'https://dweb.link/ipfs/'
+  'https://ipfs.io/ipfs/',
+  'https://dweb.link/ipfs/',
+  'https://4everland.io/ipfs/'
 ];
 const MAX_PAGES_TO_EXTRACT = 8; // Limite pour la vitesse
 
