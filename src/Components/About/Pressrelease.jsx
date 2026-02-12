@@ -5,6 +5,17 @@ import { db } from '../../services/firebase';
 import DocumentViewer from '../Library/components/DocumentViewer';
 import LargeDocumentViewer from '../Library/components/LargeDocumentViewer';
 
+const PINNED_PRESS_RELEASES = [
+  {
+    id: 'pretoria-statement-2026',
+    title: 'Contribution to the UNESCO Digital Platform Governance Conference — Pretoria Statement',
+    author: 'I4T Knowledge Network',
+    date: 'February 12, 2026',
+    excerpt: 'Building digital platform regulatory systems through inclusion, cooperation, and trust. A shifting world order is putting international law and multilateral institutions under unprecedented strain. The I4T Global Knowledge Network proposes concrete actions to support healthy information systems and interventions in digital platform governance and regulation that are critical for the realization of democracy, protection of human rights, and social cohesion, tolerance, and peace.',
+    pdfUrl: '/press-releases/I4T_kn_Pretoria_Statement_Feb_12_2026.pdf',
+  },
+];
+
 const Pressrelease = () => {
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(true);
@@ -56,6 +67,45 @@ const Pressrelease = () => {
 
     fetchPressReleases();
   }, []);
+
+  const renderPinnedPressReleases = () => {
+    return PINNED_PRESS_RELEASES.map((pr) => (
+      <article key={pr.id} className="bg-white/50 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden mb-8">
+        <div className="p-6">
+          <h3 className="text-2xl font-semibold mb-3">{pr.title}</h3>
+          <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+            <span>{pr.author}</span>
+            <span>•</span>
+            <span>{pr.date}</span>
+          </div>
+          <div className="flex flex-col gap-6">
+            <div className="w-full rounded-lg overflow-hidden border border-gray-200" style={{ height: '800px' }}>
+              <iframe
+                src={pr.pdfUrl}
+                title={pr.title}
+                width="100%"
+                height="100%"
+                style={{ border: 'none' }}
+              />
+            </div>
+            <div className="bg-white/80 p-6 rounded-lg">
+              <p className="text-gray-600">{pr.excerpt}</p>
+            </div>
+            <div className="flex justify-start">
+              <a
+                href={pr.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Download PDF
+              </a>
+            </div>
+          </div>
+        </div>
+      </article>
+    ));
+  };
 
   const renderLatestPressRelease = () => {
     const latest = results[0];
@@ -123,6 +173,8 @@ const Pressrelease = () => {
       {error && (
         <div className="text-red-600 mb-4 text-center">{error}</div>
       )}
+
+      {renderPinnedPressReleases()}
 
       {isSearching ? (
         <div className="flex justify-center p-4">
