@@ -13,11 +13,11 @@ import I4TKDashboard from './components/I4TDashboard';
 import GenealogyPage from './GenealogyPage';
 
 
-// =============== ROLE HASHES ===============
+// =============== ROLE HASHES (from shared contractConfig) ===============
 const ROLE_HASHES = {
-  ADMIN: '0xa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775',
-  CONTRIBUTOR: '0xe2889e7308860b3fe8df0daa86fccfea4d71e43776719a57be28cf90b6db81e9',
-  VALIDATOR: '0x21702c8af46127c7fa207f89d0b0a8441bb32959a0ac7df790e9ab1a25c98926'
+  ADMIN: contractConfig.roles.ADMIN_ROLE,
+  CONTRIBUTOR: contractConfig.roles.CONTRIBUTOR_ROLE,
+  VALIDATOR: contractConfig.roles.VALIDATOR_ROLE
 };
 
 // =============== TABS CONFIGURATION ===============
@@ -170,9 +170,9 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
     }
 
     setWeb3Roles({
-      isContributor: hasContributorRole,
-      isValidator: hasValidatorRole,
-      isAdmin: hasAdminRole
+      isContributor: !!hasContributorRole,
+      isValidator: !!hasValidatorRole,
+      isAdmin: !!hasAdminRole
     });
   };
 
@@ -181,7 +181,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
       [TABS.NETWORK_PUBLICATIONS]: 'Peer reviews'
     };
 
-    if (hasAccess('SUBMIT_CONTRIBUTION') && web3Roles.isContributor) {
+    if (hasAccess('SUBMIT_CONTRIBUTION') && (web3Roles.isContributor || web3Roles.isValidator || web3Roles.isAdmin)) {
       tabs[TABS.SUBMIT_CONTRIBUTION] = 'Submit Contribution';
     }
 
@@ -221,7 +221,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
   const renderContent = () => {
     switch (activeTab) {
       case TABS.SUBMIT_CONTRIBUTION:
-        return hasAccess('SUBMIT_CONTRIBUTION') && web3Roles.isContributor 
+        return hasAccess('SUBMIT_CONTRIBUTION') && (web3Roles.isContributor || web3Roles.isValidator || web3Roles.isAdmin) 
           ? renderSubmitContributionTab()
           : null;
 

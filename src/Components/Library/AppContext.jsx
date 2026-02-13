@@ -31,8 +31,8 @@ export function AppProvider({ children }) {
       isConnected, 
       profile,
       isAdmin: profile === 3,
-      isValidator: profile === 2,
-      isContributor: profile === 1
+      isValidator: profile >= 2,
+      isContributor: profile >= 1
     }}>
       {children}
     </AppContext.Provider>

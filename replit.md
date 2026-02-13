@@ -6,6 +6,26 @@ I4T Knowledge Network is a web application for digital governance research and c
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Fixes (February 2026)
+
+## Blockchain Role Registration Fix
+Fixed critical bug in LibrarianSpace.jsx where wagmi v2's `useWaitForTransactionReceipt` used unsupported `onSuccess`/`onError` callbacks:
+- Replaced with `useEffect` watching `isTxSuccess`/`isTxError` (wagmi v2 compatible)
+- Firestore save now happens ONLY after blockchain confirmation (was saving before confirmation)
+- Added transaction status UI feedback (pending/confirmed/failed) with Etherscan link
+- Form disabled during pending transaction to prevent data mismatch
+
+## Role Hierarchy Fix
+- LibraryPage.jsx: Submit Contribution tab now accessible to validators and admins (not just contributors)
+- AppContext.jsx: Profile hierarchy uses `>=` comparison so validators inherit contributor capabilities
+- Role hashes now sourced from shared `contractConfig.roles` instead of duplicated constants
+- Smart contract confirms: `registerMember(profile=2)` grants both CONTRIBUTOR and VALIDATOR roles
+
+## IPFS Multi-Gateway Fallback
+Unified IPFS gateway fallback across all components (priority: Pinata > ipfs.io > dweb.link > 4everland):
+- LargeDocumentViewer, DocumentViewer, NetworkPublications, chatService, pdfExtractionService, server.cjs, I4TDashboard
+- Removed dead cloudflare-ipfs.com gateway
+
 # Recent Features (January 2026)
 
 ## Library Heatmap CSV Export

@@ -78,6 +78,7 @@ export default function LibrarianSpace() {
   const [error, setError] = useState(null);
   const [txHash, setTxHash] = useState(null);
   const [transactionStatus, setTransactionStatus] = useState(null);
+  const [pendingFormData, setPendingFormData] = useState(null);
   const { members } = useMembers();
 
   // =============== EFFECTS ===============
@@ -93,32 +94,53 @@ export default function LibrarianSpace() {
     }
   }, [txHash]);
 
-  const { isLoading: isTxPending, isSuccess: isTxSuccess } = useWaitForTransactionReceipt({
+  const { isLoading: isTxPending, isSuccess: isTxSuccess, isError: isTxError, data: txReceipt } = useWaitForTransactionReceipt({
     hash: txHash,
     enabled: !!txHash,
-    onSuccess: async (receipt) => {
-      console.log('Transaction confirmed:', receipt);
-      setTransactionStatus('CONFIRMED');
-      await handleTransactionSuccess(receipt);
-    },
-    onError: (error) => {
-      console.error('Transaction failed:', error);
-      setTransactionStatus('FAILED');
-      setError('Transaction failed');
-    }
   });
+
+  useEffect(() => {
+    if (isTxSuccess && txReceipt && txHash) {
+      console.log('Transaction confirmed via useEffect:', txReceipt);
+      setTransactionStatus('CONFIRMED');
+      handleTransactionSuccess(txReceipt);
+    }
+  }, [isTxSuccess, txReceipt, txHash]);
+
+  useEffect(() => {
+    if (isTxError && txHash) {
+      console.error('Transaction failed via useEffect');
+      setTransactionStatus('FAILED');
+      setError('Transaction failed on blockchain');
+    }
+  }, [isTxError, txHash]);
 
 
   // =============== HANDLERS ===============
   async function handleTransactionSuccess(receipt) {
     try {
       console.log('Starting handleTransactionSuccess with receipt:', receipt);
-      console.log('Current form data:', formData);
+      console.log('Current form data - saving to Firestore:', pendingFormData || formData);
 
-      const existingRoles = await roleManagementService.getRolesByAddress(formData.address);
-      console.log('Existing roles:', existingRoles);
+      const dataToSave = pendingFormData || formData;
+
+      const roleData = {
+        address: dataToSave.address,
+        role: dataToSave.role,
+        action: dataToSave.pendingAction || 'register',
+        transactionHash: txHash,
+        memberId: dataToSave.memberId,
+        memberName: dataToSave.memberName,
+        category: dataToSave.category,
+        country: dataToSave.country,
+        createdAt: new Date().toISOString()
+      };
+
+      await roleManagementService.addRole(roleData);
+      console.log('Role action recorded in Firestore after blockchain confirmation:', roleData);
 
       await loadRoles();
+      setPendingFormData(null);
       resetForm();
     } catch (error) {
       console.error('Error in handleTransactionSuccess:', error);
@@ -145,23 +167,23 @@ export default function LibrarianSpace() {
       console.log('Starting handleSubmit:', { action, formData });
       setError(null);
       setTxHash(null);
+      setTransactionStatus(null);
 
       if (!formData.address || !formData.role) {
         setError('Please fill all required fields');
         return;
       }
 
-      // Mapper les rôles vers les profils du smart contract
       let profile;
       switch(formData.role) {
         case 'CONTRIBUTOR':
-          profile = 1; // Profiles.researcher
+          profile = 1;
           break;
         case 'VALIDATOR':
-          profile = 2; // Profiles.labs
+          profile = 2;
           break;
         case 'ADMIN':
-          profile = 3; // Profiles.admin
+          profile = 3;
           break;
         default:
           setError('Invalid role');
@@ -170,7 +192,8 @@ export default function LibrarianSpace() {
 
       const functionName = action === 'register' ? 'registerMember' : 'revokeMember';
 
-      // Transaction blockchain
+      setPendingFormData({ ...formData, pendingAction: action });
+
       const tx = await writeContractAsync({
         ...contractConfig,
         functionName,
@@ -180,24 +203,9 @@ export default function LibrarianSpace() {
       console.log('Transaction submitted:', tx);
       setTxHash(tx);
 
-      // Enregistrement dans Firestore avec le nouveau champ "action"
-      const roleData = {
-        address: formData.address,
-        role: formData.role,
-        action: action, // 'register' ou 'revoke'
-        transactionHash: tx,
-        memberId: formData.memberId,
-        memberName: formData.memberName,
-        category: formData.category,
-        country: formData.country,
-        createdAt: new Date().toISOString()
-      };
-
-      await roleManagementService.addRole(roleData);
-      console.log('Role action recorded in Firestore:', roleData);
-
     } catch (error) {
       console.error('Transaction error:', error);
+      setPendingFormData(null);
       setError(error.message || 'Transaction failed');
     }
   }
@@ -328,10 +336,32 @@ export default function LibrarianSpace() {
             type="button"
             className="w-full bg-blue-500 text-white rounded p-2 hover:bg-blue-600 disabled:bg-gray-300"
             onClick={() => handleSubmit(activeTab)}
-            disabled={isTxPending || !formData.memberId || !formData.address || !formData.role}
+            disabled={isTxPending || !!pendingFormData || !formData.memberId || !formData.address || !formData.role}
           >
-            {isTxPending ? 'Processing...' : activeTab === 'register' ? 'Register' : 'Revoke'}
+            {isTxPending ? 'Waiting for blockchain confirmation...' : activeTab === 'register' ? 'Register' : 'Revoke'}
           </button>
+
+          {transactionStatus === 'PENDING' && (
+            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-yellow-800 text-sm">
+              Transaction submitted. Waiting for blockchain confirmation...
+            </div>
+          )}
+          {transactionStatus === 'CONFIRMED' && (
+            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm">
+              Transaction confirmed and recorded successfully.
+            </div>
+          )}
+          {transactionStatus === 'FAILED' && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+              Transaction failed on blockchain. Please try again.
+            </div>
+          )}
+
+          {txHash && (
+            <div className="mt-2 text-xs text-gray-500">
+              Tx: <a href={`https://sepolia.etherscan.io/tx/${txHash}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{txHash.slice(0, 10)}...{txHash.slice(-8)}</a>
+            </div>
+          )}
         </form>
 
         {/* Roles Registry */}
