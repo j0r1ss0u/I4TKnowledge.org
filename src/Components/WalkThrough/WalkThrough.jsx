@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../AuthContext';
 import {
   ChevronDown,
   ChevronRight,
@@ -121,7 +122,17 @@ const Step = ({ number, title, desc, color = "blue" }) => {
 };
 
 const WalkThrough = () => {
-  const [activeTab, setActiveTab] = useState('observer');
+  const { user } = useAuth();
+
+  const roleToTab = {
+    admin: 'admin',
+    validator: 'validator',
+    member: 'member',
+    observer: 'observer'
+  };
+  const defaultTab = roleToTab[user?.role] || 'member';
+
+  const [activeTab, setActiveTab] = useState(defaultTab);
 
   const tabs = [
     { id: 'observer', label: 'Observer', icon: Eye },
