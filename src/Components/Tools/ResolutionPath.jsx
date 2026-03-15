@@ -942,19 +942,15 @@ const ResolutionPath = ({ elements, onBack }) => {
                     {path.creator?.name || "Unknown"}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center">
-                      {path.averageRating ? (
-                        <>
-                          <div className="flex mr-1">
-                            {renderStars(path.averageRating)}
-                          </div>
-                          <span className="text-sm text-gray-600">
-                            ({path.averageRating.toFixed(1)})
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-sm text-gray-500">{t.notRated}</span>
-                      )}
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-1">
+                        {renderStars(path.averageRating || 0)}
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {path.averageRating
+                          ? `${path.averageRating.toFixed(1)}/5 · ${Object.keys(path.ratings || {}).length} ${t.votes}`
+                          : t.notRated}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm">
