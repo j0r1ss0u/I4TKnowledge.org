@@ -262,7 +262,11 @@ export const AuthProvider = ({ children }) => {
                 ...userDoc
               });
 
-              const welcomeMessage = invitationData.role === 'validator' ? t.welcomeValidator : t.welcomeMember;
+              const welcomeMessage = invitationData.role === 'validator'
+                ? t.welcomeValidator
+                : invitationData.role === 'observer'
+                  ? t.welcomeObserver
+                  : t.welcomeMember;
               showNotification(`${welcomeMessage} ${t.welcomeOf} ${invitationData.organization}`);
 
             } catch (initError) {
@@ -323,7 +327,15 @@ export const AuthProvider = ({ children }) => {
       }
 
       const user = await firebaseAuthService.loginUser(credentials.email, credentials.password);
-      showNotification(`${user.role === 'admin' ? t.adminConnected : `${t.welcomeMember}`}`);
+      const organizationText = user.organization ? ` ${t.welcomeOf} ${user.organization}` : '';
+      const welcomeMsg = user.role === 'admin'
+        ? t.adminConnected
+        : user.role === 'validator'
+          ? t.welcomeValidator
+          : user.role === 'observer'
+            ? t.welcomeObserver
+            : t.welcomeMember;
+      showNotification(`${welcomeMsg}${organizationText}`);
       return user;
     } catch (error) {
       let message = t.loginError;
