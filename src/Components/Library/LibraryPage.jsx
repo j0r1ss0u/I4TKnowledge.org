@@ -189,7 +189,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
       tabs[TABS.LIBRARIAN_SPACE] = 'Librarian Space';
     }
 
-    if (hasAccess('IP_MONITORING')) {
+    if (hasAccess('IP_MONITORING') && !!address) {
       tabs[TABS.I4T_AND_I] = 'IP monitoring';
     }
 
