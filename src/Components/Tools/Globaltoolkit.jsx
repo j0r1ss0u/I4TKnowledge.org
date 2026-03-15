@@ -11,6 +11,16 @@ import { useAuth } from '../AuthContext';
 import ResolutionPath from './ResolutionPath'; // Importation du composant ResolutionPath
 import { ExternalLink, Download } from 'lucide-react';
 
+// Retourne l'URL IPFS d'un document (via Pinata en priorité) ou null si pas de CID
+const getDocumentIpfsUrl = (doc) => {
+  if (!doc?.ipfsCid) return null;
+  let cid = doc.ipfsCid;
+  if (cid.startsWith('ipfs://')) cid = cid.replace('ipfs://', '');
+  cid = cid.trim();
+  if (!cid.match(/^[a-zA-Z0-9]{46,62}$/)) return null;
+  return `https://gateway.pinata.cloud/ipfs/${cid}`;
+};
+
 // =================================================================
 // SECTION 1: CONFIGURATION DES CATÉGORIES
 // =================================================================
@@ -1182,28 +1192,42 @@ const Globaltoolkit = () => {
                     </div>
                   ) : linkedDocuments && linkedDocuments.length > 0 ? (
                     <ul className="space-y-2">
-                      {linkedDocuments.map((doc) => (
-                        <li key={doc.id} className="flex items-start gap-2 p-2 hover:bg-gray-50 rounded">
-                          <ExternalLink className="w-4 h-4 mt-1 text-blue-600 flex-shrink-0" />
-                          <div className="flex-1">
-                            <a
-                              href={`/#library`}
-                              className="text-blue-600 hover:underline font-medium"
-                              onClick={() => {
-                                window.location.hash = 'library';
-                              }}
-                            >
-                              {doc.title}
-                            </a>
-                            <p className="text-xs text-gray-600 mt-1">
-                              {doc.authors || doc.creatorAddress} • {doc.validationStatus}
-                            </p>
-                            {doc.description && (
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{doc.description}</p>
-                            )}
-                          </div>
-                        </li>
-                      ))}
+                      {linkedDocuments.map((doc) => {
+                        const ipfsUrl = getDocumentIpfsUrl(doc);
+                        const href = ipfsUrl
+                          ? ipfsUrl
+                          : doc.tokenId
+                            ? `/#library?tokenId=${doc.tokenId}`
+                            : `/#library`;
+                        const isExternal = !!ipfsUrl;
+                        return (
+                          <li key={doc.id} className="flex items-start gap-2 p-2 hover:bg-gray-50 rounded">
+                            <ExternalLink className="w-4 h-4 mt-1 text-blue-600 flex-shrink-0" />
+                            <div className="flex-1">
+                              <a
+                                href={href}
+                                className="text-blue-600 hover:underline font-medium"
+                                target={isExternal ? '_blank' : undefined}
+                                rel={isExternal ? 'noopener noreferrer' : undefined}
+                                onClick={!isExternal ? (e) => {
+                                  e.preventDefault();
+                                  window.location.hash = doc.tokenId
+                                    ? `library?tokenId=${doc.tokenId}`
+                                    : 'library';
+                                } : undefined}
+                              >
+                                {doc.title}
+                              </a>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {doc.authors || doc.creatorAddress} • {doc.validationStatus}
+                              </p>
+                              {doc.description && (
+                                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{doc.description}</p>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
                     </ul>
                   ) : (
                     <p className="text-gray-500 italic">No documents reference this element yet.</p>
