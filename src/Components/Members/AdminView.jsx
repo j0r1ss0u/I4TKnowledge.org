@@ -725,6 +725,7 @@ const AdminView = () => {
                             className="text-sm text-gray-900 border border-gray-300 rounded px-2 py-1 w-full"
                           >
                             <option value="member">Member</option>
+                            <option value="observer">Observer</option>
                             <option value="validator">Organization Validator</option>
                             <option value="admin">Admin</option>
                           </select>
@@ -786,7 +787,8 @@ const AdminView = () => {
                 region: e.target.region.value,
                 lat: parseFloat(e.target.lat.value),
                 lng: parseFloat(e.target.lng.value),
-                isVisible: e.target.isVisible.checked
+                isVisible: e.target.isVisible.checked,
+                memberType: e.target.memberType.value
               };
               handleMemberSubmit(formData);
             }} className="space-y-4">
@@ -900,6 +902,18 @@ const AdminView = () => {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Member Type</label>
+                <select
+                  name="memberType"
+                  defaultValue={editingMember?.memberType || 'member'}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
+                >
+                  <option value="member">Member</option>
+                  <option value="observer">Observer</option>
+                </select>
+              </div>
+
               <div className="flex items-center">
                 <input
                   id="isVisible"
@@ -996,6 +1010,7 @@ const AdminView = () => {
                     required
                   >
                     <option value="member">Member</option>
+                    <option value="observer">Observer</option>
                     {isAdmin && <option value="validator">Organization Validator</option>}
                   </select>
                 </div>

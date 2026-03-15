@@ -190,7 +190,8 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         // Mettre à jour l'état
         setInvitation(invitationData);
         setTorDocument(torResults[0]);
-        setStep(STEPS.TOR);
+        // Les observers n'ont pas besoin de signer le ToR
+        setStep(invitationData.role === 'observer' ? STEPS.PASSWORD : STEPS.TOR);
       } catch (err) {
         console.error('Error loading invitation:', err);
         setError(err.message);
@@ -297,9 +298,11 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         }
       }
 
-      // 5. Register ToR acceptance
-      console.log('[DEBUG] Recording Terms of Reference acceptance...');
-      await torService.acceptToR(invitation.email, torDocument.id);
+      // 5. Register ToR acceptance (not required for observers)
+      if (invitation.role !== 'observer') {
+        console.log('[DEBUG] Recording Terms of Reference acceptance...');
+        await torService.acceptToR(invitation.email, torDocument.id);
+      }
 
       // 6. Update user account activation status
       console.log('[DEBUG] Ensuring user account is active...');

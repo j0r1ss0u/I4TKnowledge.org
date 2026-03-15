@@ -5,6 +5,7 @@ export default {
   inactiveAccount: "Your account is inactive. Please contact the administrator.",
   welcomeValidator: "Welcome validator",
   welcomeMember: "Welcome member",
+  welcomeObserver: "Welcome observer",
   welcomeOf: "of",
   profileError: "Error initializing profile. Please contact the administrator.",
   incompleteProfile: "Your user profile is incomplete. Please contact the administrator.",

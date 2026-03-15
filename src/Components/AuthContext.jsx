@@ -160,7 +160,7 @@ export const AuthProvider = ({ children }) => {
                 ...userData
               });
 
-              const welcomeMessage = userData.role === 'validator' ? t.welcomeValidator : t.welcomeMember;
+              const welcomeMessage = userData.role === 'validator' ? t.welcomeValidator : userData.role === 'observer' ? t.welcomeObserver : t.welcomeMember;
               const organizationText = userData.organization ? ` ${t.welcomeOf} ${userData.organization}` : '';
               showNotification(`${welcomeMessage}${organizationText}`);
 
@@ -196,7 +196,7 @@ export const AuthProvider = ({ children }) => {
                 ...userData
               });
 
-              const welcomeMessage = userData.role === 'validator' ? t.welcomeValidator : t.welcomeMember;
+              const welcomeMessage = userData.role === 'validator' ? t.welcomeValidator : userData.role === 'observer' ? t.welcomeObserver : t.welcomeMember;
               const organizationText = userData.organization ? ` ${t.welcomeOf} ${userData.organization}` : '';
               showNotification(`${welcomeMessage}${organizationText}`);
 
@@ -449,9 +449,10 @@ export const AuthProvider = ({ children }) => {
 // =================================================================
 
 const ROLE_HIERARCHY = {
-  admin: ['admin', 'validator', 'member'], 
-  validator: ['validator', 'member'],     
-  member: ['member']                     
+  admin: ['admin', 'validator', 'member'],
+  validator: ['validator', 'member'],
+  member: ['member'],
+  observer: ['observer']
 };
 
 export const withAuth = (WrappedComponent, allowedRoles = []) => {

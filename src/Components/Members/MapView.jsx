@@ -64,6 +64,7 @@ const Members = () => {
   // ==============================================
   const filteredMembers = members.filter(member => {
     if (!member.isVisible) return false;
+    if (member.memberType === 'observer') return false;
 
     const matchesSearch = !filters.search || 
       member.name.toLowerCase().includes(filters.search.toLowerCase()) ||

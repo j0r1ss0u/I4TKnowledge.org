@@ -42,6 +42,7 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
     admin: ['member', 'admin', 'validator'],
     validator: ['member', 'validator'],
     member: ['member'],
+    observer: ['observer'],
   };
 
   const getUserAccess = (user) => {
@@ -55,18 +56,19 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
     { id: "members", label: "Members", public: true },
     { id: "library", label: "Library", public: true },
     { id: "press-releases", label: "Press Releases", public: true },
-    { id: "forum", label: "Forum", requiredRole: 'member' },
-    { id: "tools", label: "Tools", requiredRole: 'member' },
-    { id: "walkthrough", label: "Guide", requiredRole: 'member' },
-    { id: "draft", label: "Draft", requiredRole: 'admin' }
+    { id: "forum", label: "Forum", requiredRoles: ['member'] },
+    { id: "tools", label: "Tools", requiredRoles: ['member', 'observer'] },
+    { id: "walkthrough", label: "Guide", requiredRoles: ['member', 'observer'] },
+    { id: "draft", label: "Draft", requiredRoles: ['admin'] }
   ];
 
   const userAccess = getUserAccess(user);
 
-  const visibleItems = navItems.filter(item => 
-    item.public || 
-    (user && item.requiredRole && userAccess.includes(item.requiredRole))
-  );
+  const visibleItems = navItems.filter(item => {
+    if (item.public) return true;
+    if (!user || !item.requiredRoles) return false;
+    return item.requiredRoles.some(role => userAccess.includes(role));
+  });
 
   const handleNavClick = (itemId) => {
     handlePageChange(itemId);
