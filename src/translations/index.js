@@ -3,7 +3,7 @@ const translationCache = new Map();
 
 /**
  * Dynamically loads translation files based on language
- * @param {string} language - Language code ('en' or 'fr')
+ * @param {string} language - Language code ('en', 'fr' or 'es')
  * @returns {Promise<Object>} Translation object for the specified language
  */
 export const loadTranslations = async (language) => {
@@ -19,6 +19,10 @@ export const loadTranslations = async (language) => {
       case 'fr':
         const frModule = await import('./fr.js');
         translations = frModule.default;
+        break;
+      case 'es':
+        const esModule = await import('./es.js');
+        translations = esModule.default;
         break;
       case 'en':
       default:
@@ -54,5 +58,5 @@ export const preloadTranslations = (language) => {
  * @returns {string[]} Array of available language codes
  */
 export const getAvailableLanguages = () => {
-  return ['en', 'fr'];
+  return ['en', 'fr', 'es'];
 };

@@ -62,6 +62,33 @@ const translations = {
     linkInvalid: "Le lien de réinitialisation est invalide ou a expiré.",
     checkError: "Une erreur s'est produite lors de la vérification du lien de réinitialisation.",
     redirectingHome: "Redirection vers la page d'accueil...",
+  },
+  es: {
+    title: "Restablecer su contraseña",
+    emailLabel: "Dirección de correo electrónico",
+    emailPlaceholder: "Ingrese su dirección de correo electrónico",
+    submitButton: "Enviar instrucciones",
+    processingButton: "Procesando...",
+    verifyTitle: "Verificar código",
+    verifyPrompt: "Por favor, ingrese el código de restablecimiento recibido por correo.",
+    codeLabel: "Código de restablecimiento",
+    codePlaceholder: "Ingrese el código recibido por correo",
+    verifyButton: "Verificar código",
+    backToLogin: "Volver al inicio de sesión",
+    passwordTitle: "Establecer nueva contraseña",
+    passwordPrompt: "Por favor, ingrese su nueva contraseña a continuación.",
+    resetButton: "Restablecer contraseña",
+    successMessage: "Si existe una cuenta con esta dirección de correo, recibirá instrucciones para restablecer su contraseña.",
+    checkInbox: "Por favor, revise su bandeja de entrada y la carpeta de spam.",
+    codeRequired: "Por favor, ingrese el código de restablecimiento",
+    invalidCode: "Código de restablecimiento inválido",
+    missingData: "Faltan datos de restablecimiento",
+    resetSuccess: "Su contraseña ha sido restablecida con éxito",
+    resetAndLoggedIn: "Su contraseña ha sido restablecida y ahora ha iniciado sesión",
+    generalError: "Se produjo un error al restablecer su contraseña.",
+    linkInvalid: "El enlace de restablecimiento es inválido o ha expirado.",
+    checkError: "Se produjo un error al verificar el enlace de restablecimiento.",
+    redirectingHome: "Redirigiendo a la página de inicio...",
   }
 };
 
@@ -78,9 +105,10 @@ const ForgotPassword = () => {
   // Get the correct translation based on current language
   const t = translations[language];
 
-  // Toggle language between English and French
+  // Toggle language: EN → FR → ES → EN
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'en' ? 'fr' : 'en');
+    const cycle = { en: 'fr', fr: 'es', es: 'en' };
+    setLanguage(prev => cycle[prev] || 'en');
   };
 
   // Check if user is already logged in (after successful password reset)

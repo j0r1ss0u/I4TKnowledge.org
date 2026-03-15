@@ -237,6 +237,95 @@ const translations = {
     sequence: "Séquence de régulation",
     elementCommentPlaceholder: "Pourquoi cet élément ? Expliquez votre choix...",
     loginToRate: "Connectez-vous pour noter et commenter ce parcours."
+  },
+  es: {
+    // Titles and main sections
+    title: "Itinerarios de Regulación",
+    backButton: "Volver al tableau periódico",
+    description: "Cree y comparta itinerarios de regulación seleccionando y organizando elementos del cuadro periódico de regulación de plataformas digitales.",
+
+    // Search and filters
+    searchPlaceholder: "Buscar un Itinerario de Regulación...",
+    allPaths: "Todos los itinerarios",
+    publishedOnly: "Solo publicados",
+    myPaths: "Mis itinerarios",
+    drafts: "Borradores",
+    newPath: "+ Nuevo Itinerario de Regulación",
+
+    // No paths message
+    noPathsFound: "No se encontró ningún Itinerario de Regulación.",
+    createFirstPath: "Crear mi primer Itinerario de Regulación",
+    loginToCreate: "Inicie sesión para crear un Itinerario de Regulación.",
+
+    // Table headers
+    titleHeader: "Título",
+    creatorHeader: "Creador",
+    ratingHeader: "Valoración",
+    dateHeader: "Fecha",
+    statusHeader: "Estado",
+    actionsHeader: "Acciones",
+
+    // Status labels
+    published: "Publicado",
+    draft: "Borrador",
+    notRated: "Sin valorar",
+
+    // Action buttons
+    viewDetails: "Ver detalles",
+    edit: "Editar",
+    publish: "Publicar",
+    delete: "Eliminar",
+
+    // Creation window
+    newResolutionPath: "Nuevo Itinerario de Regulación",
+    editing: "Editando",
+    titleLabel: "Título",
+    titleFieldLabel: "Obligatorio",
+    descriptionLabel: "Descripción",
+    statusLabel: "Estado",
+    selectedElements: "Elementos seleccionados",
+    dragElements: "Arrastre elementos del cuadro periódico aquí",
+    tip: "Consejo: Arrastre elementos desde el cuadro periódico",
+    cancel: "Cancelar",
+    save: "Guardar",
+
+    // Save prompt
+    saveChanges: "¿Guardar cambios?",
+    savePromptMessage: "¿Desea guardar los cambios realizados en este Itinerario de Regulación?",
+    dontSave: "No guardar",
+
+    // View modal
+    by: "Por",
+    comments: "Comentarios",
+    close: "Cerrar",
+    rating: "Su valoración:",
+    averageRating: "Valoración media:",
+    votes: "votos",
+    addComment: "Añadir un comentario...",
+    commentButton: "Comentar",
+
+    // Alerts
+    titleRequiredAlert: "Por favor, ingrese un título para su Itinerario de Regulación.",
+    elementRequired: "Por favor, seleccione al menos un elemento para su Itinerario de Regulación.",
+    saveError: "Se produjo un error al guardar. Por favor, inténtelo de nuevo.",
+    alreadySelected: "Este elemento ya está en su Itinerario de Regulación.",
+    limitReached: "Ha alcanzado el límite de 15 elementos para un Itinerario de Regulación.",
+    deleteConfirm: "¿Está seguro de que desea eliminar este Itinerario de Regulación?",
+    loadingError: "Error al cargar los itinerarios de regulación. Por favor, inténtelo más tarde.",
+    fetchDetailsError: "Se produjo un error al cargar los detalles. Por favor, inténtelo de nuevo.",
+    addCommentError: "Se produjo un error al añadir el comentario. Por favor, inténtelo de nuevo.",
+    ratingError: "Se produjo un error al valorar. Por favor, inténtelo de nuevo.",
+    deleteError: "Se produjo un error al eliminar. Por favor, inténtelo de nuevo.",
+    publishError: "Se produjo un error al publicar. Por favor, inténtelo de nuevo.",
+    elementRequiredForPublished: "Por favor, seleccione al menos un elemento antes de publicar su Itinerario de Regulación.",
+
+    // Other elements
+    moveUp: "Subir",
+    moveDown: "Bajar",
+    remove: "Eliminar",
+    sequence: "Secuencia de regulación",
+    elementCommentPlaceholder: "¿Por qué este elemento? Explique su elección...",
+    loginToRate: "Inicie sesión para valorar y comentar este itinerario."
   }
 };
 

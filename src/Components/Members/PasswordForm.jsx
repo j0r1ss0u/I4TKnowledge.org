@@ -20,6 +20,15 @@ const translations = {
     passwordsNotMatch: "Les mots de passe ne correspondent pas",
     passwordTooShort: "Le mot de passe doit comporter au moins 8 caractères",
     passwordRequirements: "Le mot de passe doit comporter au moins 8 caractères",
+  },
+  es: {
+    passwordLabel: "Contraseña",
+    passwordPlaceholder: "Ingrese su contraseña (mín. 8 caracteres)",
+    confirmLabel: "Confirmar contraseña",
+    confirmPlaceholder: "Confirme su contraseña",
+    passwordsNotMatch: "Las contraseñas no coinciden",
+    passwordTooShort: "La contraseña debe tener al menos 8 caracteres",
+    passwordRequirements: "La contraseña debe tener al menos 8 caracteres",
   }
 };
 

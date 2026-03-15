@@ -61,12 +61,12 @@ export const AuthProvider = ({ children }) => {
   // Get translations for current language with fallback
   const t = translations || {};
 
-  // Toggle language
+  // Toggle language: EN → FR → ES → EN
   const toggleLanguage = () => {
-    const newLanguage = language === 'en' ? 'fr' : 'en';
+    const cycle = { en: 'fr', fr: 'es', es: 'en' };
+    const newLanguage = cycle[language] || 'en';
     setLanguage(newLanguage);
     localStorage.setItem('preferredLanguage', newLanguage);
-    // Preload translations for the new language
     preloadTranslations(newLanguage);
   };
 
@@ -88,9 +88,9 @@ export const AuthProvider = ({ children }) => {
 
     loadCurrentTranslations();
     
-    // Preload the other language for faster switching
-    const otherLanguage = language === 'en' ? 'fr' : 'en';
-    preloadTranslations(otherLanguage);
+    // Preload the next language in the cycle for faster switching
+    const nextInCycle = { en: 'fr', fr: 'es', es: 'en' };
+    preloadTranslations(nextInCycle[language] || 'fr');
   }, [language]);
 
   // ------- Notification handler -------
@@ -522,7 +522,7 @@ export const UserProfile = () => {
         className="flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
       >
         <LogOut className="h-4 w-4 mr-1" />
-        {language === 'fr' ? 'Déconnexion' : 'Logout'}
+        {language === 'fr' ? 'Déconnexion' : language === 'es' ? 'Cerrar sesión' : 'Logout'}
       </button>
     </div>
   );

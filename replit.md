@@ -6,6 +6,23 @@ I4T Knowledge Network is a web application for digital governance research and c
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes (March 2026)
+
+## Spanish (ES) Language Added
+Full trilingual support added — EN → FR → ES → EN cycle:
+- Created `src/translations/es.js` for AuthContext strings
+- `src/translations/index.js`: added `es` case to dynamic loader + `getAvailableLanguages` updated to `['en', 'fr', 'es']`
+- `src/translations/library.js`: ES section was already complete
+- `AuthContext.jsx`: toggle cycle now EN→FR→ES→EN; preloads next language in cycle
+- `Header.jsx`: LanguageToggle aria-label updated for 3 languages; shows current language code (EN/FR/ES)
+- `ForgotPassword.jsx`: added ES section + updated local toggle to 3-way cycle
+- `PasswordForm.jsx`: added ES section
+- `ResolutionPath.jsx`: added full ES section ("Itinerarios de Regulación" terminology)
+
+## Mobile UX — Tools Page
+- Periodic table: horizontal scroll on mobile (`overflow-x-auto`, min-width 660px); scroll hint banner on mobile, zoom/pan hint on desktop only
+- ResolutionPath creation: full-screen overlay on mobile (instead of Draggable floating panel); built-in element search picker by tap (replaces HTML5 drag-and-drop which is not supported on touch); desktop behavior unchanged
+
 # Recent Fixes (February 2026)
 
 ## Blockchain Role Registration Fix
