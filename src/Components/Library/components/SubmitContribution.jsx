@@ -139,20 +139,20 @@ const ChoiceModal = ({ onCentralized, onWeb3, onClose, address, showBenefits, se
         )}
       </div>
 
-      {/* Centralized Option */}
+      {/* Admin Validation Option */}
       <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-gray-400 transition-colors">
         <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-2">
           <MessageCircle className="w-5 h-5 text-gray-600" />
-          Approbation centralisée
+          Admin validation
         </h4>
         <p className="text-sm text-gray-600 mb-4">
-          Votre document est soumis en attente de validation manuelle par un administrateur I4TK. Vous serez contacté via Signal pour le suivi.
+          Votre document est soumis en attente de validation par un administrateur I4TK. Une fois approuvé, un admin procédera à sa publication.
         </p>
         <button
           onClick={onCentralized}
           className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium text-sm"
         >
-          Soumettre pour approbation centralisée
+          Soumettre pour admin validation
         </button>
       </div>
     </div>
@@ -291,8 +291,8 @@ export default function SubmitContribution() {
       const docData = {
         ...formData,
         creatorAddress: user?.email || user?.uid || 'unknown',
-        validationStatus: "PENDING_CENTRALIZED",
-        submissionPath: 'centralized',
+        validationStatus: "PENDING_ADMIN_VALIDATION",
+        submissionPath: 'admin-validation',
         createdAt: new Date().toISOString()
       };
       await documentsService.addDocument(docData);
@@ -376,7 +376,7 @@ export default function SubmitContribution() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-3">Contribution soumise !</h2>
         <p className="text-gray-600 mb-4">
-          Votre document a été soumis avec succès et est en attente d'approbation par l'équipe I4TK.
+          Votre document a été soumis avec succès et est en attente d'admin validation.
         </p>
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left mb-6">
           <p className="text-amber-800 font-medium flex items-center gap-2 mb-2">
