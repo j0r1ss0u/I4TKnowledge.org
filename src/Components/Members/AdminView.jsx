@@ -278,7 +278,6 @@ const AdminView = () => {
     try {
       console.log('Tentative de mise à jour du rôle:', { uid, newRole });
 
-      // Récupérer les données utilisateur actuelles
       const userRef = doc(db, 'users', uid);
       const userDoc = await getDoc(userRef);
 
@@ -286,16 +285,25 @@ const AdminView = () => {
         throw new Error('Utilisateur non trouvé');
       }
 
-      // Mise à jour dans Firestore
-      await updateDoc(userRef, {
+      const currentRole = userDoc.data().role;
+      const upgradingFromObserver = currentRole === 'observer' && (newRole === 'member' || newRole === 'validator');
+
+      const updateData = {
         role: newRole,
         updatedAt: serverTimestamp()
-      });
+      };
 
-      // Recharger les données
+      if (upgradingFromObserver) {
+        updateData.requiresTorAcceptance = true;
+      }
+
+      await updateDoc(userRef, updateData);
       await loadData();
 
-      showNotification(`Rôle mis à jour avec succès: ${newRole}`, 'success');
+      const message = upgradingFromObserver
+        ? `Rôle mis à jour : ${newRole}. L'utilisateur devra accepter le ToR à sa prochaine connexion.`
+        : `Rôle mis à jour avec succès: ${newRole}`;
+      showNotification(message, 'success');
 
     } catch (error) {
       console.error('Erreur lors de la mise à jour du rôle:', error);

@@ -50,6 +50,7 @@ const GenealogyPage = React.lazy(() => import('./Components/Library/GenealogyPag
 const LibraryChat = React.lazy(() => import('./Components/Library/LibraryChat'));
 const WalkThrough = React.lazy(() => import('./Components/WalkThrough/WalkThrough'));
 const FinalizeInvitation = React.lazy(() => import('./Components/Members/FinalizeInvitation'));
+const TorAcceptanceRequired = React.lazy(() => import('./Components/Members/TorAcceptanceRequired'));
 const Pressrelease = React.lazy(() => import('./Components/About/Pressrelease'));
 const ForgotPassword = React.lazy(() => import('./Components/Members/ForgotPassword'));
 const ToolsPage = React.lazy(() => import('./Components/Tools/ToolsPage'));
@@ -813,90 +814,96 @@ function AppContent() {
       {/* Main Content */}
       <div className="relative z-10 w-full">
         <main className="w-full overflow-x-hidden">
-          {currentPage === "home" && (
+          {user?.requiresTorAcceptance ? (
             <Suspense fallback={<PageLoader />}>
-              <HomePage 
-                currentLang={currentLang} 
-                handlePageChange={handlePageChange}
-                setActiveView={setViewMode}
-              />
+              <TorAcceptanceRequired />
             </Suspense>
-          )}
-          {currentPage === "about" && (
-            <Suspense fallback={<PageLoader />}>
-              <AboutPage currentLang={currentLang} />
-            </Suspense>
-          )}
-          {currentPage === "tools" && (
-            <Suspense fallback={<PageLoader />}>
-              <ToolsPage currentLang={currentLang} />
-            </Suspense>
-          )}
-
-          {currentPage === "register" && (
-            <div className="container mx-auto max-w-md p-6">
-              <RegisterComponent 
-                handlePageChange={handlePageChange}
-                showNotification={showNotification}
-                currentLang={currentLang}
-              />
-            </div>
-          )}
-
-          {currentPage === "finalize-invitation" && (
-            <Suspense fallback={<PageLoader />}>
-              <FinalizeInvitation handlePageChange={handlePageChange} />
-            </Suspense>
-          )}
-          {currentPage === "reset-password" && (
-            <Suspense fallback={<PageLoader />}>
-              <ForgotPassword />
-            </Suspense>
-          )}
-          {currentPage === "draft" && user?.role === "admin" && (
-            <Suspense fallback={<PageLoader />}>
-              <LibraryChat currentLang={currentLang} />
-            </Suspense>
-          )}
-          {currentPage === "walkthrough" && (
-            <Suspense fallback={<PageLoader />}>
-              <WalkThrough />
-            </Suspense>
-          )}
-          {currentPage === "members" && (
-            <MembersPageComponent 
-              currentLang={currentLang}
-              initialView={localStorage.getItem('preferredView')}
-            />
-          )}
-          {currentPage === "library" && (
-            <Suspense fallback={<PageLoader />}>
-              <LibraryPage 
-                currentLang={currentLang} 
-                handlePageChange={handlePageChange}
-                setSelectedTokenId={setSelectedTokenId}
-              />
-            </Suspense>
-          )}
-          {currentPage === "press-releases" && (
-            <Suspense fallback={<PageLoader />}>
-              <Pressrelease currentLang={currentLang} />
-            </Suspense>
-          )}
-          {currentPage === "genealogy" && (
-            <Suspense fallback={<PageLoader />}>
-              {console.log("Rendering GenealogyPage with tokenId:", selectedTokenId)}
-              <GenealogyPage 
-                currentLang={currentLang}
-                tokenId={selectedTokenId}
-                onBack={() => handlePageChange("library")}
-              />
-            </Suspense>
-          )}
-          {currentPage === "forum" && (
-            <Suspense fallback={<PageLoader />}>
-              <ProtectedForumPage currentLang={currentLang} />
-            </Suspense>
+          ) : (
+            <>
+              {currentPage === "home" && (
+                <Suspense fallback={<PageLoader />}>
+                  <HomePage
+                    currentLang={currentLang}
+                    handlePageChange={handlePageChange}
+                    setActiveView={setViewMode}
+                  />
+                </Suspense>
+              )}
+              {currentPage === "about" && (
+                <Suspense fallback={<PageLoader />}>
+                  <AboutPage currentLang={currentLang} />
+                </Suspense>
+              )}
+              {currentPage === "tools" && (
+                <Suspense fallback={<PageLoader />}>
+                  <ToolsPage currentLang={currentLang} />
+                </Suspense>
+              )}
+              {currentPage === "register" && (
+                <div className="container mx-auto max-w-md p-6">
+                  <RegisterComponent
+                    handlePageChange={handlePageChange}
+                    showNotification={showNotification}
+                    currentLang={currentLang}
+                  />
+                </div>
+              )}
+              {currentPage === "finalize-invitation" && (
+                <Suspense fallback={<PageLoader />}>
+                  <FinalizeInvitation handlePageChange={handlePageChange} />
+                </Suspense>
+              )}
+              {currentPage === "reset-password" && (
+                <Suspense fallback={<PageLoader />}>
+                  <ForgotPassword />
+                </Suspense>
+              )}
+              {currentPage === "draft" && user?.role === "admin" && (
+                <Suspense fallback={<PageLoader />}>
+                  <LibraryChat currentLang={currentLang} />
+                </Suspense>
+              )}
+              {currentPage === "walkthrough" && (
+                <Suspense fallback={<PageLoader />}>
+                  <WalkThrough />
+                </Suspense>
+              )}
+              {currentPage === "members" && (
+                <MembersPageComponent
+                  currentLang={currentLang}
+                  initialView={localStorage.getItem('preferredView')}
+                />
+              )}
+              {currentPage === "library" && (
+                <Suspense fallback={<PageLoader />}>
+                  <LibraryPage
+                    currentLang={currentLang}
+                    handlePageChange={handlePageChange}
+                    setSelectedTokenId={setSelectedTokenId}
+                  />
+                </Suspense>
+              )}
+              {currentPage === "press-releases" && (
+                <Suspense fallback={<PageLoader />}>
+                  <Pressrelease currentLang={currentLang} />
+                </Suspense>
+              )}
+              {currentPage === "genealogy" && (
+                <Suspense fallback={<PageLoader />}>
+                  {console.log("Rendering GenealogyPage with tokenId:", selectedTokenId)}
+                  <GenealogyPage
+                    currentLang={currentLang}
+                    tokenId={selectedTokenId}
+                    onBack={() => handlePageChange("library")}
+                  />
+                </Suspense>
+              )}
+              {currentPage === "forum" && (
+                <Suspense fallback={<PageLoader />}>
+                  <ProtectedForumPage currentLang={currentLang} />
+                </Suspense>
+              )}
+            </>
           )}
         </main>
       </div>
