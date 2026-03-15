@@ -4,6 +4,8 @@ import { documentsService } from '../../../services/documentsService';
 import { AlertCircle, CheckCircle2, Search, Download, Save, X, Loader2 } from 'lucide-react';
 import I4TKdocTokenArtifact from '../../../config/contracts/I4TKdocToken.json';
 import contractAddresses from '../../../config/contracts/addresses.json';
+import { useAuth } from '../../AuthContext';
+import libraryTranslations from '../../../translations/library';
 
 const currentChainId = import.meta.env.VITE_CHAIN_ID || '11155111';
 const docTokenAddress = contractAddresses[currentChainId]?.I4TKdocToken;
@@ -34,6 +36,9 @@ const resolveERC1155URI = (uri, tokenId) => {
 };
 
 export default function RecoverMissingDocument({ onClose, onSuccess }) {
+  const { language } = useAuth();
+  const l = libraryTranslations[language] || libraryTranslations.en;
+
   const [tokenId, setTokenId] = useState('');
   const [searchedTokenId, setSearchedTokenId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -73,7 +78,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
 
   const handleSearch = async () => {
     if (!tokenId || isNaN(parseInt(tokenId))) {
-      setError('Veuillez entrer un Token ID valide');
+      setError(l.recoverInvalidToken);
       return;
     }
 
@@ -85,7 +90,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
     try {
       const existingDoc = await documentsService.getDocumentByTokenId(tokenId);
       if (existingDoc) {
-        setError(`Ce document (Token ID ${tokenId}) existe déjà dans Firebase avec l'ID: ${existingDoc.id}`);
+        setError(l.recoverDuplicate.replace('{tokenId}', tokenId).replace('{docId}', existingDoc.id));
         setLoading(false);
         return;
       }
@@ -93,7 +98,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
       setSearchedTokenId(tokenId);
     } catch (err) {
       console.error('Error searching token:', err);
-      setError('Erreur lors de la recherche: ' + err.message);
+      setError(l.recoverSearchError + err.message);
       setLoading(false);
     }
   };
@@ -101,7 +106,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
   const handleFetchIPFS = async () => {
     const uriToUse = resolvedURI || tokenURI;
     if (!uriToUse) {
-      setError('Aucun URI trouvé pour ce token');
+      setError(l.recoverNoURI);
       return;
     }
 
@@ -146,14 +151,14 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
         
         setIpfsData({ cid: ipfsCid, url: gatewayUrl, metadata: data });
         const typeInfo = data.type === 'pdf' ? ' (PDF)' : '';
-        setSuccess(`CID IPFS récupéré: ${ipfsCid}${typeInfo}${data.name ? ` - "${data.name}"` : ''}`);
+        setSuccess(l.recoverIPFSFetched.replace('{cid}', ipfsCid).replace('{type}', typeInfo).replace('{name}', data.name ? ` - "${data.name}"` : ''));
       } else {
         setFormData(prev => ({
           ...prev,
           ipfsCid: ipfsCid
         }));
         setIpfsData({ cid: ipfsCid, url: gatewayUrl });
-        setSuccess(`CID IPFS défini: ${ipfsCid} (métadonnées non disponibles)`);
+        setSuccess(l.recoverIPFSSet.replace('{cid}', ipfsCid));
       }
     } catch (err) {
       console.error('Error fetching IPFS:', err);
@@ -167,7 +172,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
         ipfsCid: ipfsCid
       }));
       setIpfsData({ cid: ipfsCid, url: `https://gateway.pinata.cloud/ipfs/${ipfsCid}` });
-      setSuccess(`CID IPFS défini: ${ipfsCid} (récupération des métadonnées échouée)`);
+      setSuccess(l.recoverIPFSFailed.replace('{cid}', ipfsCid));
     } finally {
       setLoading(false);
     }
@@ -175,7 +180,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
 
   const handleSave = async () => {
     if (!formData.title || !formData.authors || !formData.programme) {
-      setError('Veuillez remplir les champs requis: Titre, Auteurs, Programme');
+      setError(l.recoverFieldsRequired);
       return;
     }
 
@@ -200,7 +205,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
       };
 
       const newDocId = await documentsService.addDocument(docData);
-      setSuccess(`Document récupéré avec succès! ID Firebase: ${newDocId}`);
+      setSuccess(l.recoverSuccess.replace('{docId}', newDocId));
       
       if (onSuccess) {
         onSuccess(newDocId);
@@ -212,7 +217,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
 
     } catch (err) {
       console.error('Error saving document:', err);
-      setError('Erreur lors de la sauvegarde: ' + err.message);
+      setError(l.recoverSaveError + err.message);
     } finally {
       setSaving(false);
     }
@@ -235,7 +240,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Récupérer un Document Manquant</h2>
+          <h2 className="text-xl font-bold text-gray-900">{l.recoverTitle}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <X className="w-6 h-6" />
           </button>
@@ -257,7 +262,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
           )}
 
           <div className="space-y-4">
-            <h3 className="font-semibold text-gray-800">1. Rechercher le Token sur la Blockchain</h3>
+            <h3 className="font-semibold text-gray-800">{l.recoverStep1}</h3>
             <div className="flex gap-3">
               <input
                 type="number"
@@ -272,19 +277,17 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:bg-gray-400"
               >
                 {loading || isLoadingURI ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                Rechercher
+                {l.recoverSearch}
               </button>
             </div>
 
             {(resolvedURI || tokenURI) && (
               <div className="p-3 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>Token URI trouvé:</strong> {resolvedURI || tokenURI}
+                  <strong>{l.recoverTokenURIFound}</strong> {resolvedURI || tokenURI}
                 </p>
                 {resolvedURI && resolvedURI !== tokenURI && (
-                  <p className="text-xs text-blue-600 mt-1">
-                    (URI original avec template {'{id}'} résolu)
-                  </p>
+                  <p className="text-xs text-blue-600 mt-1">{l.recoverURIResolved}</p>
                 )}
                 <button
                   onClick={handleFetchIPFS}
@@ -292,17 +295,17 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
                   className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
                 >
                   <Download className="w-4 h-4" />
-                  Récupérer depuis IPFS
+                  {l.recoverFetchIPFS}
                 </button>
               </div>
             )}
           </div>
 
           <div className="border-t pt-6 space-y-4">
-            <h3 className="font-semibold text-gray-800">2. Métadonnées du Document</h3>
+            <h3 className="font-semibold text-gray-800">{l.recoverStep2}</h3>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">CID IPFS *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.recoverFieldCID}</label>
               <input
                 type="text"
                 value={formData.ipfsCid || resolvedURI || tokenURI || ''}
@@ -313,46 +316,46 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Titre *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.fieldTitle} *</label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
-                placeholder="Titre du document"
+                placeholder={l.recoverTitlePlaceholder}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Auteurs *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.fieldAuthors} *</label>
               <input
                 type="text"
                 value={formData.authors}
                 onChange={(e) => handleInputChange('authors', e.target.value)}
-                placeholder="Auteur(s) du document"
+                placeholder={l.recoverAuthorsPlaceholder}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.fieldDescription}</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="Description du document"
+                placeholder={l.recoverDescPlaceholder}
                 rows={3}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Programme *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.fieldProgramme} *</label>
               <select
                 value={formData.programme}
                 onChange={(e) => handleInputChange('programme', e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Sélectionner un programme</option>
+                <option value="">{l.selectProgramme}</option>
                 {PROGRAMMES.map(prog => (
                   <option key={prog} value={prog}>{prog}</option>
                 ))}
@@ -360,18 +363,18 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Collection</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.fieldCollection}</label>
               <input
                 type="text"
                 value={formData.collection}
                 onChange={(e) => handleInputChange('collection', e.target.value)}
-                placeholder="Collection (optionnel)"
+                placeholder={l.recoverCollectionPlaceholder}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Catégories</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.fieldCategories}</label>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(cat => (
                   <button
@@ -391,7 +394,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Adresse Créateur</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.recoverCreatorAddress}</label>
               <input
                 type="text"
                 value={formData.creatorAddress}
@@ -402,7 +405,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Références (Token IDs séparés par virgules)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{l.recoverReferencesLabel}</label>
               <input
                 type="text"
                 value={formData.references}
@@ -418,7 +421,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
               onClick={onClose}
               className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Annuler
+              {l.cancel}
             </button>
             <button
               onClick={handleSave}
@@ -426,7 +429,7 @@ export default function RecoverMissingDocument({ onClose, onSuccess }) {
               className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg disabled:bg-gray-400"
             >
               {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-              Sauvegarder dans Firebase
+              {saving ? l.recoverSaving : l.recoverSaveBtn}
             </button>
           </div>
         </div>
