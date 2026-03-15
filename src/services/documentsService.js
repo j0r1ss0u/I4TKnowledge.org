@@ -36,8 +36,8 @@ export const documentsService = {
       console.log('=== Adding Document to Firestore ===');
       console.log('1. Document data received:', documentData);
 
-      // Vérification de la présence du tokenId
-      if (!documentData.tokenId) {
+      // Le tokenId est requis seulement pour le chemin web3 (peer review)
+      if (!documentData.tokenId && documentData.submissionPath !== 'admin-validation') {
         console.error('TokenId manquant dans les données du document');
         throw new Error('TokenId required');
       }
@@ -67,7 +67,7 @@ export const documentsService = {
         contentEmbedding: contentEmbedding ? contentEmbedding[0] : null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        validationStatus: "0/4"
+        validationStatus: documentData.validationStatus || "0/4"
       };
 
       Object.keys(dataToSave).forEach(key => {
