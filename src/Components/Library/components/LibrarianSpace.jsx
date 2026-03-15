@@ -7,18 +7,12 @@ import { web3RoleService } from "../../../services/web3";
 import { useMembers } from "../../Members/MembersContext";
 import { useAuth } from "../../AuthContext";
 import { documentsService } from "../../../services/documentsService";
+import libraryTranslations from '../../../translations/library';
 import RolesTable from './RolesTable';
 import { CheckCircle, XCircle, ArrowUpCircle, ExternalLink, RefreshCw } from 'lucide-react';
 
-// =============== CONSTANTS ===============
-const WEB3_ROLES = [
-  { name: "Contributeur", value: "CONTRIBUTOR" },
-  { name: "Validateur", value: "VALIDATOR" },
-  { name: "Administrateur", value: "ADMIN" }
-];
-
 // =============== UTILITY FUNCTIONS ===============
-const formatDate = (timestamp) => {
+const formatDate = (timestamp, locale = 'en-US') => {
   if (!timestamp) return 'N/A';
 
   try {
@@ -33,7 +27,7 @@ const formatDate = (timestamp) => {
       date = new Date(timestamp);
     }
 
-    return date.toLocaleDateString('fr-FR', {
+    return date.toLocaleDateString(locale, {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -70,7 +64,15 @@ export default function LibrarianSpace() {
     enabled: !!connectedAddress
   });
 
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const l = libraryTranslations[language] || libraryTranslations.en;
+
+  const WEB3_ROLES = [
+    { name: l.roleContributor, value: "CONTRIBUTOR" },
+    { name: l.roleValidator, value: "VALIDATOR" },
+    { name: l.roleAdmin, value: "ADMIN" }
+  ];
+
   const [activeTab, setActiveTab] = useState('register');
   const [formData, setFormData] = useState({
     address: '',
@@ -187,10 +189,10 @@ export default function LibrarianSpace() {
   async function handleApprove(docId) {
     try {
       await documentsService.approveAdminValidation(docId, user?.email || 'admin');
-      setActionFeedback({ type: 'success', message: 'Document approuvé et publié.' });
+      setActionFeedback({ type: 'success', message: l.feedbackApproved });
       loadPendingDocs();
     } catch (err) {
-      setActionFeedback({ type: 'error', message: 'Erreur lors de l\'approbation.' });
+      setActionFeedback({ type: 'error', message: l.feedbackApproveError });
     }
     setTimeout(() => setActionFeedback(null), 3000);
   }
@@ -199,10 +201,10 @@ export default function LibrarianSpace() {
     try {
       await documentsService.rejectAdminValidation(rejectModal.docId, user?.email || 'admin', rejectModal.reason);
       setRejectModal({ open: false, docId: null, reason: '' });
-      setActionFeedback({ type: 'success', message: 'Document rejeté.' });
+      setActionFeedback({ type: 'success', message: l.feedbackRejected });
       loadPendingDocs();
     } catch (err) {
-      setActionFeedback({ type: 'error', message: 'Erreur lors du rejet.' });
+      setActionFeedback({ type: 'error', message: l.feedbackRejectError });
     }
     setTimeout(() => setActionFeedback(null), 3000);
   }
@@ -210,10 +212,10 @@ export default function LibrarianSpace() {
   async function handlePromoteToWeb3(docId) {
     try {
       await documentsService.promoteToWeb3(docId);
-      setActionFeedback({ type: 'success', message: 'Document transféré vers le workflow peer review.' });
+      setActionFeedback({ type: 'success', message: l.feedbackPromoted });
       loadPendingDocs();
     } catch (err) {
-      setActionFeedback({ type: 'error', message: 'Erreur lors du transfert vers le peer review.' });
+      setActionFeedback({ type: 'error', message: l.feedbackPromoteError });
     }
     setTimeout(() => setActionFeedback(null), 3000);
   }
@@ -294,11 +296,11 @@ export default function LibrarianSpace() {
         {rejectModal.open && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-bold mb-3">Motif de rejet (optionnel)</h3>
+              <h3 className="text-lg font-bold mb-3">{l.rejectModalTitle}</h3>
               <textarea
                 className="w-full border rounded p-2 text-sm mb-4"
                 rows={3}
-                placeholder="Expliquer pourquoi ce document est rejeté..."
+                placeholder={l.rejectPlaceholder}
                 value={rejectModal.reason}
                 onChange={e => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
               />
@@ -307,13 +309,13 @@ export default function LibrarianSpace() {
                   onClick={() => setRejectModal({ open: false, docId: null, reason: '' })}
                   className="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50 text-sm"
                 >
-                  Annuler
+                  {l.cancel}
                 </button>
                 <button
                   onClick={handleRejectConfirm}
                   className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
                 >
-                  Confirmer le rejet
+                  {l.confirmReject}
                 </button>
               </div>
             </div>
@@ -477,12 +479,13 @@ export default function LibrarianSpace() {
         {activeTab === 'adminValidation' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-gray-800">Documents en attente de validation</h3>
+              <h3 className="font-semibold text-gray-800">{l.pendingValidationTitle}</h3>
+
               <button
                 onClick={loadPendingDocs}
                 className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
               >
-                <RefreshCw className="w-4 h-4" /> Actualiser
+                <RefreshCw className="w-4 h-4" /> {l.refresh}
               </button>
             </div>
 
@@ -492,7 +495,7 @@ export default function LibrarianSpace() {
               </div>
             ) : pendingDocs.length === 0 ? (
               <div className="text-center py-8 text-gray-500 text-sm">
-                Aucun document en attente de validation.
+                {l.noDocsPending}
               </div>
             ) : (
               <div className="space-y-4">
@@ -500,13 +503,13 @@ export default function LibrarianSpace() {
                   const cid = doc.ipfsCid?.replace('ipfs://', '').trim();
                   const ipfsUrl = cid ? `https://gateway.pinata.cloud/ipfs/${cid}` : null;
                   const submittedAt = doc.createdAt
-                    ? new Date(doc.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-                    : 'Date inconnue';
+                    ? new Date(doc.createdAt).toLocaleDateString(l.dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
+                    : l.unknownDate;
                   return (
                     <div key={doc.id} className="border rounded-lg p-4 bg-gray-50 space-y-2">
                       <div className="flex justify-between items-start gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-gray-900 truncate">{doc.title || 'Sans titre'}</p>
+                          <p className="font-semibold text-gray-900 truncate">{doc.title || l.untitled}</p>
                           <p className="text-xs text-gray-500 mt-0.5">
                             {doc.authors || doc.creatorAddress} • {doc.programme} • {submittedAt}
                           </p>
@@ -526,19 +529,19 @@ export default function LibrarianSpace() {
                           onClick={() => handleApprove(doc.id)}
                           className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded text-xs hover:bg-green-700 font-medium"
                         >
-                          <CheckCircle className="w-3.5 h-3.5" /> Approuver & Publier
+                          <CheckCircle className="w-3.5 h-3.5" /> {l.approve}
                         </button>
                         <button
                           onClick={() => setRejectModal({ open: true, docId: doc.id, reason: '' })}
                           className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white rounded text-xs hover:bg-red-700 font-medium"
                         >
-                          <XCircle className="w-3.5 h-3.5" /> Rejeter
+                          <XCircle className="w-3.5 h-3.5" /> {l.reject}
                         </button>
                         <button
                           onClick={() => handlePromoteToWeb3(doc.id)}
                           className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 font-medium"
                         >
-                          <ArrowUpCircle className="w-3.5 h-3.5" /> Promouvoir en peer review
+                          <ArrowUpCircle className="w-3.5 h-3.5" /> {l.promoteToPeerReview}
                         </button>
                       </div>
                     </div>

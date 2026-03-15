@@ -7,6 +7,7 @@ import ReferencesSelector from './ReferencesSelector';
 import DocumentUpload from './DocumentUpload';
 import WalletConnect from '../WalletConnect';
 import { X, Shield, Users, Coins, Globe, MessageCircle, Search, GitBranch, Wallet } from 'lucide-react';
+import libraryTranslations from '../../../translations/library';
 
 // =============== CONSTANTS ===============
 const PROGRAMMES = [
@@ -45,125 +46,78 @@ const GEOGRAPHIES = [
 ];
 
 // =============== PEER REVIEW BENEFITS MODAL ===============
-const Web3BenefitsModal = ({ onClose }) => (
+const Web3BenefitsModal = ({ onClose, l }) => (
   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
     <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full flex flex-col max-h-[90vh]">
-      {/* Header */}
       <div className="flex justify-between items-start p-6 pb-4 border-b">
         <div>
-          <h3 className="text-xl font-bold text-gray-900">Pourquoi le peer review ?</h3>
-          <p className="text-sm text-gray-500 mt-1">Le processus de validation décentralisé d'I4TK</p>
+          <h3 className="text-xl font-bold text-gray-900">{l.benefitsTitle}</h3>
+          <p className="text-sm text-gray-500 mt-1">{l.benefitsSubtitle}</p>
         </div>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600 ml-4 flex-shrink-0">
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Scrollable content */}
       <div className="overflow-y-auto flex-1 p-6 space-y-5">
-
-        {/* 1. Gouvernance décentralisée */}
         <div className="flex gap-3">
           <Coins className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-800">Gouvernance décentralisée par les tokens</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Chaque document publié génère des tokens I4TK. Ces tokens ne sont pas spéculatifs : ils matérialisent une contribution réelle à la connaissance collective.
-              À la publication, <strong>40 % reviennent au créateur</strong> du document et <strong>60 % sont distribués proportionnellement aux documents référencés</strong>,
-              récompensant ainsi l'ensemble du réseau de savoir sur lequel s'appuie la contribution.
-            </p>
+            <p className="font-semibold text-gray-800">{l.benefitsGovernanceTitle}</p>
+            <p className="text-sm text-gray-600 mt-1">{l.benefitsGovernanceDesc}</p>
           </div>
         </div>
-
-        {/* 2. Peer review décentralisé */}
         <div className="flex gap-3">
           <Users className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-800">Peer review par 4 validateurs indépendants</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Avant toute publication, votre document est examiné par 4 membres validateurs du réseau I4TK.
-              Ce processus est <strong>entièrement décentralisé</strong> : aucune autorité centrale ne peut bloquer ou accélérer arbitrairement une publication.
-              Chaque validation est enregistrée sur la blockchain et publiquement vérifiable.
-            </p>
+            <p className="font-semibold text-gray-800">{l.benefitsPeerTitle}</p>
+            <p className="text-sm text-gray-600 mt-1">{l.benefitsPeerDesc}</p>
           </div>
         </div>
-
-        {/* 3. Traçabilité */}
         <div className="flex gap-3">
           <Search className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-800">Traçabilité complète des soumissions et validations</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Chaque étape du cycle de vie d'un document — soumission, validations successives, publication — est horodatée et inscrite sur la blockchain.
-              Il est possible à tout moment de <strong>vérifier qui a validé quoi, et quand</strong>, garantissant une transparence totale du processus éditorial du réseau.
-            </p>
+            <p className="font-semibold text-gray-800">{l.benefitsTraceTitle}</p>
+            <p className="text-sm text-gray-600 mt-1">{l.benefitsTraceDesc}</p>
           </div>
         </div>
-
-        {/* 4. Généalogie des documents */}
         <div className="flex gap-3">
           <GitBranch className="w-6 h-6 text-purple-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-800">Généalogie des documents</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Grâce aux références bibliographiques enregistrées on-chain, chaque document s'inscrit dans un <strong>arbre de filiation intellectuelle</strong>.
-              La bibliothèque I4TK permet de naviguer cette généalogie : voir quels travaux ont inspiré un document, et quels documents s'en sont inspirés à leur tour.
-              C'est une cartographie vivante de la production de connaissance du réseau.
-            </p>
+            <p className="font-semibold text-gray-800">{l.benefitsGenealogy}</p>
+            <p className="text-sm text-gray-600 mt-1">{l.benefitsGenealogyDesc}</p>
           </div>
         </div>
-
-        {/* 5. Enregistrement immuable */}
         <div className="flex gap-3">
           <Shield className="w-6 h-6 text-gray-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-800">Enregistrement immuable</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Une fois publié, votre document est inscrit de façon permanente sur le réseau Sepolia. Il ne peut pas être modifié ni supprimé — garantissant l'intégrité à long terme de la production scientifique du réseau.
-            </p>
+            <p className="font-semibold text-gray-800">{l.benefitsImmutable}</p>
+            <p className="text-sm text-gray-600 mt-1">{l.benefitsImmutableDesc}</p>
           </div>
         </div>
-
-        {/* 6. Obtenir un wallet */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex gap-3">
             <Wallet className="w-6 h-6 text-blue-700 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-blue-900">Comment participer au peer review ?</p>
-              <p className="text-sm text-blue-800 mt-1">
-                Pour soumettre un document via le peer review, vous avez besoin d'un <strong>wallet Ethereum</strong>.
-                MetaMask est l'extension de navigateur la plus utilisée et la plus simple à configurer.
-              </p>
-              <a
-                href="https://metamask.io/download/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-700 hover:text-blue-900 underline"
-              >
-                <Wallet className="w-4 h-4" /> Télécharger MetaMask →
+              <p className="font-semibold text-blue-900">{l.benefitsWalletTitle}</p>
+              <p className="text-sm text-blue-800 mt-1">{l.benefitsWalletDesc}</p>
+              <a href="https://metamask.io/download/" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-700 hover:text-blue-900 underline">
+                <Wallet className="w-4 h-4" /> {l.downloadMetamask}
               </a>
-              <p className="text-sm text-blue-800 mt-3">
-                Une fois votre wallet créé, <strong>envoyez votre adresse de wallet</strong> à l'équipe I4TK pour qu'elle vous attribue vos droits de contribution :
-              </p>
-              <a
-                href="mailto:joris.galea@i4tknowledge.net"
-                className="inline-block mt-1 text-sm font-medium text-blue-700 hover:text-blue-900 underline"
-              >
+              <p className="text-sm text-blue-800 mt-3">{l.benefitsWalletSend}</p>
+              <a href="mailto:joris.galea@i4tknowledge.net"
+                className="inline-block mt-1 text-sm font-medium text-blue-700 hover:text-blue-900 underline">
                 joris.galea@i4tknowledge.net
               </a>
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* Footer */}
       <div className="p-4 border-t">
-        <button
-          onClick={onClose}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-        >
-          Compris
+        <button onClick={onClose} className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+          {l.understood}
         </button>
       </div>
     </div>
@@ -171,64 +125,49 @@ const Web3BenefitsModal = ({ onClose }) => (
 );
 
 // =============== SUBMISSION CHOICE MODAL ===============
-const ChoiceModal = ({ onCentralized, onWeb3, onClose, address, showBenefits, setShowBenefits }) => (
+const ChoiceModal = ({ onCentralized, onWeb3, onClose, address, showBenefits, setShowBenefits, l }) => (
   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-    {showBenefits && <Web3BenefitsModal onClose={() => setShowBenefits(false)} />}
+    {showBenefits && <Web3BenefitsModal onClose={() => setShowBenefits(false)} l={l} />}
     <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
       <div className="flex justify-between items-start mb-2">
-        <h3 className="text-xl font-bold text-gray-900">Choisir le mode de soumission</h3>
+        <h3 className="text-xl font-bold text-gray-900">{l.choiceTitle}</h3>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
           <X className="w-5 h-5" />
         </button>
       </div>
-      <p className="text-sm text-gray-500 mb-6">Comment souhaitez-vous soumettre votre contribution ?</p>
+      <p className="text-sm text-gray-500 mb-6">{l.choiceSubtitle}</p>
 
-      {/* Web3 Option */}
       <div className="border-2 border-blue-200 rounded-xl p-5 mb-4 hover:border-blue-400 transition-colors">
         <div className="flex justify-between items-start mb-2">
           <h4 className="font-bold text-gray-900 flex items-center gap-2">
             <Shield className="w-5 h-5 text-blue-600" />
-            Peer review (recommandé)
+            {l.choicePeerReviewTitle}
           </h4>
-          <button
-            onClick={() => setShowBenefits(true)}
-            className="text-xs text-blue-600 hover:underline flex-shrink-0 ml-2"
-          >
-            En savoir plus →
+          <button onClick={() => setShowBenefits(true)} className="text-xs text-blue-600 hover:underline flex-shrink-0 ml-2">
+            {l.learnMore}
           </button>
         </div>
-        <p className="text-sm text-gray-600 mb-4">
-          Votre document est enregistré sur la blockchain et soumis à la révision par les pairs. 4 validateurs devront l'approuver avant publication.
-        </p>
+        <p className="text-sm text-gray-600 mb-4">{l.choicePeerReviewDesc}</p>
         {address ? (
-          <button
-            onClick={onWeb3}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
-          >
-            Soumettre via peer review
+          <button onClick={onWeb3} className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm">
+            {l.submitViaPeerReview}
           </button>
         ) : (
           <div className="space-y-2">
-            <p className="text-xs text-amber-600 font-medium">Un wallet doit être connecté pour ce chemin.</p>
+            <p className="text-xs text-amber-600 font-medium">{l.walletRequired}</p>
             <WalletConnect />
           </div>
         )}
       </div>
 
-      {/* Admin Validation Option */}
       <div className="border-2 border-gray-200 rounded-xl p-5 hover:border-gray-400 transition-colors">
         <h4 className="font-bold text-gray-900 flex items-center gap-2 mb-2">
           <MessageCircle className="w-5 h-5 text-gray-600" />
-          Admin validation
+          {l.choiceAdminTitle}
         </h4>
-        <p className="text-sm text-gray-600 mb-4">
-          Votre document est soumis en attente de validation par un administrateur I4TK. Une fois approuvé, un admin procédera à sa publication.
-        </p>
-        <button
-          onClick={onCentralized}
-          className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium text-sm"
-        >
-          Soumettre pour admin validation
+        <p className="text-sm text-gray-600 mb-4">{l.choiceAdminDesc}</p>
+        <button onClick={onCentralized} className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 font-medium text-sm">
+          {l.submitForAdmin}
         </button>
       </div>
     </div>
@@ -236,18 +175,18 @@ const ChoiceModal = ({ onCentralized, onWeb3, onClose, address, showBenefits, se
 );
 
 // =============== NETWORK HELP ===============
-const NetworkHelp = () => (
+const NetworkHelp = ({ l }) => (
   <div className="mt-4 p-4 bg-gray-50 rounded-md text-sm">
-    <h3 className="font-medium mb-2">Besoin d'ETH Sepolia ?</h3>
-    <p>Pour soumettre un document, vous avez besoin d'ETH sur le réseau de test Sepolia. Voici comment en obtenir :</p>
+    <h3 className="font-medium mb-2">{l.needSepoliaTitle}</h3>
+    <p>{l.needSepoliaDesc}</p>
     <ol className="list-decimal ml-4 mt-2 space-y-1">
-      <li>Visitez le faucet Sepolia (Alchemy ou Infura)</li>
-      <li>Entrez votre adresse de portefeuille</li>
-      <li>Recevez des ETH de test gratuits</li>
+      <li>{l.faucetStep1}</li>
+      <li>{l.faucetStep2}</li>
+      <li>{l.faucetStep3}</li>
     </ol>
     <p className="mt-2">
       <a href="https://sepoliafaucet.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-        Obtenir des ETH Sepolia →
+        {l.getSepoliaETH}
       </a>
     </p>
   </div>
@@ -256,7 +195,8 @@ const NetworkHelp = () => (
 // =============== MAIN COMPONENT ===============
 export default function SubmitContribution() {
   const { address } = useAccount();
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const l = libraryTranslations[language] || libraryTranslations.en;
   const { writeContractAsync } = useWriteContract();
 
   // Modal states
@@ -338,10 +278,10 @@ export default function SubmitContribution() {
         if (tokenId !== null) {
           resetForm();
         } else {
-          setError('Document sauvegardé mais le tokenId n\'a pas pu être extrait automatiquement. Transaction hash: ' + txHash + '. Veuillez contacter un administrateur.');
+          setError(l.tokenIdWarning.replace('{txHash}', txHash));
         }
       } catch (err) {
-        setError('Erreur lors du traitement: ' + (err.message || 'Erreur inconnue'));
+        setError(l.processingError + (err.message || l.submissionError));
       } finally {
         setProcessingReceipt(false);
       }
@@ -354,7 +294,7 @@ export default function SubmitContribution() {
     e.preventDefault();
     setError('');
     if (!formData.ipfsCid || !formData.title || !formData.authors || !formData.programme) {
-      setError('Veuillez remplir tous les champs requis (document, titre, auteurs, programme).');
+      setError(l.fieldRequired);
       return;
     }
     setShowChoiceModal(true);
@@ -375,7 +315,7 @@ export default function SubmitContribution() {
       setCentralizedSuccess(true);
       resetForm();
     } catch (err) {
-      setError('Erreur lors de la soumission centralisée : ' + (err.message || 'Erreur inconnue'));
+      setError(l.centralizedError + (err.message || l.submissionError));
     }
   };
 
@@ -406,12 +346,12 @@ export default function SubmitContribution() {
       try { await documentsService.updateDocumentStatus(documentId, 'FAILED'); } catch (_) {}
     }
     if (err.message?.includes('insufficient funds')) {
-      setError('Fonds insuffisants. Vous avez besoin d\'ETH Sepolia pour les frais de gas.');
+      setError(l.insufficientFunds);
       setShowNetworkHelp(true);
     } else if (err.message?.includes('user rejected transaction')) {
-      setError('Transaction annulée par l\'utilisateur.');
+      setError(l.txRejected);
     } else {
-      setError(err.message || 'Une erreur est survenue lors de la soumission');
+      setError(err.message || l.submissionError);
     }
   };
 
@@ -450,14 +390,12 @@ export default function SubmitContribution() {
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
           <MessageCircle className="w-8 h-8 text-green-600" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">Contribution soumise !</h2>
-        <p className="text-gray-600 mb-4">
-          Votre document a été soumis avec succès et est en attente d'admin validation.
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">{l.successTitle}</h2>
+        <p className="text-gray-600 mb-4">{l.successDesc}</p>
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left mb-6">
           <p className="text-amber-800 font-medium flex items-center gap-2 mb-2">
             <MessageCircle className="w-5 h-5 flex-shrink-0" />
-            Please introduce your submission to the Network via Signal
+            {l.successSignalPrompt}
           </p>
           <a
             href="https://signal.group/#CjQKIPuudWjmIbqGx1NrlpFZDzlG17YZWZ9R0Xc9wnul89JxEhCfnCj_SDjdFNThh265jRkm"
@@ -467,15 +405,13 @@ export default function SubmitContribution() {
           >
             https://signal.group/#CjQKIPuudWjmIbqGx1NrlpFZDzlG17YZWZ9R0Xc9wnul89JxEhCfnCj_SDjdFNThh265jRkm
           </a>
-          <p className="text-amber-700 text-sm mt-2">
-            Once approved, an admin will proceed to its publication.
-          </p>
+          <p className="text-amber-700 text-sm mt-2">{l.successSignalNote}</p>
         </div>
         <button
           onClick={() => setCentralizedSuccess(false)}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
         >
-          Soumettre une autre contribution
+          {l.submitAnother}
         </button>
       </div>
     );
@@ -492,15 +428,14 @@ export default function SubmitContribution() {
           address={address}
           showBenefits={showBenefitsModal}
           setShowBenefits={setShowBenefitsModal}
+          l={l}
         />
       )}
 
       <div className="bg-white rounded-lg shadow-md max-w-3xl mx-auto">
         <div className="p-6">
-          <h2 className="text-2xl font-serif mb-2">Soumettre du contenu pour révision I4TK</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Remplissez le formulaire ci-dessous. Au moment de la soumission, vous pourrez choisir entre le processus de peer review ou une admin validation.
-          </p>
+          <h2 className="text-2xl font-serif mb-2">{l.submitPageTitle}</h2>
+          <p className="text-sm text-gray-500 mb-6">{l.submitPageSubtitle}</p>
 
           <form onSubmit={handleFormSubmit} className="space-y-6">
             {/* Error Display */}
@@ -513,10 +448,10 @@ export default function SubmitContribution() {
             {/* Transaction Status */}
             {(txHash || isTxPending) && (
               <div className="p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-md">
-                <p>Transaction {isTxPending ? 'en cours' : 'soumise'}...</p>
+                <p>{isTxPending ? l.txInProgress : l.txSubmitted}...</p>
                 {txHash && (
                   <div className="text-sm mt-2">
-                    Hash de transaction :
+                    {l.txHashLabel}
                     <a
                       href={`https://sepolia.etherscan.io/tx/${txHash}`}
                       target="_blank"
@@ -533,7 +468,7 @@ export default function SubmitContribution() {
             {/* Peer Review Success */}
             {isTxSuccess && (
               <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
-                Document soumis avec succès via peer review !
+                {l.peerReviewSuccess}
               </div>
             )}
 
@@ -563,7 +498,7 @@ export default function SubmitContribution() {
               {/* Title */}
               <div>
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                  Titre<span className="text-red-500">*</span>
+                  {l.fieldTitle}<span className="text-red-500">*</span>
                 </label>
                 <input
                   id="title"
@@ -578,7 +513,7 @@ export default function SubmitContribution() {
               {/* Authors */}
               <div>
                 <label htmlFor="authors" className="block text-sm font-medium text-gray-700">
-                  Auteurs<span className="text-red-500">*</span>
+                  {l.fieldAuthors}<span className="text-red-500">*</span>
                 </label>
                 <input
                   id="authors"
@@ -586,7 +521,7 @@ export default function SubmitContribution() {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   value={formData.authors}
                   onChange={e => setFormData({...formData, authors: e.target.value})}
-                  placeholder="Entrez les auteurs séparés par des virgules"
+                  placeholder={l.fieldAuthorsSeparator}
                   required
                 />
               </div>
@@ -594,7 +529,7 @@ export default function SubmitContribution() {
               {/* Description */}
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                  Description
+                  {l.fieldDescription}
                 </label>
                 <textarea
                   id="description"
@@ -608,7 +543,7 @@ export default function SubmitContribution() {
               {/* Programme */}
               <div>
                 <label htmlFor="programme" className="block text-sm font-medium text-gray-700">
-                  Programme<span className="text-red-500">*</span>
+                  {l.fieldProgramme}<span className="text-red-500">*</span>
                 </label>
                 <select
                   id="programme"
@@ -617,7 +552,7 @@ export default function SubmitContribution() {
                   onChange={e => setFormData({...formData, programme: e.target.value})}
                   required
                 >
-                  <option value="">Sélectionner un programme</option>
+                  <option value="">{l.selectProgramme}</option>
                   {PROGRAMMES.map(prog => (
                     <option key={prog} value={prog}>{prog}</option>
                   ))}
@@ -627,7 +562,7 @@ export default function SubmitContribution() {
               {/* Collection */}
               <div>
                 <label htmlFor="collection" className="block text-sm font-medium text-gray-700">
-                  Collection
+                  {l.fieldCollection}
                 </label>
                 <select
                   id="collection"
@@ -635,7 +570,7 @@ export default function SubmitContribution() {
                   value={formData.collection}
                   onChange={e => setFormData({...formData, collection: e.target.value})}
                 >
-                  <option value="">Sélectionner une collection (optionnel)</option>
+                  <option value="">{l.selectCollection}</option>
                   {COLLECTIONS.map(col => (
                     <option key={col} value={col}>{col}</option>
                   ))}
@@ -644,7 +579,7 @@ export default function SubmitContribution() {
 
               {/* Categories */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">Catégories</label>
+                <label className="block text-sm font-medium text-gray-700">{l.fieldCategories}</label>
                 <div className="mt-2 grid grid-cols-2 gap-4">
                   {CATEGORIES.map(category => (
                     <label key={category} className="flex items-center space-x-2">
@@ -669,7 +604,7 @@ export default function SubmitContribution() {
 
               {/* Geographies */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">Zone géographique</label>
+                <label className="block text-sm font-medium text-gray-700">{l.fieldGeography}</label>
                 <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-3">
                   {GEOGRAPHIES.map(geo => (
                     <label key={geo} className="flex items-center space-x-2">
@@ -683,12 +618,12 @@ export default function SubmitContribution() {
                     </label>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Toutes les régions sont sélectionnées par défaut. Décochez les régions non concernées.</p>
+                <p className="text-xs text-gray-500 mt-1">{l.geographyNote}</p>
               </div>
 
               {/* References */}
               <div>
-                <label className="block text-sm font-medium text-gray-700">Références bibliographiques</label>
+                <label className="block text-sm font-medium text-gray-700">{l.fieldReferences}</label>
                 <div className="mt-1">
                   <ReferencesSelector
                     value={formData.references}
@@ -704,11 +639,11 @@ export default function SubmitContribution() {
               disabled={isTxPending}
               className="w-full px-4 py-3 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isTxPending ? 'Soumission en cours...' : 'Soumettre la contribution →'}
+              {isTxPending ? l.submittingBtn : l.submitBtn}
             </button>
           </form>
 
-          {showNetworkHelp && <NetworkHelp />}
+          {showNetworkHelp && <NetworkHelp l={l} />}
         </div>
       </div>
     </>

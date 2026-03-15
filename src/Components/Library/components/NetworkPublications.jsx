@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
 import { globaltoolkitService } from '../../../services/globaltoolkitService';
 import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet, Grid3X3, Wrench, UserCheck } from 'lucide-react';
+import { useAuth } from '../../AuthContext';
+import libraryTranslations from '../../../translations/library';
 import DocumentValidator from "./DocumentValidator";
 import DocumentViewer from './DocumentViewer';
 import DocumentMetadataEditor from './DocumentMetadataEditor';
@@ -35,6 +37,10 @@ const NetworkPublications = ({
   setSelectedTokenId
 }) => {
 
+  // =============== LANGUAGE ===============
+  const { language } = useAuth();
+  const l = libraryTranslations[language] || libraryTranslations.en;
+
   // =============== STATES ===============
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +58,7 @@ const NetworkPublications = ({
         setDocuments(docs.filter(Boolean));
       } catch (err) {
         console.error("Erreur chargement documents:", err);
-        setError('Erreur lors du chargement des documents: ' + err.message);
+        setError(l.loadError + err.message);
       } finally {
         setLoading(false);
       }
@@ -100,10 +106,10 @@ const NetworkPublications = ({
   };
 
   const formatDate = (timestamp) => {
-    if (!timestamp) return 'Date inconnue';
+    if (!timestamp) return l.unknownDate;
     if (timestamp.seconds) {
       const date = new Date(timestamp.seconds * 1000 + timestamp.nanoseconds / 1000000);
-      return date.toLocaleString('fr-FR', {
+      return date.toLocaleString(l.dateLocale, {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -111,7 +117,7 @@ const NetworkPublications = ({
         minute: '2-digit'
       });
     }
-    return new Date(timestamp).toLocaleString('fr-FR');
+    return new Date(timestamp).toLocaleString(l.dateLocale);
   };
 
   // =============== UI HELPERS ===============
@@ -386,7 +392,7 @@ const NetworkPublications = ({
   if (error || searchError) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg p-4">
-        <h4 className="font-semibold">Erreur</h4>
+        <h4 className="font-semibold">{l.errorTitle}</h4>
         <p>{error || searchError}</p>
       </div>
     );
@@ -404,9 +410,9 @@ const NetworkPublications = ({
   if (!displayedDocuments || displayedDocuments.length === 0) {
     return (
       <div className="text-center py-12">
-        <h3 className="text-lg font-medium text-gray-900">No document found</h3>
+        <h3 className="text-lg font-medium text-gray-900">{l.noDocumentsFound}</h3>
         <p className="mt-2 text-sm text-gray-500">
-          {searchTerm ? "No result for this search." : "Les documents apparaîtront ici une fois soumis."}
+          {searchTerm ? l.noDocumentsSearch : l.noDocumentsPending}
         </p>
       </div>
     );
@@ -431,7 +437,7 @@ const NetworkPublications = ({
             className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors shadow-sm"
           >
             <Wrench className="w-5 h-5" />
-            Récupérer Document Manquant
+            {l.recoverMissing}
           </button>
           
           {documents.length > 0 && (
@@ -488,9 +494,9 @@ const NetworkPublications = ({
                 </div>
               </div>
               <div className="flex items-center text-sm text-gray-500">
-                <span>{doc.author || doc.authors || doc.creatorAddress || 'Auteur inconnu'}</span>
+                <span>{doc.author || doc.authors || doc.creatorAddress || l.unknownAuthor}</span>
                 <span className="mx-2">•</span>
-                <span>Créé le: {formatDate(doc.createdAt)}</span>
+                <span>{l.createdOn} {formatDate(doc.createdAt)}</span>
               </div>
             </div>
 
@@ -508,7 +514,7 @@ const NetworkPublications = ({
               {/* Contenu (3/4 sur desktop, pleine largeur sur mobile) */}
               <div className="md:col-span-3">
                 <div className="prose prose-sm max-w-none mb-4">
-                  <p>{doc.description || doc.excerpt || 'Pas de description disponible'}</p>
+                  <p>{doc.description || doc.excerpt || l.noDescription}</p>
                 </div>
 
                 {/* Actions */}
