@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
 import { useAuth, UserProfile, LoginForm } from './AuthContext';
 import WalletConnect from './Library/WalletConnect';
-import { LogIn, Menu, X } from 'lucide-react';
+import { LogIn, Menu, X, Globe } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+
+// =============== LANGUAGE TOGGLE ===============
+const LanguageToggle = () => {
+  const { language, toggleLanguage } = useAuth();
+  return (
+    <button
+      onClick={toggleLanguage}
+      aria-label={language === 'en' ? 'Switch to French' : 'Passer en anglais'}
+      className="flex items-center gap-1 px-2 py-1.5 rounded-md text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-100 transition-colors"
+    >
+      <Globe className="h-4 w-4" />
+      <span className="text-xs font-semibold">{language.toUpperCase()}</span>
+    </button>
+  );
+};
 
 // =============== LOGIN BUTTON COMPONENT ===============
 const LoginButton = () => {
@@ -98,25 +113,29 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
         ))}
       </nav>
       <div className={`${isMobile ? 'flex justify-center' : 'flex items-center'}`}>
-        {user ? (
-          <div className={`flex ${isMobile ? 'flex-col space-y-4' : 'items-center space-x-4'}`}>
-            <div className="flex items-center space-x-2">
-              <UserProfile />
-              {user.role !== 'guest' && <NotificationBell handlePageChange={handlePageChange} />}
+        <div className={`flex ${isMobile ? 'flex-col space-y-4 items-center' : 'items-center space-x-2'}`}>
+          <LanguageToggle />
+          {user ? (
+            <div className={`flex ${isMobile ? 'flex-col space-y-4 items-center' : 'items-center space-x-4'}`}>
+              <div className="flex items-center space-x-2">
+                <UserProfile />
+                {user.role !== 'guest' && <NotificationBell handlePageChange={handlePageChange} />}
+              </div>
+              {showWalletConnect && <WalletConnect />}
             </div>
-            {showWalletConnect && <WalletConnect />}
-          </div>
-        ) : (
-          <LoginButton />
-        )}
+          ) : (
+            <LoginButton />
+          )}
+        </div>
       </div>
     </div>
   );
 };
 
 // =============== HEADER COMPONENT ===============
-const Header = ({ currentPage, handlePageChange, currentLang }) => {
+const Header = ({ currentPage, handlePageChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { language } = useAuth();
 
   return (
     <header className="bg-white bg-opacity-90 border-b" role="banner">
@@ -176,7 +195,7 @@ const Header = ({ currentPage, handlePageChange, currentLang }) => {
           {/* Deuxième rangée: Tagline */}
           <div className="text-center mt-4 max-w-3xl w-full">
             <p className="font-serif text-lg md:text-2xl font-bold mb-6">
-              {currentLang === 'en' 
+              {language === 'en' 
                 ? 'Global knowledge network for an Internet for Trust'
                 : 'Réseau global de connaissance pour un Internet de confiance'}
             </p>
