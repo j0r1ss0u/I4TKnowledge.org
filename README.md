@@ -1,6 +1,28 @@
-## I4T Knowledge Network
+# I4T Knowledge Network
 
 A comprehensive web application for digital governance research and collaboration, featuring AI-powered document management, blockchain for IP tokenization, and semantic search capabilities.
+
+---
+
+## 📅 Changelog
+
+### March 2026
+- **Mobile UX**: Periodic table is now horizontally scrollable on mobile (min-width 660px). Regulation Pathway creation uses a full-screen overlay on mobile instead of a floating panel. Tap-based element search replaces HTML5 drag-and-drop on touch devices.
+- **LibrarianSpace improvements**: Firebase admins can access the admin panel without a connected wallet. Default tab is now Admin Validation. IP Monitoring tab is hidden unless a wallet is connected.
+- **Multilingual infrastructure**: Translation files for EN / FR / ES / PT / ZH are in place in the codebase. The language toggle UI has been temporarily removed pending full UI coverage across all pages.
+- **Language default fixed**: All pages now render in English by default, regardless of any previously stored browser preference.
+
+### February 2026
+- **Blockchain role registration fix**: Replaced wagmi v2 callback pattern with `useEffect` watching `isTxSuccess`; Firestore save now occurs only after blockchain confirmation.
+- **Role hierarchy fix**: Validators now inherit contributor capabilities; role hashes sourced from shared `contractConfig.roles`.
+- **IPFS multi-gateway fallback**: Unified gateway priority (Pinata → ipfs.io → dweb.link → 4everland) across all components.
+
+### January 2026
+- **Library heatmap CSV export**: Admin-only export with one column per periodic element, marked "X" where covered.
+- **Blockchain document recovery tool**: Search by Token ID, auto-fetch IPFS metadata, duplicate detection.
+- **IPFS proxy endpoint** (`/api/ipfs-proxy`): Backend-side IPFS retrieval bypassing browser CORS restrictions.
+
+---
 
 ## 📋 Table of Contents
 
@@ -835,7 +857,7 @@ The platform uses AI to automatically suggest periodic table elements for docume
 ### Planned Features
 - [ ] Ethereum mainnet deployment
 - [ ] Advanced analytics dashboard
-- [ ] Multi-language support (beyond French/English)
+- [ ] Full multilingual UI — 5 languages (EN / FR / ES / PT / ZH) — translation files ready, full UI coverage in progress
 - [ ] Mobile app (React Native)
 - [ ] Integration with additional LLM providers
 - [ ] Enhanced citation visualization (3D network graphs)
