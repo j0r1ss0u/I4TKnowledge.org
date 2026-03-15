@@ -52,9 +52,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
   const [authPage, setAuthPage] = useState('login');
-  const [language, setLanguage] = useState(() => {
-    return localStorage.getItem('preferredLanguage') || 'en';
-  });
+  const [language, setLanguage] = useState('en');
   const [translations, setTranslations] = useState({});
   const [translationsLoading, setTranslationsLoading] = useState(true);
 
