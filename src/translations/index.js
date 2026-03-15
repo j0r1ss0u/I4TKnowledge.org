@@ -24,6 +24,14 @@ export const loadTranslations = async (language) => {
         const esModule = await import('./es.js');
         translations = esModule.default;
         break;
+      case 'pt':
+        const ptModule = await import('./pt.js');
+        translations = ptModule.default;
+        break;
+      case 'zh':
+        const zhModule = await import('./zh.js');
+        translations = zhModule.default;
+        break;
       case 'en':
       default:
         const enModule = await import('./en.js');
@@ -58,5 +66,5 @@ export const preloadTranslations = (language) => {
  * @returns {string[]} Array of available language codes
  */
 export const getAvailableLanguages = () => {
-  return ['en', 'fr', 'es'];
+  return ['en', 'fr', 'es', 'pt', 'zh'];
 };

@@ -29,6 +29,24 @@ const translations = {
     passwordsNotMatch: "Las contraseñas no coinciden",
     passwordTooShort: "La contraseña debe tener al menos 8 caracteres",
     passwordRequirements: "La contraseña debe tener al menos 8 caracteres",
+  },
+  pt: {
+    passwordLabel: "Senha",
+    passwordPlaceholder: "Digite sua senha (mín. 8 caracteres)",
+    confirmLabel: "Confirmar senha",
+    confirmPlaceholder: "Confirme sua senha",
+    passwordsNotMatch: "As senhas não coincidem",
+    passwordTooShort: "A senha deve ter pelo menos 8 caracteres",
+    passwordRequirements: "A senha deve ter pelo menos 8 caracteres",
+  },
+  zh: {
+    passwordLabel: "密码",
+    passwordPlaceholder: "请输入密码（至少8个字符）",
+    confirmLabel: "确认密码",
+    confirmPlaceholder: "请再次输入密码",
+    passwordsNotMatch: "两次输入的密码不一致",
+    passwordTooShort: "密码至少需要8个字符",
+    passwordRequirements: "密码至少需要8个字符",
   }
 };
 

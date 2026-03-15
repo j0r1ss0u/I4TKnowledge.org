@@ -89,6 +89,60 @@ const translations = {
     linkInvalid: "El enlace de restablecimiento es inválido o ha expirado.",
     checkError: "Se produjo un error al verificar el enlace de restablecimiento.",
     redirectingHome: "Redirigiendo a la página de inicio...",
+  },
+  pt: {
+    title: "Redefinir sua senha",
+    emailLabel: "Endereço de e-mail",
+    emailPlaceholder: "Digite seu endereço de e-mail",
+    submitButton: "Enviar instruções",
+    processingButton: "Processando...",
+    verifyTitle: "Verificar código",
+    verifyPrompt: "Por favor, insira o código de redefinição recebido por e-mail.",
+    codeLabel: "Código de redefinição",
+    codePlaceholder: "Insira o código recebido por e-mail",
+    verifyButton: "Verificar código",
+    backToLogin: "Voltar ao login",
+    passwordTitle: "Definir nova senha",
+    passwordPrompt: "Por favor, insira sua nova senha abaixo.",
+    resetButton: "Redefinir senha",
+    successMessage: "Se uma conta estiver associada a este endereço de e-mail, você receberá instruções para redefinir sua senha.",
+    checkInbox: "Por favor, verifique sua caixa de entrada e a pasta de spam.",
+    codeRequired: "Por favor, insira o código de redefinição",
+    invalidCode: "Código de redefinição inválido",
+    missingData: "Dados de redefinição ausentes",
+    resetSuccess: "Sua senha foi redefinida com sucesso",
+    resetAndLoggedIn: "Sua senha foi redefinida e você está agora conectado",
+    generalError: "Ocorreu um erro ao redefinir sua senha.",
+    linkInvalid: "O link de redefinição é inválido ou expirou.",
+    checkError: "Ocorreu um erro ao verificar o link de redefinição.",
+    redirectingHome: "Redirecionando para a página inicial...",
+  },
+  zh: {
+    title: "重置您的密码",
+    emailLabel: "电子邮件地址",
+    emailPlaceholder: "请输入您的电子邮件地址",
+    submitButton: "发送说明",
+    processingButton: "处理中...",
+    verifyTitle: "验证代码",
+    verifyPrompt: "请输入通过电子邮件收到的重置代码。",
+    codeLabel: "重置代码",
+    codePlaceholder: "请输入通过电子邮件收到的代码",
+    verifyButton: "验证代码",
+    backToLogin: "返回登录",
+    passwordTitle: "设置新密码",
+    passwordPrompt: "请在下方输入您的新密码。",
+    resetButton: "重置密码",
+    successMessage: "如果该电子邮件地址关联了账户，您将收到重置密码的说明。",
+    checkInbox: "请检查您的收件箱和垃圾邮件文件夹。",
+    codeRequired: "请输入重置代码",
+    invalidCode: "重置代码无效",
+    missingData: "缺少重置数据",
+    resetSuccess: "您的密码已成功重置",
+    resetAndLoggedIn: "您的密码已重置，您现在已登录",
+    generalError: "重置密码时发生错误。",
+    linkInvalid: "重置链接无效或已过期。",
+    checkError: "验证重置链接时发生错误。",
+    redirectingHome: "正在跳转到主页...",
   }
 };
 
@@ -105,9 +159,9 @@ const ForgotPassword = () => {
   // Get the correct translation based on current language
   const t = translations[language];
 
-  // Toggle language: EN → FR → ES → EN
+  // Toggle language: EN → FR → ES → PT → ZH → EN
   const toggleLanguage = () => {
-    const cycle = { en: 'fr', fr: 'es', es: 'en' };
+    const cycle = { en: 'fr', fr: 'es', es: 'pt', pt: 'zh', zh: 'en' };
     setLanguage(prev => cycle[prev] || 'en');
   };
 

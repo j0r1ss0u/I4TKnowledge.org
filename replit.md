@@ -8,16 +8,16 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (March 2026)
 
-## Spanish (ES) Language Added
-Full trilingual support added — EN → FR → ES → EN cycle:
-- Created `src/translations/es.js` for AuthContext strings
-- `src/translations/index.js`: added `es` case to dynamic loader + `getAvailableLanguages` updated to `['en', 'fr', 'es']`
-- `src/translations/library.js`: ES section was already complete
-- `AuthContext.jsx`: toggle cycle now EN→FR→ES→EN; preloads next language in cycle
-- `Header.jsx`: LanguageToggle aria-label updated for 3 languages; shows current language code (EN/FR/ES)
-- `ForgotPassword.jsx`: added ES section + updated local toggle to 3-way cycle
-- `PasswordForm.jsx`: added ES section
-- `ResolutionPath.jsx`: added full ES section ("Itinerarios de Regulación" terminology)
+## Multilingual Support — 5 Languages (EN / FR / ES / PT / ZH)
+Full 5-language support added — EN → FR → ES → PT → ZH → EN cycle:
+- Created `src/translations/es.js`, `pt.js`, `zh.js` for AuthContext strings
+- `src/translations/index.js`: added `es`, `pt`, `zh` cases; `getAvailableLanguages` returns `['en', 'fr', 'es', 'pt', 'zh']`
+- `src/translations/library.js`: ES section was already complete; PT and ZH sections added
+- `AuthContext.jsx`: toggle cycle EN→FR→ES→PT→ZH→EN; logout button translated in all 5 languages
+- `Header.jsx`: LanguageToggle shows current language code (EN/FR/ES/PT/ZH); aria-label cycles correctly
+- `ForgotPassword.jsx`: PT and ZH sections added + 5-way toggle cycle
+- `PasswordForm.jsx`: PT and ZH sections added
+- `ResolutionPath.jsx`: full PT ("Itinerários de Regulação") and ZH ("监管路径") sections added
 
 ## Mobile UX — Tools Page
 - Periodic table: horizontal scroll on mobile (`overflow-x-auto`, min-width 660px); scroll hint banner on mobile, zoom/pan hint on desktop only

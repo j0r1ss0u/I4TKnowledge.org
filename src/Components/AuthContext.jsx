@@ -61,9 +61,9 @@ export const AuthProvider = ({ children }) => {
   // Get translations for current language with fallback
   const t = translations || {};
 
-  // Toggle language: EN → FR → ES → EN
+  // Toggle language: EN → FR → ES → PT → ZH → EN
   const toggleLanguage = () => {
-    const cycle = { en: 'fr', fr: 'es', es: 'en' };
+    const cycle = { en: 'fr', fr: 'es', es: 'pt', pt: 'zh', zh: 'en' };
     const newLanguage = cycle[language] || 'en';
     setLanguage(newLanguage);
     localStorage.setItem('preferredLanguage', newLanguage);
@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }) => {
     loadCurrentTranslations();
     
     // Preload the next language in the cycle for faster switching
-    const nextInCycle = { en: 'fr', fr: 'es', es: 'en' };
+    const nextInCycle = { en: 'fr', fr: 'es', es: 'pt', pt: 'zh', zh: 'en' };
     preloadTranslations(nextInCycle[language] || 'fr');
   }, [language]);
 
@@ -522,7 +522,7 @@ export const UserProfile = () => {
         className="flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
       >
         <LogOut className="h-4 w-4 mr-1" />
-        {language === 'fr' ? 'Déconnexion' : language === 'es' ? 'Cerrar sesión' : 'Logout'}
+        {language === 'fr' ? 'Déconnexion' : language === 'es' ? 'Cerrar sesión' : language === 'pt' ? 'Sair' : language === 'zh' ? '退出登录' : 'Logout'}
       </button>
     </div>
   );
