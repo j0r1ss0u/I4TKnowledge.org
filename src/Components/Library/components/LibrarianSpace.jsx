@@ -73,7 +73,7 @@ export default function LibrarianSpace() {
     { name: l.roleAdmin, value: "ADMIN" }
   ];
 
-  const [activeTab, setActiveTab] = useState('register');
+  const [activeTab, setActiveTab] = useState('adminValidation');
   const [formData, setFormData] = useState({
     address: '',
     role: '',
@@ -280,7 +280,10 @@ export default function LibrarianSpace() {
   }
   
   // =============== RENDER CONDITIONS ===============
-  if (!hasAdminRole) {
+  const isFirebaseAdmin = user?.role === 'admin';
+  const isWeb3Admin = !!hasAdminRole;
+
+  if (!isFirebaseAdmin && !isWeb3Admin) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         Not authorized
@@ -360,6 +363,15 @@ export default function LibrarianSpace() {
         {error && activeTab !== 'adminValidation' && (
           <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
             {error}
+          </div>
+        )}
+
+        {/* Wallet required notice for blockchain tabs */}
+        {activeTab !== 'adminValidation' && !connectedAddress && (
+          <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded text-amber-800 text-sm">
+            {language === 'fr'
+              ? 'Cette section nécessite un wallet connecté avec le rôle Admin blockchain.'
+              : 'This section requires a wallet connected with the blockchain Admin role.'}
           </div>
         )}
 

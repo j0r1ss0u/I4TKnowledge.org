@@ -185,7 +185,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
       tabs[TABS.SUBMIT_CONTRIBUTION] = 'Submit Contribution';
     }
 
-    if (hasAccess('LIBRARIAN_SPACE') && web3Roles.isAdmin) {
+    if (hasAccess('LIBRARIAN_SPACE')) {
       tabs[TABS.LIBRARIAN_SPACE] = 'Librarian Space';
     }
 
@@ -231,7 +231,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
           : null;
 
       case TABS.LIBRARIAN_SPACE:
-        return hasAccess('LIBRARIAN_SPACE') && web3Roles.isAdmin 
+        return hasAccess('LIBRARIAN_SPACE')
           ? renderLibrarianSpaceTab()
           : null;
 
