@@ -6,7 +6,7 @@ import { useAuth } from '../../AuthContext';
 import ReferencesSelector from './ReferencesSelector';
 import DocumentUpload from './DocumentUpload';
 import WalletConnect from '../WalletConnect';
-import { X, Shield, Users, Coins, Globe, MessageCircle } from 'lucide-react';
+import { X, Shield, Users, Coins, Globe, MessageCircle, Search, GitBranch, Wallet } from 'lucide-react';
 
 // =============== CONSTANTS ===============
 const PROGRAMMES = [
@@ -44,52 +44,128 @@ const GEOGRAPHIES = [
   "NORTH AMERICA"
 ];
 
-// =============== WEB3 BENEFITS MODAL ===============
+// =============== PEER REVIEW BENEFITS MODAL ===============
 const Web3BenefitsModal = ({ onClose }) => (
   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
-    <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-bold text-gray-900">Pourquoi le peer review ?</h3>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+    <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full flex flex-col max-h-[90vh]">
+      {/* Header */}
+      <div className="flex justify-between items-start p-6 pb-4 border-b">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900">Pourquoi le peer review ?</h3>
+          <p className="text-sm text-gray-500 mt-1">Le processus de validation décentralisé d'I4TK</p>
+        </div>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 ml-4 flex-shrink-0">
           <X className="w-5 h-5" />
         </button>
       </div>
-      <div className="space-y-4">
-        <div className="flex gap-3">
-          <Shield className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-gray-800">Enregistrement immuable</p>
-            <p className="text-sm text-gray-600">Votre contribution est inscrite de façon permanente sur la blockchain Sepolia — elle ne peut pas être modifiée ou supprimée.</p>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <Users className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-gray-800">Peer review décentralisé</p>
-            <p className="text-sm text-gray-600">4 validateurs indépendants examinent votre document avant publication. Ce processus garantit la qualité sans dépendre d'une autorité centrale.</p>
-          </div>
-        </div>
+
+      {/* Scrollable content */}
+      <div className="overflow-y-auto flex-1 p-6 space-y-5">
+
+        {/* 1. Gouvernance décentralisée */}
         <div className="flex gap-3">
           <Coins className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-800">Distribution de tokens</p>
-            <p className="text-sm text-gray-600">À la publication, des tokens I4TK sont distribués : 40 % au créateur, 60 % répartis entre les documents référencés — récompensant l'ensemble du réseau de connaissance.</p>
+            <p className="font-semibold text-gray-800">Gouvernance décentralisée par les tokens</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Chaque document publié génère des tokens I4TK. Ces tokens ne sont pas spéculatifs : ils matérialisent une contribution réelle à la connaissance collective.
+              À la publication, <strong>40 % reviennent au créateur</strong> du document et <strong>60 % sont distribués proportionnellement aux documents référencés</strong>,
+              récompensant ainsi l'ensemble du réseau de savoir sur lequel s'appuie la contribution.
+            </p>
           </div>
         </div>
+
+        {/* 2. Peer review décentralisé */}
         <div className="flex gap-3">
-          <Globe className="w-6 h-6 text-purple-600 flex-shrink-0 mt-0.5" />
+          <Users className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-gray-800">Gouvernance transparente</p>
-            <p className="text-sm text-gray-600">Toutes les décisions de validation sont traçables et vérifiables publiquement. Aucune décision arbitraire.</p>
+            <p className="font-semibold text-gray-800">Peer review par 4 validateurs indépendants</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Avant toute publication, votre document est examiné par 4 membres validateurs du réseau I4TK.
+              Ce processus est <strong>entièrement décentralisé</strong> : aucune autorité centrale ne peut bloquer ou accélérer arbitrairement une publication.
+              Chaque validation est enregistrée sur la blockchain et publiquement vérifiable.
+            </p>
           </div>
         </div>
+
+        {/* 3. Traçabilité */}
+        <div className="flex gap-3">
+          <Search className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-gray-800">Traçabilité complète des soumissions et validations</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Chaque étape du cycle de vie d'un document — soumission, validations successives, publication — est horodatée et inscrite sur la blockchain.
+              Il est possible à tout moment de <strong>vérifier qui a validé quoi, et quand</strong>, garantissant une transparence totale du processus éditorial du réseau.
+            </p>
+          </div>
+        </div>
+
+        {/* 4. Généalogie des documents */}
+        <div className="flex gap-3">
+          <GitBranch className="w-6 h-6 text-purple-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-gray-800">Généalogie des documents</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Grâce aux références bibliographiques enregistrées on-chain, chaque document s'inscrit dans un <strong>arbre de filiation intellectuelle</strong>.
+              La bibliothèque I4TK permet de naviguer cette généalogie : voir quels travaux ont inspiré un document, et quels documents s'en sont inspirés à leur tour.
+              C'est une cartographie vivante de la production de connaissance du réseau.
+            </p>
+          </div>
+        </div>
+
+        {/* 5. Enregistrement immuable */}
+        <div className="flex gap-3">
+          <Shield className="w-6 h-6 text-gray-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-gray-800">Enregistrement immuable</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Une fois publié, votre document est inscrit de façon permanente sur le réseau Sepolia. Il ne peut pas être modifié ni supprimé — garantissant l'intégrité à long terme de la production scientifique du réseau.
+            </p>
+          </div>
+        </div>
+
+        {/* 6. Obtenir un wallet */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex gap-3">
+            <Wallet className="w-6 h-6 text-blue-700 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-blue-900">Comment participer au peer review ?</p>
+              <p className="text-sm text-blue-800 mt-1">
+                Pour soumettre un document via le peer review, vous avez besoin d'un <strong>wallet Ethereum</strong>.
+                MetaMask est l'extension de navigateur la plus utilisée et la plus simple à configurer.
+              </p>
+              <a
+                href="https://metamask.io/download/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-blue-700 hover:text-blue-900 underline"
+              >
+                <Wallet className="w-4 h-4" /> Télécharger MetaMask →
+              </a>
+              <p className="text-sm text-blue-800 mt-3">
+                Une fois votre wallet créé, <strong>envoyez votre adresse de wallet</strong> à l'équipe I4TK pour qu'elle vous attribue vos droits de contribution :
+              </p>
+              <a
+                href="mailto:joris.galea@i4tknowledge.net"
+                className="inline-block mt-1 text-sm font-medium text-blue-700 hover:text-blue-900 underline"
+              >
+                joris.galea@i4tknowledge.net
+              </a>
+            </div>
+          </div>
+        </div>
+
       </div>
-      <button
-        onClick={onClose}
-        className="mt-6 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-      >
-        Compris
-      </button>
+
+      {/* Footer */}
+      <div className="p-4 border-t">
+        <button
+          onClick={onClose}
+          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+        >
+          Compris
+        </button>
+      </div>
     </div>
   </div>
 );
