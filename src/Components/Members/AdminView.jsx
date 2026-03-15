@@ -13,6 +13,7 @@ import { useMembers } from './MembersContext';
 import { membersService } from '../../services/membersService';
 import { usersService } from '../../services/usersService';
 import { invitationsService } from '../../services/invitationsService';
+import { torService } from '../../services/torService';
 import { createPortal } from 'react-dom';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
@@ -285,7 +286,8 @@ const AdminView = () => {
         throw new Error('Utilisateur non trouvé');
       }
 
-      const currentRole = userDoc.data().role;
+      const userData = userDoc.data();
+      const currentRole = userData.role;
       const upgradingFromObserver = currentRole === 'observer' && (newRole === 'member' || newRole === 'validator');
 
       const updateData = {
@@ -294,13 +296,17 @@ const AdminView = () => {
       };
 
       if (upgradingFromObserver) {
-        updateData.requiresTorAcceptance = true;
+        const alreadySigned = await torService.hasEverAcceptedToR(uid);
+        if (!alreadySigned) {
+          updateData.requiresTorAcceptance = true;
+        }
       }
 
       await updateDoc(userRef, updateData);
       await loadData();
 
-      const message = upgradingFromObserver
+      const needsTor = upgradingFromObserver && updateData.requiresTorAcceptance;
+      const message = needsTor
         ? `Rôle mis à jour : ${newRole}. L'utilisateur devra accepter le ToR à sa prochaine connexion.`
         : `Rôle mis à jour avec succès: ${newRole}`;
       showNotification(message, 'success');

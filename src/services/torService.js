@@ -75,6 +75,26 @@ export const torService = {
   },
 
   // =================================================================
+  // CHECK IF USER HAS EVER ACCEPTED ANY TOR
+  // Returns true if the user has at least one accepted ToR entry
+  // =================================================================
+  async hasEverAcceptedToR(userId) {
+    try {
+      const acceptancesRef = collection(db, 'torAcceptances');
+      const q = query(
+        acceptancesRef,
+        where('userId', '==', userId),
+        where('status', '==', 'accepted')
+      );
+      const snapshot = await getDocs(q);
+      return !snapshot.empty;
+    } catch (error) {
+      console.error('Error checking ToR acceptance history:', error);
+      return false;
+    }
+  },
+
+  // =================================================================
   // GET SIGNATORIES
   // Retrieve all users who have accepted a specific ToR document
   // =================================================================
