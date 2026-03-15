@@ -145,7 +145,9 @@ const translations = {
     moveUp: "Move up",
     moveDown: "Move down",
     remove: "Remove",
-    sequence: "Regulation sequence"
+    sequence: "Regulation sequence",
+    elementCommentPlaceholder: "Why this element? Explain your choice...",
+    loginToRate: "Log in to rate and comment on this pathway."
   },
   fr: {
     // Titles and main sections
@@ -232,7 +234,9 @@ const translations = {
     moveUp: "Monter",
     moveDown: "Descendre",
     remove: "Supprimer",
-    sequence: "Séquence de régulation"
+    sequence: "Séquence de régulation",
+    elementCommentPlaceholder: "Pourquoi cet élément ? Expliquez votre choix...",
+    loginToRate: "Connectez-vous pour noter et commenter ce parcours."
   }
 };
 
@@ -480,8 +484,8 @@ const ResolutionPath = ({ elements, onBack }) => {
       return;
     }
 
-    // Ajouter l'élément à la liste
-    setSelectedElements([...selectedElements, element]);
+    // Ajouter l'élément à la liste avec un commentaire vide
+    setSelectedElements([...selectedElements, { ...element, comment: '' }]);
     draggedElementRef.current = null;
   };
 
@@ -498,6 +502,13 @@ const ResolutionPath = ({ elements, onBack }) => {
     const updatedElements = [...selectedElements];
     updatedElements.splice(index, 1);
     setSelectedElements(updatedElements);
+  };
+
+  // Mettre à jour le commentaire d'un élément
+  const updateElementComment = (index, comment) => {
+    const updated = [...selectedElements];
+    updated[index] = { ...updated[index], comment };
+    setSelectedElements(updated);
   };
 
   // ===============================================================
@@ -1029,11 +1040,12 @@ const ResolutionPath = ({ elements, onBack }) => {
               <Draggable handle=".handle" bounds="parent">
                 <div 
                   ref={createWindowRef}
-                  className="fixed z-50 w-96 bg-white rounded-lg shadow-xl border border-gray-300"
+                  className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300"
                   style={{ 
                     top: '50px',
                     left: '50%',
                     transform: 'translateX(-50%)',
+                    width: 'min(90vw, 760px)',
                     maxHeight: 'calc(100vh - 100px)',
                     overflowY: 'auto'
                   }}
@@ -1128,54 +1140,72 @@ const ResolutionPath = ({ elements, onBack }) => {
                             {t.dragElements}
                           </p>
                         ) : (
-                          <ul className="space-y-2">
+                          <div className="space-y-2">
                             {selectedElements.map((element, index) => (
-                              <li 
+                              <div
                                 key={`${element?.id || index}-${index}`}
-                                className="flex items-center justify-between bg-white p-2 rounded-md border border-gray-200"
+                                className="bg-white rounded-md border border-gray-200 p-3"
                               >
-                                <div className="flex items-center">
-                                  <span className="w-6 h-6 flex items-center justify-center bg-amber-500 text-white rounded-full text-xs font-bold mr-2">
-                                    {index + 1}
-                                  </span>
-                                  <span className="text-sm font-medium">{element?.name || "Unknown element"}</span>
+                                <div className="flex gap-3">
+                                  {/* Colonne gauche : info élément + boutons */}
+                                  <div className="flex-shrink-0 w-2/5">
+                                    <div className="flex items-center mb-2">
+                                      <span className="w-6 h-6 flex items-center justify-center bg-amber-500 text-white rounded-full text-xs font-bold mr-2 flex-shrink-0">
+                                        {index + 1}
+                                      </span>
+                                      <span className="text-sm font-semibold leading-tight">{element?.name || "Unknown element"}</span>
+                                    </div>
+                                    {element?.id && (
+                                      <div className="font-mono text-xs text-gray-500 mb-2 pl-8">{element.id}</div>
+                                    )}
+                                    <div className="flex items-center space-x-1 pl-8">
+                                      {index > 0 && (
+                                        <button
+                                          onClick={() => moveElement(index, index - 1)}
+                                          className="text-gray-500 hover:text-amber-600 p-1 rounded hover:bg-amber-50"
+                                          title={t.moveUp}
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                      {index < selectedElements.length - 1 && (
+                                        <button
+                                          onClick={() => moveElement(index, index + 1)}
+                                          className="text-gray-500 hover:text-amber-600 p-1 rounded hover:bg-amber-50"
+                                          title={t.moveDown}
+                                        >
+                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() => removeElement(index)}
+                                        className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 ml-1"
+                                        title={t.remove}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {/* Colonne droite : zone de commentaire */}
+                                  <div className="flex-1">
+                                    <textarea
+                                      value={element.comment || ''}
+                                      onChange={(e) => updateElementComment(index, e.target.value)}
+                                      placeholder={t.elementCommentPlaceholder}
+                                      rows={3}
+                                      className="w-full text-sm border border-gray-200 rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-amber-400 resize-none bg-amber-50 placeholder-gray-400"
+                                    />
+                                  </div>
                                 </div>
-                                <div className="flex items-center space-x-1">
-                                  {index > 0 && (
-                                    <button
-                                      onClick={() => moveElement(index, index - 1)}
-                                      className="text-gray-500 hover:text-gray-700"
-                                      title={t.moveUp}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                      </svg>
-                                    </button>
-                                  )}
-                                  {index < selectedElements.length - 1 && (
-                                    <button
-                                      onClick={() => moveElement(index, index + 1)}
-                                      className="text-gray-500 hover:text-gray-700"
-                                      title={t.moveDown}
-                                    >
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                      </svg>
-                                    </button>
-                                  )}
-                                  <button
-                                    onClick={() => removeElement(index)}
-                                    className="text-red-500 hover:text-red-700 ml-1"
-                                    title={t.remove}
-                                  >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              </li>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         )}
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
@@ -1281,39 +1311,48 @@ const ResolutionPath = ({ elements, onBack }) => {
                     </div>
                   )}
 
-                  {/* Séquence d'éléments - Version améliorée avec plus de détails */}
+                  {/* Séquence d'éléments — colonne avec commentaires */}
                   <div className="mb-6">
-                    <h4 className="text-lg font-semibold mb-2">{t.sequence}</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <h4 className="text-lg font-semibold mb-3">{t.sequence}</h4>
+                    <div className="space-y-3">
                       {(selectedPathForView.elements || [])
                         .sort((a, b) => (a.order || 0) - (b.order || 0))
                         .map((element, index) => {
                           const elementDetails = getElementDetails(element?.id);
+                          const categoryColors = CATEGORIES[elementDetails?.category] || {};
                           return (
-                            <div 
+                            <div
                               key={`${element?.id || index}-${index}`}
-                              className={`${CATEGORIES[elementDetails?.category]?.color || 'bg-gray-100'} 
-                                         ${CATEGORIES[elementDetails?.category]?.borderColor || 'border-gray-300'} 
-                                         border rounded-md p-3 cursor-pointer hover:shadow-md transition-all`}
-                              onClick={() => {
-                                const fullElement = elements.find(el => el.id === element?.id);
-                                handleViewElementDetails(fullElement || elementDetails);
-                              }}
+                              className={`flex gap-4 border rounded-lg overflow-hidden ${categoryColors.borderColor || 'border-gray-300'}`}
                             >
-                              <div className="flex items-center mb-2">
-                                <span className="w-6 h-6 flex items-center justify-center bg-amber-500 text-white rounded-full text-xs font-bold mr-2">
+                              {/* Bande de couleur + numéro */}
+                              <div className={`flex-shrink-0 w-12 flex flex-col items-center justify-center py-3 ${categoryColors.headerColor || 'bg-gray-200'}`}>
+                                <span className="w-7 h-7 flex items-center justify-center bg-white bg-opacity-80 rounded-full text-xs font-bold text-gray-800">
                                   {index + 1}
                                 </span>
-                                <span className="font-medium">{elementDetails?.name || "Unknown element"}</span>
                               </div>
-                              <div className="flex justify-between items-center">
-                                <span className="font-mono text-lg font-bold">{elementDetails?.id}</span>
-                                <span className="text-xs text-gray-600">{elementDetails?.categoryName || CATEGORIES[elementDetails?.category]?.name}</span>
+                              {/* Contenu élément */}
+                              <div
+                                className="flex-1 py-3 pr-3 cursor-pointer"
+                                onClick={() => {
+                                  const fullElement = elements.find(el => el.id === element?.id);
+                                  handleViewElementDetails(fullElement || elementDetails);
+                                }}
+                              >
+                                <div className="flex items-baseline gap-2 mb-1">
+                                  <span className="font-mono text-sm font-bold text-gray-500">{elementDetails?.id}</span>
+                                  <span className="font-semibold text-gray-900">{elementDetails?.name || "Unknown element"}</span>
+                                </div>
+                                <span className="text-xs text-gray-500">{elementDetails?.categoryName || categoryColors.name}</span>
                               </div>
-                              {elementDetails?.description && (
-                                <p className="mt-2 text-xs text-gray-700 line-clamp-2">
-                                  {elementDetails?.description}
-                                </p>
+                              {/* Commentaire de l'auteur */}
+                              {element?.comment && (
+                                <div className="flex-1 border-l border-dashed border-gray-200 py-3 px-4 bg-amber-50">
+                                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-1 font-medium">
+                                    {language === 'fr' ? 'Justification' : 'Justification'}
+                                  </p>
+                                  <p className="text-sm text-gray-700 italic">"{element.comment}"</p>
+                                </div>
                               )}
                             </div>
                           );
@@ -1321,64 +1360,72 @@ const ResolutionPath = ({ elements, onBack }) => {
                     </div>
                   </div>
 
-                  {/* Section de notation */}
-                  {selectedPathForView.status === 'published' && user && (
+                  {/* Section de notation et commentaires — visible pour tous sur pathway publié */}
+                  {selectedPathForView.status === 'published' && (
                     <div className="mb-6 border-t border-b py-4">
-                      <h4 className="text-lg font-semibold mb-2">{t.ratingHeader} & {t.comments}</h4>
+                      <h4 className="text-lg font-semibold mb-3">{t.ratingHeader} & {t.comments}</h4>
 
-                      {/* Étoiles pour la notation */}
-                      <div className="mb-4">
-                        <div className="flex items-center">
-                          <p className="text-sm text-gray-700 mr-2">{t.rating}</p>
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map(star => (
-                              <button
-                                key={star}
-                                onClick={() => handleRatePath(star)}
-                                className="text-2xl focus:outline-none"
-                              >
-                                {userRating >= star ? (
-                                  <FaStar className="text-yellow-400" />
-                                ) : (
-                                  <FaRegStar className="text-yellow-400" />
-                                )}
-                              </button>
-                            ))}
-                          </div>
-                          {userRating > 0 && (
-                            <span className="ml-2 text-sm text-gray-600">
-                              ({userRating}/5)
-                            </span>
-                          )}
-                        </div>
-
-                        {selectedPathForView.averageRating > 0 && (
-                          <div className="mt-2 text-sm text-gray-600">
-                            {t.averageRating} {selectedPathForView.averageRating.toFixed(1)}/5 
+                      {/* Note moyenne — toujours visible */}
+                      {selectedPathForView.averageRating > 0 && (
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="flex">{renderStars(selectedPathForView.averageRating)}</div>
+                          <span className="text-sm text-gray-600 font-medium">
+                            {selectedPathForView.averageRating.toFixed(1)}/5
+                          </span>
+                          <span className="text-sm text-gray-400">
                             ({Object.keys(selectedPathForView.ratings || {}).length} {t.votes})
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Ajout de commentaire */}
-                      <div className="mb-4">
-                        <textarea
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                          rows="2"
-                          placeholder={t.addComment}
-                        ></textarea>
-                        <div className="flex justify-end mt-2">
-                          <button
-                            onClick={handleAddComment}
-                            className="px-4 py-1 bg-amber-500 text-white rounded-md hover:bg-amber-600 text-sm"
-                            disabled={!commentText.trim()}
-                          >
-                            {t.commentButton}
-                          </button>
+                          </span>
                         </div>
-                      </div>
+                      )}
+
+                      {user ? (
+                        <>
+                          {/* Étoiles pour noter */}
+                          <div className="flex items-center gap-2 mb-4">
+                            <p className="text-sm text-gray-700">{t.rating}</p>
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <button
+                                  key={star}
+                                  onClick={() => handleRatePath(star)}
+                                  className="text-2xl focus:outline-none hover:scale-110 transition-transform"
+                                >
+                                  {userRating >= star ? (
+                                    <FaStar className="text-yellow-400" />
+                                  ) : (
+                                    <FaRegStar className="text-yellow-400" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                            {userRating > 0 && (
+                              <span className="text-sm text-gray-500">({userRating}/5)</span>
+                            )}
+                          </div>
+
+                          {/* Ajout de commentaire */}
+                          <div>
+                            <textarea
+                              value={commentText}
+                              onChange={(e) => setCommentText(e.target.value)}
+                              className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                              rows="2"
+                              placeholder={t.addComment}
+                            />
+                            <div className="flex justify-end mt-2">
+                              <button
+                                onClick={handleAddComment}
+                                className="px-4 py-1 bg-amber-500 text-white rounded-md hover:bg-amber-600 text-sm"
+                                disabled={!commentText.trim()}
+                              >
+                                {t.commentButton}
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">{t.loginToRate}</p>
+                      )}
                     </div>
                   )}
 
