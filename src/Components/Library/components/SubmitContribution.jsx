@@ -379,12 +379,20 @@ export default function SubmitContribution() {
           Votre document a été soumis avec succès et est en attente d'approbation par l'équipe I4TK.
         </p>
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left mb-6">
-          <p className="text-amber-800 font-medium flex items-center gap-2">
+          <p className="text-amber-800 font-medium flex items-center gap-2 mb-2">
             <MessageCircle className="w-5 h-5 flex-shrink-0" />
-            Please connect with the network on Signal
+            Please introduce your submission to the Network via Signal
           </p>
-          <p className="text-amber-700 text-sm mt-1">
-            Rejoignez le groupe Signal I4TK pour suivre la validation de votre contribution et rester en contact avec l'équipe.
+          <a
+            href="https://signal.group/#CjQKIPuudWjmIbqGx1NrlpFZDzlG17YZWZ9R0Xc9wnul89JxEhCfnCj_SDjdFNThh265jRkm"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-700 text-sm underline break-all"
+          >
+            https://signal.group/#CjQKIPuudWjmIbqGx1NrlpFZDzlG17YZWZ9R0Xc9wnul89JxEhCfnCj_SDjdFNThh265jRkm
+          </a>
+          <p className="text-amber-700 text-sm mt-2">
+            Once approved, an admin will proceed to its publication.
           </p>
         </div>
         <button
