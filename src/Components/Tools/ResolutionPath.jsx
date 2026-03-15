@@ -275,6 +275,10 @@ const ResolutionPath = ({ elements, onBack }) => {
   const [selectedElementForView, setSelectedElementForView] = useState(null);
   const [showElementModal, setShowElementModal] = useState(false);
 
+  // États mobile
+  const [isMobile, setIsMobile] = useState(false);
+  const [elementSearchTerm, setElementSearchTerm] = useState('');
+
   // Références
   const createWindowRef = useRef(null);
   const draggedElementRef = useRef(null);
@@ -288,6 +292,14 @@ const ResolutionPath = ({ elements, onBack }) => {
   useEffect(() => {
     setLanguage(authLanguage || 'en');
   }, [authLanguage]);
+
+  // Détection mobile
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const isAdmin = user && (user.role === 'admin' || user.email === 'admin@i4tk.org' || user.email === 'joris.galea@i4tknowledge.net');
 
@@ -509,6 +521,13 @@ const ResolutionPath = ({ elements, onBack }) => {
     const updated = [...selectedElements];
     updated[index] = { ...updated[index], comment };
     setSelectedElements(updated);
+  };
+
+  // Ajouter un élément par tap (mobile)
+  const handleAddElementFromPicker = (element) => {
+    if (selectedElements.some(el => el.id === element.id)) { alert(t.alreadySelected); return; }
+    if (selectedElements.length >= 15) { alert(t.limitReached); return; }
+    setSelectedElements(prev => [...prev, { ...element, comment: '' }]);
   };
 
   // ===============================================================
@@ -1031,204 +1050,202 @@ const ResolutionPath = ({ elements, onBack }) => {
             {/* ================ SECTION 11: CREATION WINDOW ================== */}
             {/* =============================================================== */}
 
-            {/* Fenêtre de création/édition (draggable) */}
-            {showCreateWindow && (
-              <Draggable handle=".handle" bounds="parent">
-                <div 
-                  ref={createWindowRef}
-                  className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300"
-                  style={{ 
-                    top: '50px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 'min(90vw, 760px)',
-                    maxHeight: 'calc(100vh - 100px)',
-                    overflowY: 'auto'
-                  }}
-                >
-                  {/* Barre de titre (poignée de drag) */}
-                  <div className="handle bg-amber-500 text-white px-4 py-3 rounded-t-lg flex justify-between items-center cursor-move">
-                    <h3 className="font-semibold">
-                      {formData.title ? `${t.editing}: ${formData.title}` : t.newResolutionPath}
-                    </h3>
-                    <button
-                      onClick={handleCloseCreateWindow}
-                      className="text-white hover:text-gray-200"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
+            {showCreateWindow && (() => {
+              /* Champs communs réutilisés dans mobile et desktop */
+              const formFields = (
+                <>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t.titleLabel} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleFormChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      placeholder={t.titleLabel}
+                    />
                   </div>
-
-                  {/* Formulaire de création */}
-                  <div className="p-4">
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t.titleLabel} <span className="text-red-500">*</span>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t.descriptionLabel}
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleFormChange}
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      rows="3"
+                      placeholder={t.descriptionLabel}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {t.statusLabel}
+                    </label>
+                    <div className="flex items-center space-x-4">
+                      <label className="inline-flex items-center">
+                        <input type="radio" name="status" value="draft" checked={formData.status === 'draft'} onChange={handleFormChange} className="form-radio h-4 w-4 text-amber-500" />
+                        <span className="ml-2 text-gray-700">{t.draft}</span>
                       </label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleFormChange}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        placeholder={t.titleLabel}
-                      />
+                      <label className="inline-flex items-center">
+                        <input type="radio" name="status" value="published" checked={formData.status === 'published'} onChange={handleFormChange} className="form-radio h-4 w-4 text-amber-500" />
+                        <span className="ml-2 text-gray-700">{t.published}</span>
+                      </label>
                     </div>
+                  </div>
+                </>
+              );
 
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t.descriptionLabel}
-                      </label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleFormChange}
-                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        rows="3"
-                        placeholder={t.descriptionLabel}
-                      ></textarea>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {t.statusLabel}
-                      </label>
-                      <div className="flex items-center space-x-4">
-                        <label className="inline-flex items-center">
-                          <input
-                            type="radio"
-                            name="status"
-                            value="draft"
-                            checked={formData.status === 'draft'}
-                            onChange={handleFormChange}
-                            className="form-radio h-4 w-4 text-amber-500"
-                          />
-                          <span className="ml-2 text-gray-700">{t.draft}</span>
-                        </label>
-                        <label className="inline-flex items-center">
-                          <input
-                            type="radio"
-                            name="status"
-                            value="published"
-                            checked={formData.status === 'published'}
-                            onChange={handleFormChange}
-                            className="form-radio h-4 w-4 text-amber-500"
-                          />
-                          <span className="ml-2 text-gray-700">{t.published}</span>
-                        </label>
+              /* Liste des éléments sélectionnés avec commentaires (commune mobile/desktop) */
+              const elementList = selectedElements.map((element, index) => (
+                <div key={`${element?.id || index}-${index}`} className="bg-white rounded-md border border-gray-200 p-3">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-2/5">
+                      <div className="flex items-center mb-2">
+                        <span className="w-6 h-6 flex items-center justify-center bg-amber-500 text-white rounded-full text-xs font-bold mr-2 flex-shrink-0">{index + 1}</span>
+                        <span className="text-sm font-semibold leading-tight">{element?.name || "Unknown element"}</span>
                       </div>
-                    </div>
-
-                    {/* Zone de drop pour les éléments */}
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        {t.selectedElements} ({selectedElements.length}/15)
-                      </label>
-                      <div 
-                        className="border-2 border-dashed border-amber-300 rounded-lg p-3 bg-amber-50 min-h-[100px]"
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                      >
-                        {selectedElements.length === 0 ? (
-                          <p className="text-gray-500 text-center py-6">
-                            {t.dragElements}
-                          </p>
-                        ) : (
-                          <div className="space-y-2">
-                            {selectedElements.map((element, index) => (
-                              <div
-                                key={`${element?.id || index}-${index}`}
-                                className="bg-white rounded-md border border-gray-200 p-3"
-                              >
-                                <div className="flex gap-3">
-                                  {/* Colonne gauche : info élément + boutons */}
-                                  <div className="flex-shrink-0 w-2/5">
-                                    <div className="flex items-center mb-2">
-                                      <span className="w-6 h-6 flex items-center justify-center bg-amber-500 text-white rounded-full text-xs font-bold mr-2 flex-shrink-0">
-                                        {index + 1}
-                                      </span>
-                                      <span className="text-sm font-semibold leading-tight">{element?.name || "Unknown element"}</span>
-                                    </div>
-                                    {element?.id && (
-                                      <div className="font-mono text-xs text-gray-500 mb-2 pl-8">{element.id}</div>
-                                    )}
-                                    <div className="flex items-center space-x-1 pl-8">
-                                      {index > 0 && (
-                                        <button
-                                          onClick={() => moveElement(index, index - 1)}
-                                          className="text-gray-500 hover:text-amber-600 p-1 rounded hover:bg-amber-50"
-                                          title={t.moveUp}
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                          </svg>
-                                        </button>
-                                      )}
-                                      {index < selectedElements.length - 1 && (
-                                        <button
-                                          onClick={() => moveElement(index, index + 1)}
-                                          className="text-gray-500 hover:text-amber-600 p-1 rounded hover:bg-amber-50"
-                                          title={t.moveDown}
-                                        >
-                                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                          </svg>
-                                        </button>
-                                      )}
-                                      <button
-                                        onClick={() => removeElement(index)}
-                                        className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 ml-1"
-                                        title={t.remove}
-                                      >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                      </button>
-                                    </div>
-                                  </div>
-                                  {/* Colonne droite : zone de commentaire */}
-                                  <div className="flex-1">
-                                    <textarea
-                                      value={element.comment || ''}
-                                      onChange={(e) => updateElementComment(index, e.target.value)}
-                                      placeholder={t.elementCommentPlaceholder}
-                                      rows={3}
-                                      className="w-full text-sm border border-gray-200 rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-amber-400 resize-none bg-amber-50 placeholder-gray-400"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                      {element?.id && <div className="font-mono text-xs text-gray-500 mb-2 pl-8">{element.id}</div>}
+                      <div className="flex items-center space-x-1 pl-8">
+                        {index > 0 && (
+                          <button onClick={() => moveElement(index, index - 1)} className="text-gray-500 hover:text-amber-600 p-1 rounded hover:bg-amber-50" title={t.moveUp}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                          </button>
                         )}
+                        {index < selectedElements.length - 1 && (
+                          <button onClick={() => moveElement(index, index + 1)} className="text-gray-500 hover:text-amber-600 p-1 rounded hover:bg-amber-50" title={t.moveDown}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          </button>
+                        )}
+                        <button onClick={() => removeElement(index)} className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 ml-1" title={t.remove}>
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {t.tip}
-                      </p>
                     </div>
-
-                    {/* Boutons d'action */}
-                    <div className="mt-6 flex justify-end space-x-3">
-                      <button
-                        onClick={handleCloseCreateWindow}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-                      >
-                        {t.cancel}
-                      </button>
-                      <button
-                        onClick={handleSavePath}
-                        className="px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600"
-                        disabled={!formData.title}
-                      >
-                        {t.save}
-                      </button>
+                    <div className="flex-1">
+                      <textarea value={element.comment || ''} onChange={(e) => updateElementComment(index, e.target.value)} placeholder={t.elementCommentPlaceholder} rows={3} className="w-full text-sm border border-gray-200 rounded-md p-2 focus:outline-none focus:ring-1 focus:ring-amber-400 resize-none bg-amber-50 placeholder-gray-400" />
                     </div>
                   </div>
                 </div>
-              </Draggable>
-            )}
+              ));
+
+              /* Boutons d'action communs */
+              const actionButtons = (
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button onClick={handleCloseCreateWindow} className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100">{t.cancel}</button>
+                  <button onClick={handleSavePath} className="px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600" disabled={!formData.title}>
+                    {t.save}
+                  </button>
+                </div>
+              );
+
+              /* ======= MOBILE: plein écran avec sélecteur intégré ======= */
+              if (isMobile) {
+                return (
+                  <div className="fixed inset-0 z-50 bg-white flex flex-col">
+                    <div className="bg-amber-500 text-white px-4 py-3 flex justify-between items-center flex-shrink-0">
+                      <h3 className="font-semibold truncate pr-2">{formData.title ? `${t.editing}: ${formData.title}` : t.newResolutionPath}</h3>
+                      <button onClick={handleCloseCreateWindow} className="text-white hover:text-gray-200 flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4">
+                      {formFields}
+                      <div className="mt-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {t.selectedElements} ({selectedElements.length}/15)
+                        </label>
+                        <div className="relative mb-2">
+                          <input
+                            type="text"
+                            value={elementSearchTerm}
+                            onChange={(e) => setElementSearchTerm(e.target.value)}
+                            placeholder={language === 'fr' ? 'Rechercher un élément à ajouter...' : 'Search element to add...'}
+                            className="w-full p-2 pl-9 border border-amber-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50"
+                          />
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute left-2.5 top-2.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        {elementSearchTerm.length > 0 && (
+                          <div className="border border-gray-200 rounded-md mb-3 max-h-52 overflow-y-auto shadow-sm">
+                            {elements.filter(el =>
+                              el.name.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
+                              el.id.toLowerCase().includes(elementSearchTerm.toLowerCase())
+                            ).slice(0, 20).map(el => {
+                              const alreadyAdded = selectedElements.some(s => s.id === el.id);
+                              return (
+                                <button
+                                  key={el.id}
+                                  onClick={() => { handleAddElementFromPicker(el); setElementSearchTerm(''); }}
+                                  disabled={alreadyAdded}
+                                  className={`w-full text-left px-3 py-2 text-sm border-b border-gray-100 flex items-center gap-2 ${alreadyAdded ? 'bg-gray-50 text-gray-400 cursor-default' : 'hover:bg-amber-50 active:bg-amber-100'}`}
+                                >
+                                  <span className="font-mono font-bold text-gray-500 w-12 flex-shrink-0">{el.id}</span>
+                                  <span className="flex-1 leading-tight">{el.name}</span>
+                                  {alreadyAdded ? <span className="text-green-500 text-xs font-bold">✓</span> : <span className="text-amber-500 font-bold">+</span>}
+                                </button>
+                              );
+                            })}
+                            {elements.filter(el =>
+                              el.name.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
+                              el.id.toLowerCase().includes(elementSearchTerm.toLowerCase())
+                            ).length === 0 && (
+                              <p className="px-3 py-4 text-sm text-gray-400 text-center">
+                                {language === 'fr' ? 'Aucun élément trouvé' : 'No element found'}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {elementSearchTerm.length === 0 && selectedElements.length === 0 && (
+                          <p className="text-sm text-gray-400 italic mb-3">
+                            {language === 'fr' ? 'Tapez pour chercher et ajouter des éléments au parcours.' : 'Type to search and add elements to the pathway.'}
+                          </p>
+                        )}
+                        <div className="space-y-2">{elementList}</div>
+                        <p className="text-xs text-gray-500 mt-1">{t.tip}</p>
+                      </div>
+                      {actionButtons}
+                    </div>
+                  </div>
+                );
+              }
+
+              /* ======= DESKTOP: panneau draggable ======= */
+              return (
+                <Draggable handle=".handle" bounds="parent">
+                  <div
+                    ref={createWindowRef}
+                    className="fixed z-50 bg-white rounded-lg shadow-xl border border-gray-300"
+                    style={{ top: '50px', left: '50%', transform: 'translateX(-50%)', width: 'min(90vw, 760px)', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}
+                  >
+                    <div className="handle bg-amber-500 text-white px-4 py-3 rounded-t-lg flex justify-between items-center cursor-move">
+                      <h3 className="font-semibold">{formData.title ? `${t.editing}: ${formData.title}` : t.newResolutionPath}</h3>
+                      <button onClick={handleCloseCreateWindow} className="text-white hover:text-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                    <div className="p-4">
+                      {formFields}
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">{t.selectedElements} ({selectedElements.length}/15)</label>
+                        <div className="border-2 border-dashed border-amber-300 rounded-lg p-3 bg-amber-50 min-h-[100px]" onDrop={handleDrop} onDragOver={handleDragOver}>
+                          {selectedElements.length === 0 ? (
+                            <p className="text-gray-500 text-center py-6">{t.dragElements}</p>
+                          ) : (
+                            <div className="space-y-2">{elementList}</div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{t.tip}</p>
+                      </div>
+                      {actionButtons}
+                    </div>
+                  </div>
+                </Draggable>
+              );
+            })()}
 
             {/* =============================================================== */}
             {/* ================ SECTION 12: MODALS ========================== */}

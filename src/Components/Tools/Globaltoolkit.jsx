@@ -793,8 +793,14 @@ const Globaltoolkit = () => {
             </div>
           </div>
 
-          <div className="text-xs text-gray-500 mb-3 text-center">
+          <div className="hidden md:block text-xs text-gray-500 mb-3 text-center">
             Scroll to zoom • Hold Alt/Option + drag to pan • Double-click to reset view
+          </div>
+          <div className="flex md:hidden items-center justify-center gap-2 mb-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+            <span>Scroll horizontally to explore • Rotate to landscape for full view</span>
           </div>
 
           {/* Filtre par géographies */}
@@ -832,8 +838,35 @@ const Globaltoolkit = () => {
         {/* =================================================================
             SECTION 14: TABLEAU PÉRIODIQUE INTERACTIF
             ================================================================= */}
+        {/* Mobile: horizontal scroll wrapper */}
+        <div className="md:hidden mb-8 overflow-x-auto -mx-4 px-4">
+          <div style={{ minWidth: '660px' }}>
+            <div className="grid grid-cols-6 gap-1">
+              {Object.entries(CATEGORIES).map(([categoryKey, category]) => (
+                <div key={categoryKey} className="flex flex-col gap-1">
+                  <div className={`${CATEGORIES[categoryKey].color} border ${CATEGORIES[categoryKey].borderColor} rounded-md p-2 flex flex-col items-center justify-center text-center font-semibold text-xs h-16`}>
+                    {category.name}
+                  </div>
+                  {organizedElements[categoryKey]?.map((element) => (
+                    <button
+                      key={element.id}
+                      onClick={() => handleElementClick(element)}
+                      className={`${CATEGORIES[element.category].color} border ${CATEGORIES[element.category].borderColor} rounded-md p-2 flex flex-col items-center justify-center h-20 text-center relative`}
+                    >
+                      <span className="font-mono text-base font-bold mb-0.5">{element.id}</span>
+                      <span className="text-xs line-clamp-2 leading-tight">{element.name}</span>
+                      <span className="absolute bottom-0.5 left-1 text-xs text-gray-600">{documentCounts[element.id] || 0}</span>
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: pan/zoom interactive table */}
         <div 
-          className="mb-8 overflow-hidden"
+          className="hidden md:block mb-8 overflow-hidden"
           ref={tableContainerRef}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
