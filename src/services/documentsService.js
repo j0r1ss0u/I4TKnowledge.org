@@ -326,6 +326,68 @@ export const documentsService = {
     }
   },
 
+  // =============== GET PENDING ADMIN VALIDATION ===============
+  async getPendingAdminValidation() {
+    try {
+      const documentsRef = collection(db, 'web3IP');
+      const q = query(documentsRef, where('validationStatus', '==', 'PENDING_ADMIN_VALIDATION'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+      console.error('❌ Error getting pending admin validation docs:', error);
+      throw error;
+    }
+  },
+
+  // =============== APPROVE ADMIN VALIDATION ===============
+  async approveAdminValidation(documentId, adminEmail) {
+    try {
+      const docRef = doc(db, 'web3IP', documentId);
+      await updateDoc(docRef, {
+        validationStatus: 'PUBLISHED',
+        adminValidated: true,
+        approvedBy: adminEmail,
+        approvedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('❌ Error approving document:', error);
+      throw error;
+    }
+  },
+
+  // =============== REJECT ADMIN VALIDATION ===============
+  async rejectAdminValidation(documentId, adminEmail, reason) {
+    try {
+      const docRef = doc(db, 'web3IP', documentId);
+      await updateDoc(docRef, {
+        validationStatus: 'REJECTED_ADMIN_VALIDATION',
+        rejectedBy: adminEmail,
+        rejectionReason: reason || '',
+        rejectedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('❌ Error rejecting document:', error);
+      throw error;
+    }
+  },
+
+  // =============== PROMOTE TO WEB3 ===============
+  async promoteToWeb3(documentId) {
+    try {
+      const docRef = doc(db, 'web3IP', documentId);
+      await updateDoc(docRef, {
+        validationStatus: '0/4',
+        submissionPath: 'web3',
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('❌ Error promoting document to Web3:', error);
+      throw error;
+    }
+  },
+
   // =============== ADD COMMENT ===============
   // Ajoute un commentaire à un document
   async addComment(documentId, comment) {

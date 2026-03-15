@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
 import { globaltoolkitService } from '../../../services/globaltoolkitService';
-import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet, Grid3X3, Wrench } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, ExternalLink, ZoomIn, Download, GitFork, Edit, FileSpreadsheet, Grid3X3, Wrench, UserCheck } from 'lucide-react';
 import DocumentValidator from "./DocumentValidator";
 import DocumentViewer from './DocumentViewer';
 import DocumentMetadataEditor from './DocumentMetadataEditor';
@@ -15,7 +15,9 @@ const ValidationStatus = {
   VALIDATION_2: '2/4',
   VALIDATION_3: '3/4',
   PUBLISHED: 'PUBLISHED',
-  FAILED: 'FAILED'
+  FAILED: 'FAILED',
+  PENDING_ADMIN_VALIDATION: 'PENDING_ADMIN_VALIDATION',
+  REJECTED_ADMIN_VALIDATION: 'REJECTED_ADMIN_VALIDATION'
 };
 
 // =============== MAIN COMPONENT ===============
@@ -60,9 +62,12 @@ const NetworkPublications = ({
 
   // =============== AUTHORIZATION FUNCTIONS ===============
   const canViewDocument = (doc) => {
+    if (!doc) return false;
     const status = doc.validationStatus;
+    // Admin validation pending/rejected docs are managed in LibrarianSpace only
+    if (status === ValidationStatus.PENDING_ADMIN_VALIDATION || status === ValidationStatus.REJECTED_ADMIN_VALIDATION) return false;
     const isPublished = status === ValidationStatus.PUBLISHED;
-    return !doc ? false : isWebMember ? true : isPublished;
+    return isWebMember ? true : isPublished;
   };
 
   const canViewStatus = () => isWebMember;
@@ -473,7 +478,14 @@ const NetworkPublications = ({
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xl font-serif font-bold text-gray-900">{doc.title}</h3>
-                {canViewStatus() && getStatusBadge(doc.validationStatus)}
+                <div className="flex items-center gap-2">
+                  {canViewStatus() && getStatusBadge(doc.validationStatus)}
+                  {doc.adminValidated && (
+                    <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <UserCheck className="w-3.5 h-3.5" /> Admin Reviewed
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center text-sm text-gray-500">
                 <span>{doc.author || doc.authors || doc.creatorAddress || 'Auteur inconnu'}</span>
