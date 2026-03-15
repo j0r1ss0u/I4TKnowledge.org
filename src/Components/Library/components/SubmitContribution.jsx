@@ -49,7 +49,7 @@ const Web3BenefitsModal = ({ onClose }) => (
   <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4">
     <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6">
       <div className="flex justify-between items-start mb-4">
-        <h3 className="text-xl font-bold text-gray-900">Pourquoi le processus Web3 ?</h3>
+        <h3 className="text-xl font-bold text-gray-900">Pourquoi le peer review ?</h3>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
           <X className="w-5 h-5" />
         </button>
@@ -112,7 +112,7 @@ const ChoiceModal = ({ onCentralized, onWeb3, onClose, address, showBenefits, se
         <div className="flex justify-between items-start mb-2">
           <h4 className="font-bold text-gray-900 flex items-center gap-2">
             <Shield className="w-5 h-5 text-blue-600" />
-            Peer review Web3 (recommandé)
+            Peer review (recommandé)
           </h4>
           <button
             onClick={() => setShowBenefits(true)}
@@ -129,7 +129,7 @@ const ChoiceModal = ({ onCentralized, onWeb3, onClose, address, showBenefits, se
             onClick={onWeb3}
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
           >
-            Soumettre via Web3
+            Soumettre via peer review
           </button>
         ) : (
           <div className="space-y-2">
@@ -423,7 +423,7 @@ export default function SubmitContribution() {
         <div className="p-6">
           <h2 className="text-2xl font-serif mb-2">Soumettre du contenu pour révision I4TK</h2>
           <p className="text-sm text-gray-500 mb-6">
-            Remplissez le formulaire ci-dessous. Au moment de la soumission, vous pourrez choisir entre le processus de peer review Web3 ou une approbation centralisée.
+            Remplissez le formulaire ci-dessous. Au moment de la soumission, vous pourrez choisir entre le processus de peer review ou une admin validation.
           </p>
 
           <form onSubmit={handleFormSubmit} className="space-y-6">
@@ -454,10 +454,10 @@ export default function SubmitContribution() {
               </div>
             )}
 
-            {/* Web3 Success */}
+            {/* Peer Review Success */}
             {isTxSuccess && (
               <div className="p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
-                Document soumis avec succès sur la blockchain !
+                Document soumis avec succès via peer review !
               </div>
             )}
 

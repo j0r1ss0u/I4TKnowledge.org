@@ -210,10 +210,10 @@ export default function LibrarianSpace() {
   async function handlePromoteToWeb3(docId) {
     try {
       await documentsService.promoteToWeb3(docId);
-      setActionFeedback({ type: 'success', message: 'Document transféré vers le workflow Web3.' });
+      setActionFeedback({ type: 'success', message: 'Document transféré vers le workflow peer review.' });
       loadPendingDocs();
     } catch (err) {
-      setActionFeedback({ type: 'error', message: 'Erreur lors du transfert Web3.' });
+      setActionFeedback({ type: 'error', message: 'Erreur lors du transfert vers le peer review.' });
     }
     setTimeout(() => setActionFeedback(null), 3000);
   }
@@ -538,7 +538,7 @@ export default function LibrarianSpace() {
                           onClick={() => handlePromoteToWeb3(doc.id)}
                           className="flex items-center gap-1 px-3 py-1.5 bg-purple-600 text-white rounded text-xs hover:bg-purple-700 font-medium"
                         >
-                          <ArrowUpCircle className="w-3.5 h-3.5" /> Promouvoir Web3
+                          <ArrowUpCircle className="w-3.5 h-3.5" /> Promouvoir en peer review
                         </button>
                       </div>
                     </div>
