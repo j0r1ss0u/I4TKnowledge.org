@@ -181,7 +181,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
       [TABS.NETWORK_PUBLICATIONS]: 'Peer reviews'
     };
 
-    if (hasAccess('SUBMIT_CONTRIBUTION') && (web3Roles.isContributor || web3Roles.isValidator || web3Roles.isAdmin)) {
+    if (hasAccess('SUBMIT_CONTRIBUTION')) {
       tabs[TABS.SUBMIT_CONTRIBUTION] = 'Submit Contribution';
     }
 
@@ -221,7 +221,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
   const renderContent = () => {
     switch (activeTab) {
       case TABS.SUBMIT_CONTRIBUTION:
-        return hasAccess('SUBMIT_CONTRIBUTION') && (web3Roles.isContributor || web3Roles.isValidator || web3Roles.isAdmin) 
+        return hasAccess('SUBMIT_CONTRIBUTION')
           ? renderSubmitContributionTab()
           : null;
 
