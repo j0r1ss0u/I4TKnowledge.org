@@ -1,0 +1,42 @@
+~/workspace$ git push origin main --force
+Enumerating objects: 2767, done.
+Counting objects: 100% (2767/2767), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (2709/2709), done.
+Writing objects: 100% (2767/2767), 20.06 MiB | 5.73 MiB/s, done.
+Total 2767 (delta 2004), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2004/2004), done.
+remote: error: GH013: Repository rule violations found for refs/heads/main.
+remote: 
+remote: - GITHUB PUSH PROTECTION
+remote:   —————————————————————————————————————————
+remote:     Resolve the following violations before pushing again
+remote: 
+remote:     - Push cannot contain secrets
+remote: 
+remote:     
+remote:      (?) Learn how to resolve a blocked push
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push
+remote:     
+remote:     
+remote:       —— SendGrid API Key ——————————————————————————————————
+remote:        locations:
+remote:          - commit: 320de08c0af77f40fdd4d8bca51935a3518ada34
+remote:            path: functions/index.js:25
+remote:          - commit: c19fe34c0fa1711195836974e896e6ffd059c85a
+remote:            path: functions/index.js:32
+remote:          - commit: d5da1d557621daf7a14dbd56b8c9a2867e030132
+remote:            path: functions/index.js:39
+remote:          - commit: c19fe34c0fa1711195836974e896e6ffd059c85a
+remote:            path: functions/index.js:170
+remote:          - commit: d5da1d557621daf7a14dbd56b8c9a2867e030132
+remote:            path: functions/index.js:178
+remote:     
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.
+remote:        https://github.com/j0r1ss0u/I4TKnowledge.org/security/secret-scanning/unblock-secret/3B1i6mKdyodP3diWndsaFJWj36f
+remote:     
+remote: 
+remote: 
+To https://github.com/j0r1ss0u/I4TKnowledge.org
+ ! [remote rejected] main -> main (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/j0r1ss0u/I4TKnowledge.org'
