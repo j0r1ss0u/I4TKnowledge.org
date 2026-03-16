@@ -88,18 +88,6 @@ export const firebaseAuthService = {
     try {
       console.log('Tentative de connexion pour:', email);
 
-      // Gestion des comptes spéciaux
-      if (email === 'joris.galea@i4tknowledge.net' && password === 'I4TKop/admin') {
-        console.log('Tentative de connexion avec compte admin');
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        return {
-          uid: userCredential.user.uid,
-          email: email,
-          role: 'admin',
-          emailVerified: true
-        };
-      }
-
       // Vérifier si cet utilisateur a été créé via une invitation
       let wasInvited = false;
       try {
