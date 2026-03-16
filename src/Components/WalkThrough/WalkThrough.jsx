@@ -19,7 +19,6 @@ import {
   FileText,
   Link2,
   MessageCircle,
-  Lock,
   ArrowUpCircle,
   Wallet,
   ClipboardCheck
@@ -178,48 +177,72 @@ const WalkThrough = () => {
           {activeTab === 'observer' && (
             <div className="space-y-4">
               <p className="text-gray-600 mb-4">
-                As an <strong>Observer</strong>, you can explore the library and research tools in read-only mode.
+                As an <strong>Observer</strong>, you have full access to the I4TK knowledge base and research tools.
               </p>
 
-              <Section icon={Eye} title="What you can access" defaultOpen={true} color="blue">
+              <Section icon={BookOpen} title="Document Library" defaultOpen={true} color="blue">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <FeatureCard icon={BookOpen} title="Document Library">
-                    Browse and search all published documents. View full metadata, descriptions, and citation networks.
+                  <FeatureCard icon={FileText} title="Browse & Search">
+                    Access all published documents. Filter by category, programme, or geographic area. Full metadata visible for every document.
                   </FeatureCard>
-                  <FeatureCard icon={Bot} title="AI Assistant" color="purple">
-                    Ask questions in English or French and get answers based on library documents, with citations.
-                  </FeatureCard>
-                  <FeatureCard icon={Grid3X3} title="Periodic Table" color="green">
-                    Explore the 54 regulatory elements and see which documents cover each one.
-                  </FeatureCard>
-                  <FeatureCard icon={Route} title="Regulation Pathways" color="orange">
-                    View and explore regulatory pathways built by network members.
+                  <FeatureCard icon={Link2} title="Citation Network" color="blue">
+                    Click any document to explore its citation tree — see which documents it references and which cite it in return.
+                    <span className="block mt-2 space-x-1">
+                      <Highlight color="green">Green = citing this doc</Highlight>
+                      {' '}
+                      <Highlight>Gray = referenced by it</Highlight>
+                    </span>
                   </FeatureCard>
                 </div>
               </Section>
 
-              <Section icon={Lock} title="Restricted features" color="gray">
-                <div className="space-y-2">
-                  {[
-                    'Submit documents to the library',
-                    'Validate documents (peer review)',
-                    'Access the community forum & Signal group',
-                    'Create or edit regulation pathways',
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                        <span className="text-gray-400 text-xs">✕</span>
+              <Section icon={Bot} title="AI Research Assistant" color="purple">
+                <div className="space-y-3">
+                  <p className="text-gray-700 text-sm">
+                    Ask questions in <strong>English or French</strong> and get answers drawn directly from the library documents, with citations.
+                  </p>
+                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+                    <p className="text-sm text-purple-800 italic">"What are the main AI regulations in Europe?"</p>
+                    <p className="text-xs text-purple-600 mt-2">
+                      The assistant searches the library semantically and returns a synthesised answer with links to the source documents.
+                    </p>
+                  </div>
+                </div>
+              </Section>
+
+              <Section icon={Grid3X3} title="Periodic Table of Platform Regulation" color="green">
+                <div className="space-y-3">
+                  <p className="text-gray-700 text-sm">
+                    Explore <strong>54 regulatory elements</strong> organised across <strong>6 thematic categories</strong>. Click any element to read its definition and see which library documents cover it.
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {[
+                      { color: "bg-green-500", label: "Institutional Framework" },
+                      { color: "bg-green-500", label: "Legislating Platforms" },
+                      { color: "bg-red-500",   label: "Human Rights" },
+                      { color: "bg-blue-500",  label: "Content Governance" },
+                      { color: "bg-blue-500",  label: "Systemic Risks" },
+                      { color: "bg-blue-500",  label: "Pro-social Design" },
+                    ].map(({ color, label }) => (
+                      <div key={label} className="flex items-center gap-2 text-xs">
+                        <div className={`w-3 h-3 rounded flex-shrink-0 ${color}`}></div>
+                        <span>{label}</span>
                       </div>
-                      {item}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </Section>
 
-              <Section icon={ArrowUpCircle} title="Upgrade your access" color="green">
+              <Section icon={Route} title="Regulation Pathways" color="orange">
+                <p className="text-gray-700 text-sm">
+                  Browse all regulation pathways created by network members. Each pathway combines several periodic table elements into a coherent regulatory approach. You can view the elements chosen, read author justifications for each step, and rate pathways with stars.
+                </p>
+              </Section>
+
+              <Section icon={ArrowUpCircle} title="Join as a full Member" color="green">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
                   <p className="text-sm text-green-800">
-                    To become a full <strong>Member</strong> or <strong>Validator</strong>, contact the I4TK team:
+                    To contribute to the network — submit documents, participate in peer review, access the community forum, or create your own regulation pathways — contact the I4TK team to request full membership:
                   </p>
                   <a
                     href="mailto:joris.galea@i4tknowledge.net"
@@ -228,9 +251,6 @@ const WalkThrough = () => {
                     <MessageCircle className="w-4 h-4" />
                     joris.galea@i4tknowledge.net
                   </a>
-                  <p className="text-xs text-green-700">
-                    Members gain full access to the community. Validators can additionally submit documents and participate in peer review.
-                  </p>
                 </div>
               </Section>
             </div>
