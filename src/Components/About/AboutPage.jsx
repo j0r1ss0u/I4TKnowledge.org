@@ -118,7 +118,7 @@ const AboutPage = ({ currentLang }) => {
     [TABS.FOUNDERS]: 'Founding members',
     [TABS.TOR]: 'Terms of reference',
     [TABS.PRAI_PARTNERSHIP]: 'PRAI Partnership',
-    [TABS.UNESCO_REPORT]: 'Digital Platforms Regulation',
+    [TABS.UNESCO_REPORT]: 'Focus on Central America',
   };
 
   return (
