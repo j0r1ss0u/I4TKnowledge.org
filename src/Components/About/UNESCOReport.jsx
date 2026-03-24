@@ -8,7 +8,7 @@ const UNESCOReport = () => {
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-serif text-2xl font-bold text-gray-800">
-          UNESCO Report — Central America &amp; Caribbean
+          The Regulation of Digital Platforms in Mexico, Central America and the Caribbean
         </h2>
         <a
           href={reportUrl}
