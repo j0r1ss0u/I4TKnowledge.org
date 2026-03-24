@@ -5,12 +5,14 @@ import Pressrelease from './Pressrelease';
 import Torpage from './Torpage';
 import PRAI from './PRAI';
 import Events from './Events';
+import UNESCOReport from './UNESCOReport';
 import { useAuth } from '../AuthContext';
 
 const TABS = {
   ABOUT: 'about',
   PRESS_RELEASE: 'press-release',
   PRAI_PARTNERSHIP: 'prai-partnership',
+  UNESCO_REPORT: 'unesco-report',
   TOR: 'Terms of Reference',
   FOUNDERS: 'Founding members'
 };
@@ -87,6 +89,8 @@ const AboutPage = ({ currentLang }) => {
         return <Pressrelease />;
       case TABS.PRAI_PARTNERSHIP:
         return <PRAI />;
+      case TABS.UNESCO_REPORT:
+        return <UNESCOReport />;
       case TABS.FOUNDERS:
         return <FoundersPage />;
       default:
@@ -114,6 +118,7 @@ const AboutPage = ({ currentLang }) => {
     [TABS.FOUNDERS]: 'Founding members',
     [TABS.TOR]: 'Terms of reference',
     [TABS.PRAI_PARTNERSHIP]: 'PRAI Partnership',
+    [TABS.UNESCO_REPORT]: 'UNESCO Report',
   };
 
   return (
