@@ -122,28 +122,6 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
     }
   }, []);
 
-  // Importer invitationsService du scope global
-  const invitationsService = window.invitationsService || {
-    validateInvitationCode: async (email, code) => {
-      // Simuler l'appel API si le service n'est pas disponible
-      console.log('Validation du code d\'invitation:', code, 'pour l\'email:', email);
-
-      // Si vous avez importé correctement invitationsService, vous n'aurez pas besoin de cette partie
-      if (email && code) {
-        return { 
-          valid: true, 
-          invitation: { 
-            id: 'simulation-id',
-            email: email,
-            code: code
-          } 
-        };
-      }
-
-      return { valid: false, message: 'Email et code requis' };
-    }
-  };
-
   // Fonction de validation
   const validateInvitation = async (emailToValidate, codeToValidate) => {
     try {
