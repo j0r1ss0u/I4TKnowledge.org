@@ -10,13 +10,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Translation System — EN/ES via ui.js (COMPLETE)
 Full EN/ES translation system via `src/translations/ui.js` (single source of truth):
-- **685 EN = 685 ES keys, parity 0 missing** across all sections
+- **757 EN = 757 ES keys, parity 0 missing** across all sections
 - All 37 active components wired (V1–V5 migration waves complete)
 - 3 components intentionally left on `library.js`: NetworkPublications, LibrarianSpace, RecoverMissingDocument
 - `App.jsx`: fully migrated — RegisterComponent and AppContent use `ui[currentLang].register` keys; no hardcoded French strings remain
 - Language selector dropdown in Header (EN/ES); language persisted in `localStorage`
 - Single source of truth: `language` from `useAuth()` — no duplicate state in App.jsx
 - Fixed crash bugs: `Globaltoolkit.jsx` and `WalkThrough.jsx` used `import { ui }` (named import) instead of `import ui` (default) — caused blank page on Tools and Guide routes
+
+## Periodic Table Wired to Translation System
+- `ui.js` now has `categories` section (6 category keys, EN + ES) and `resolutionPath` section (45 keys, EN + ES)
+- `Globaltoolkit.jsx`: category headers use `cat[categoryKey]` from ui.js; CSV export also uses translated names
+- `ResolutionPath.jsx`: inline `translations` object (400 lines, 5 languages) removed; `t` and `cat` now come from `(ui[language] ?? ui.en).resolutionPath/.categories`
+- Category name resolution (enrichElement function) uses `cat[element.category]` instead of the old `nameFr` conditional
 
 ## Multilingual Support — 5 Languages (EN / FR / ES / PT / ZH)
 Legacy 5-language toggle system (pre-ui.js migration):

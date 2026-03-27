@@ -133,6 +133,7 @@ const Globaltoolkit = () => {
   // Hook d'authentification
   const { user, language } = useAuth();
   const t = (ui[language] ?? ui.en).tools;
+  const cat = (ui[language] ?? ui.en).categories;
   const isAdmin = user && (user.role === 'admin' || user.email === 'admin@i4tk.org' || user.email === 'joris.galea@i4tknowledge.net');
 
   // =================================================================
@@ -621,7 +622,7 @@ const Globaltoolkit = () => {
           .filter(t => t)
           .join(', ');
 
-        const categoryName = CATEGORIES[element.category]?.name || element.category || '';
+        const categoryName = cat[element.category] ?? CATEGORIES[element.category]?.name ?? element.category ?? '';
 
         const row = [
           escapeCSVField(categoryName),
@@ -845,7 +846,7 @@ const Globaltoolkit = () => {
               {Object.entries(CATEGORIES).map(([categoryKey, category]) => (
                 <div key={categoryKey} className="flex flex-col gap-1">
                   <div className={`${CATEGORIES[categoryKey].color} border ${CATEGORIES[categoryKey].borderColor} rounded-md p-2 flex flex-col items-center justify-center text-center font-semibold text-xs h-16`}>
-                    {category.name}
+                    {cat[categoryKey] ?? category.name}
                   </div>
                   {organizedElements[categoryKey]?.map((element) => (
                     <button
@@ -895,7 +896,7 @@ const Globaltoolkit = () => {
                                rounded-md p-3 flex flex-col items-center justify-center
                                text-center font-semibold text-sm h-20`}
                   >
-                    {category.name}
+                    {cat[categoryKey] ?? category.name}
                   </div>
 
                   {/* Elements in this category */}
