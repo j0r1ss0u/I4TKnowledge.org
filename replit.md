@@ -10,7 +10,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Translation System — EN/FR/ES via ui.js (COMPLETE)
 Full EN/FR/ES translation system via `src/translations/ui.js` (single source of truth):
-- **729 EN = 729 FR = 729 ES keys, parity 0 missing** across all sections
+- **783 EN = 783 FR = 783 ES keys, parity 0 missing** across all sections (includes 54-key `elementNames` block)
 - All 37 active components wired (V1–V5 migration waves complete)
 - 3 components intentionally left on `library.js`: NetworkPublications, LibrarianSpace, RecoverMissingDocument
 - `App.jsx`: fully migrated — RegisterComponent and AppContent use `ui[currentLang].register` keys
@@ -18,11 +18,12 @@ Full EN/FR/ES translation system via `src/translations/ui.js` (single source of 
 - Single source of truth: `language` from `useAuth()` — AuthContext accepts `'en' | 'fr' | 'es'`
 - Fixed crash bugs: `Globaltoolkit.jsx` and `WalkThrough.jsx` used `import { ui }` (named import) instead of `import ui` (default) — caused blank page on Tools and Guide routes
 
-## Periodic Table Wired to Translation System
-- `ui.js` now has `categories` section (6 category keys, EN + ES) and `resolutionPath` section (45 keys, EN + ES)
-- `Globaltoolkit.jsx`: category headers use `cat[categoryKey]` from ui.js; CSV export also uses translated names
-- `ResolutionPath.jsx`: inline `translations` object (400 lines, 5 languages) removed; `t` and `cat` now come from `(ui[language] ?? ui.en).resolutionPath/.categories`
-- Category name resolution (enrichElement function) uses `cat[element.category]` instead of the old `nameFr` conditional
+## Periodic Table Wired to Translation System (COMPLETE)
+- `ui.js` has `categories` section (6 keys), `resolutionPath` section (45 keys), and `elementNames` section (54 element IDs) — all in EN + FR + ES
+- **783 EN = 783 FR = 783 ES keys** — parity confirmed ✅
+- `Globaltoolkit.jsx`: category headers use `cat[categoryKey]`; element cells use `elementNames[element.id] ?? element.name`; search filter includes translated name; CSV export uses translated name; detail panel title uses translated name
+- `ResolutionPath.jsx`: inline `translations` object (400 lines) removed; element names in pathway builder, mobile picker, detail view, and element modal all use `elementNames[id] ?? element.name`; category labels use `cat[category]`
+- Pattern: `const elementNames = (ui[language] ?? ui.en).elementNames ?? {}` — fallback to Firestore English name if key missing
 
 ## Multilingual Support — 5 Languages (EN / FR / ES / PT / ZH)
 Legacy 5-language toggle system (pre-ui.js migration):

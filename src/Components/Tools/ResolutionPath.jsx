@@ -108,6 +108,7 @@ const ResolutionPath = ({ elements, onBack }) => {
   const t = (ui[language] ?? ui.en).resolutionPath;
   const cat = (ui[language] ?? ui.en).categories;
   const toolsT = (ui[language] ?? ui.en).tools;
+  const elementNames = (ui[language] ?? ui.en).elementNames ?? {};
 
   // Update local language when auth language changes
   useEffect(() => {
@@ -922,7 +923,7 @@ const ResolutionPath = ({ elements, onBack }) => {
                     <div className="flex-shrink-0 w-2/5">
                       <div className="flex items-center mb-2">
                         <span className="w-6 h-6 flex items-center justify-center bg-amber-500 text-white rounded-full text-xs font-bold mr-2 flex-shrink-0">{index + 1}</span>
-                        <span className="text-sm font-semibold leading-tight">{element?.name || "Unknown element"}</span>
+                        <span className="text-sm font-semibold leading-tight">{(elementNames[element?.id] ?? element?.name) || t.unknownElement}</span>
                       </div>
                       {element?.id && <div className="font-mono text-xs text-gray-500 mb-2 pl-8">{element.id}</div>}
                       <div className="flex items-center space-x-1 pl-8">
@@ -988,10 +989,12 @@ const ResolutionPath = ({ elements, onBack }) => {
                         </div>
                         {elementSearchTerm.length > 0 && (
                           <div className="border border-gray-200 rounded-md mb-3 max-h-52 overflow-y-auto shadow-sm">
-                            {elements.filter(el =>
-                              el.name.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
-                              el.id.toLowerCase().includes(elementSearchTerm.toLowerCase())
-                            ).slice(0, 20).map(el => {
+                            {elements.filter(el => {
+                              const displayName = elementNames[el.id] ?? el.name;
+                              return displayName.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
+                                el.name.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
+                                el.id.toLowerCase().includes(elementSearchTerm.toLowerCase());
+                            }).slice(0, 20).map(el => {
                               const alreadyAdded = selectedElements.some(s => s.id === el.id);
                               return (
                                 <button
@@ -1001,15 +1004,17 @@ const ResolutionPath = ({ elements, onBack }) => {
                                   className={`w-full text-left px-3 py-2 text-sm border-b border-gray-100 flex items-center gap-2 ${alreadyAdded ? 'bg-gray-50 text-gray-400 cursor-default' : 'hover:bg-amber-50 active:bg-amber-100'}`}
                                 >
                                   <span className="font-mono font-bold text-gray-500 w-12 flex-shrink-0">{el.id}</span>
-                                  <span className="flex-1 leading-tight">{el.name}</span>
+                                  <span className="flex-1 leading-tight">{elementNames[el.id] ?? el.name}</span>
                                   {alreadyAdded ? <span className="text-green-500 text-xs font-bold">✓</span> : <span className="text-amber-500 font-bold">+</span>}
                                 </button>
                               );
                             })}
-                            {elements.filter(el =>
-                              el.name.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
-                              el.id.toLowerCase().includes(elementSearchTerm.toLowerCase())
-                            ).length === 0 && (
+                            {elements.filter(el => {
+                              const displayName = elementNames[el.id] ?? el.name;
+                              return displayName.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
+                                el.name.toLowerCase().includes(elementSearchTerm.toLowerCase()) ||
+                                el.id.toLowerCase().includes(elementSearchTerm.toLowerCase());
+                            }).length === 0 && (
                               <p className="px-3 py-4 text-sm text-gray-400 text-center">
                                 {toolsT.noElementFound}
                               </p>
@@ -1171,7 +1176,7 @@ const ResolutionPath = ({ elements, onBack }) => {
                               >
                                 <div className="flex items-baseline gap-2 mb-1">
                                   <span className="font-mono text-sm font-bold text-gray-500">{elementDetails?.id}</span>
-                                  <span className="font-semibold text-gray-900">{elementDetails?.name || "Unknown element"}</span>
+                                  <span className="font-semibold text-gray-900">{(elementNames[elementDetails?.id] ?? elementDetails?.name) || t.unknownElement}</span>
                                 </div>
                                 <span className="text-xs text-gray-500">{elementDetails?.categoryName || categoryColors.name}</span>
                               </div>
@@ -1320,9 +1325,9 @@ const ResolutionPath = ({ elements, onBack }) => {
               {/* En-tête du modal */}
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-2xl font-bold">{selectedElementForView.name}</h3>
+                  <h3 className="text-2xl font-bold">{elementNames[selectedElementForView.id] ?? selectedElementForView.name}</h3>
                   <p className="text-sm text-gray-600">
-                    {CATEGORIES[selectedElementForView.category]?.name}
+                    {cat[selectedElementForView.category] ?? CATEGORIES[selectedElementForView.category]?.name}
                   </p>
                 </div>
                 <button

@@ -134,6 +134,7 @@ const Globaltoolkit = () => {
   const { user, language } = useAuth();
   const t = (ui[language] ?? ui.en).tools;
   const cat = (ui[language] ?? ui.en).categories;
+  const elementNames = (ui[language] ?? ui.en).elementNames ?? {};
   const isAdmin = user && (user.role === 'admin' || user.email === 'admin@i4tk.org' || user.email === 'joris.galea@i4tknowledge.net');
 
   // =================================================================
@@ -325,8 +326,10 @@ const Globaltoolkit = () => {
 
   // Filtre les éléments en fonction de la recherche et de la catégorie
   const filteredElements = elements.filter(element => {
+    const displayName = elementNames[element.id] ?? element.name;
     const matchesSearch = 
-      element.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      displayName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      element.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       element.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory ? element.category === selectedCategory : true;
 
@@ -626,7 +629,7 @@ const Globaltoolkit = () => {
 
         const row = [
           escapeCSVField(categoryName),
-          escapeCSVField(element.name || ''),
+          escapeCSVField(elementNames[element.id] ?? element.name ?? ''),
           escapeCSVField(element.id || ''),
           escapeCSVField(element.description || ''),
           escapeCSVField(element.context || ''),
@@ -855,7 +858,7 @@ const Globaltoolkit = () => {
                       className={`${CATEGORIES[element.category].color} border ${CATEGORIES[element.category].borderColor} rounded-md p-2 flex flex-col items-center justify-center h-20 text-center relative`}
                     >
                       <span className="font-mono text-base font-bold mb-0.5">{element.id}</span>
-                      <span className="text-xs line-clamp-2 leading-tight">{element.name}</span>
+                      <span className="text-xs line-clamp-2 leading-tight">{elementNames[element.id] ?? element.name}</span>
                       <span className="absolute bottom-0.5 left-1 text-xs text-gray-600">{documentCounts[element.id] || 0}</span>
                     </button>
                   ))}
@@ -914,7 +917,7 @@ const Globaltoolkit = () => {
                                 hover:scale-105 hover:shadow-md text-center relative`}
                     >
                       <span className="font-mono text-lg font-bold mb-1">{element.id}</span>
-                      <span className="text-xs line-clamp-2">{element.name}</span>
+                      <span className="text-xs line-clamp-2">{elementNames[element.id] ?? element.name}</span>
                       <span className="absolute bottom-1 left-2 text-xs font-semibold text-gray-700">
                         {documentCounts[element.id] || 0}
                       </span>
@@ -971,7 +974,7 @@ const Globaltoolkit = () => {
                         className="text-2xl font-bold w-full p-1 border rounded mb-1"
                       />
                     ) : (
-                      <h3 className="text-2xl font-bold">{selectedElement.name}</h3>
+                      <h3 className="text-2xl font-bold">{elementNames[selectedElement.id] ?? selectedElement.name}</h3>
                     )}
                     <p className="text-sm text-gray-600">
                       {editMode && isAdmin ? (
