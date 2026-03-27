@@ -395,7 +395,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                   onClick={handleGenerateAISuggestions}
                   disabled={aiLoading || !document.ipfsCid}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-md hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Generate AI-powered tag suggestions using GPT-4o-mini"
+                  title={m.ai.suggestTooltip}
                 >
                   {aiLoading ? (
                     <>

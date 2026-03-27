@@ -98,6 +98,7 @@ const ui = {
         title:    'Join Our Network Today!',
         subtitle: 'Fill out the form below to become part of our global knowledge community',
       },
+      signupFormTitle: 'Registration',
     },
 
     // ── Search / LibraryRAG (public search) ───────────────
@@ -658,8 +659,9 @@ const ui = {
         aiAnalysis:    'AI analyzed your document using semantic embeddings and GPT-4o-mini',
       },
       ai: {
-        suggestButton:  'AI Suggest Tags',
-        analyzing:      'Analyzing…',
+        suggestButton:   'AI Suggest Tags',
+        suggestTooltip:  'Generate AI-powered tag suggestions using GPT-4o-mini',
+        analyzing:       'Analyzing…',
         suggestions:    'AI Tag Suggestions',
         applyAll:       'Apply All',
         dismiss:        'Dismiss',
@@ -1215,6 +1217,7 @@ const ui = {
         title:    '¡Únase a nuestra red hoy!',
         subtitle: 'Complete el formulario a continuación para formar parte de nuestra comunidad global de conocimiento',
       },
+      signupFormTitle: 'Registro',
     },
 
     search: {
@@ -1763,8 +1766,9 @@ const ui = {
         aiAnalysis:  'La IA analizó su documento utilizando embeddings semánticos y GPT-4o-mini',
       },
       ai: {
-        suggestButton:  'Sugerir etiquetas con IA',
-        analyzing:      'Analizando…',
+        suggestButton:   'Sugerir etiquetas con IA',
+        suggestTooltip:  'Generar sugerencias de etiquetas con IA usando GPT-4o-mini',
+        analyzing:       'Analizando…',
         suggestions:    'Sugerencias de etiquetas de IA',
         applyAll:       'Aplicar todo',
         dismiss:        'Descartar',

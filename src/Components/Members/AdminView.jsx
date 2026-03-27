@@ -613,14 +613,14 @@ const AdminView = () => {
                               setShowMemberForm(true);
                             }}
                             className="text-indigo-600 hover:text-indigo-900"
-                            title="Edit organization"
+                            title={a.editOrg}
                           >
                             <Edit className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteMember(member.id)}
                             className="text-red-600 hover:text-red-900"
-                            title="Delete organization"
+                            title={a.deleteOrg}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -683,7 +683,7 @@ const AdminView = () => {
                               <button
                                 onClick={() => handleResendInvitation(invitation.id)}
                                 className="text-blue-600 hover:text-blue-900"
-                                title="Resend invitation"
+                                title={a.resendInv}
                               >
                                 <Mail className="h-4 w-4" />
                               </button>
@@ -691,7 +691,7 @@ const AdminView = () => {
                             <button
                               onClick={() => handleCancelInvitation(invitation.id)}
                               className="text-red-600 hover:text-red-900"
-                              title="Cancel invitation"
+                              title={a.cancelInv}
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -760,7 +760,7 @@ const AdminView = () => {
                           <button
                             onClick={() => handleDeleteUser(user.uid)}
                             className="text-red-600 hover:text-red-900"
-                            title="Delete user"
+                            title={a.deleteUser}
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

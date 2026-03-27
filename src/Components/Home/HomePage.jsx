@@ -194,7 +194,7 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
             <iframe 
               src="https://i4tknowledge.fillout.com/t/e63gkAQohAus" 
               className="w-full border-none h-96 overflow-hidden rounded"
-              title="Inscription"
+              title={t.home.signupFormTitle}
             ></iframe>
           </div>
         </div>
