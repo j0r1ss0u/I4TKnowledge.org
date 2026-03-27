@@ -537,6 +537,85 @@ const ui = {
       noResults: 'No Terms of reference found.',
     },
 
+    // ── Citation Tree / Genealogy ─────────────────────────
+    genealogy: {
+      pageTitle:        'Citation Tree',
+      backToLibrary:    'Back to Library',
+      loadError:        'Error loading genealogy: ',
+      tokenIdMissing:   'Token ID not provided',
+      documentNotFound: 'Document not found',
+      loading:          'Loading citation tree…',
+      legend: {
+        descendants: 'Descendants',
+        mainDoc:     'Main Doc',
+        references:  'References',
+      },
+      panel: {
+        title:       'Document Details',
+        author:      'Author',
+        description: 'Description',
+        citations:   'Citations',
+        refPrefix:   'Reference #',
+        noCitations: 'No citations',
+        clickPrompt: 'Click on a document to view details',
+      },
+    },
+
+    // ── Document Metadata Editor ──────────────────────────
+    metadata: {
+      modalTitle:      'Edit Document Metadata',
+      fields: {
+        title:        'Title',
+        authors:      'Authors',
+        description:  'Description',
+        programme:    'Programme',
+        collection:   'Collection',
+        categories:   'Categories',
+        geoScope:     'Geographic Scope',
+        references:   'Bibliographic references',
+        elements:     'Periodic Table Elements',
+      },
+      placeholders: {
+        authors:       'Enter authors separated by commas',
+        programme:     'Select a programme',
+        collection:    'Select a collection (optional)',
+        references:    'Enter reference IDs separated by commas',
+        searchElements: 'Search elements…',
+      },
+      hints: {
+        geoDefault:    'All regions selected by default. Uncheck regions where this document does not apply.',
+        elementTag:    'Tag this document with relevant elements from the Periodic Table of Platform Regulation',
+        aiAnalysis:    'AI analyzed your document using semantic embeddings and GPT-4o-mini',
+      },
+      ai: {
+        suggestButton:  'AI Suggest Tags',
+        analyzing:      'Analyzing…',
+        suggestions:    'AI Tag Suggestions',
+        applyAll:       'Apply All',
+        dismiss:        'Dismiss',
+        apply:          'Apply',
+        errorTitle:     'AI Suggestion Error',
+        noMatches:      'No tag suggestions found. The AI couldn\'t find strong matches for this document.',
+        confident:      '% confident',
+      },
+      selectedPrefix:  'Selected elements',
+      noElements:      'No elements found',
+      loadElemError:   'Failed to load periodic table elements',
+      saveError:       'Failed to save document: ',
+      cancel:          'Cancel',
+      save:            'Save Changes',
+      saving:          'Saving…',
+    },
+
+    // ── IP Dashboard (My contributions tab) ───────────────
+    ipDashboard: {
+      communityStats:   'Community statistics',
+      networkIPValue:   'Network total IP value:',
+      myIP:             'My intellectual property in i4t tokens',
+      noDocuments:      'No documents found for this address',
+      tokenLabel:       'Token #',
+    },
+
   }, // end en
 
 
@@ -1045,6 +1124,85 @@ const ui = {
       loadError: 'Error al cargar los términos de referencia: ',
       loading:   'Cargando términos de referencia…',
       noResults: 'No se encontraron términos de referencia.',
+    },
+
+    // ── Citation Tree / Genealogy ─────────────────────────
+    genealogy: {
+      pageTitle:        'Árbol de citas',
+      backToLibrary:    'Volver a la biblioteca',
+      loadError:        'Error al cargar la genealogía: ',
+      tokenIdMissing:   'Token ID no proporcionado',
+      documentNotFound: 'Documento no encontrado',
+      loading:          'Cargando árbol de citas…',
+      legend: {
+        descendants: 'Descendientes',
+        mainDoc:     'Doc. principal',
+        references:  'Referencias',
+      },
+      panel: {
+        title:       'Detalles del documento',
+        author:      'Autor',
+        description: 'Descripción',
+        citations:   'Citas',
+        refPrefix:   'Referencia #',
+        noCitations: 'Sin citas',
+        clickPrompt: 'Haga clic en un documento para ver los detalles',
+      },
+    },
+
+    // ── Document Metadata Editor ──────────────────────────
+    metadata: {
+      modalTitle:      'Editar metadatos del documento',
+      fields: {
+        title:        'Título',
+        authors:      'Autores',
+        description:  'Descripción',
+        programme:    'Programa',
+        collection:   'Colección',
+        categories:   'Categorías',
+        geoScope:     'Alcance geográfico',
+        references:   'Referencias bibliográficas',
+        elements:     'Elementos de la tabla periódica',
+      },
+      placeholders: {
+        authors:        'Ingrese los autores separados por comas',
+        programme:      'Seleccione un programa',
+        collection:     'Seleccione una colección (opcional)',
+        references:     'Ingrese los IDs de referencia separados por comas',
+        searchElements: 'Buscar elementos…',
+      },
+      hints: {
+        geoDefault:  'Todas las regiones seleccionadas por defecto. Desmarque las regiones donde este documento no aplica.',
+        elementTag:  'Etiquete este documento con los elementos relevantes de la Tabla periódica de la regulación de plataformas',
+        aiAnalysis:  'La IA analizó su documento utilizando embeddings semánticos y GPT-4o-mini',
+      },
+      ai: {
+        suggestButton:  'Sugerir etiquetas con IA',
+        analyzing:      'Analizando…',
+        suggestions:    'Sugerencias de etiquetas de IA',
+        applyAll:       'Aplicar todo',
+        dismiss:        'Descartar',
+        apply:          'Aplicar',
+        errorTitle:     'Error de sugerencia IA',
+        noMatches:      'No se encontraron sugerencias. La IA no encontró coincidencias sólidas para este documento.',
+        confident:      '% de confianza',
+      },
+      selectedPrefix:  'Elementos seleccionados',
+      noElements:      'No se encontraron elementos',
+      loadElemError:   'Error al cargar los elementos de la tabla periódica',
+      saveError:       'Error al guardar el documento: ',
+      cancel:          'Cancelar',
+      save:            'Guardar cambios',
+      saving:          'Guardando…',
+    },
+
+    // ── IP Dashboard (My contributions tab) ───────────────
+    ipDashboard: {
+      communityStats:   'Estadísticas de la comunidad',
+      networkIPValue:   'Valor total de PI de la red:',
+      myIP:             'Mi propiedad intelectual en tokens i4t',
+      noDocuments:      'No se encontraron documentos para esta dirección',
+      tokenLabel:       'Token #',
     },
 
   }, // end es
