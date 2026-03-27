@@ -2,11 +2,15 @@
 // 1. IMPORTS
 // =================================================================================
 import React from "react";
+import { useAuth } from '../../AuthContext';
+import ui from '../../../translations/ui';
 
 // =================================================================================
 // 2. COMPONENT DEFINITION
 // =================================================================================
 const Piechart = ({ myBalance, totalSupply }) => {
+  const { language } = useAuth();
+  const commonT = (ui[language] || ui.en).common;
   // -----------------------------------------------------------------------------
   // 2.1 Data Processing
   // -----------------------------------------------------------------------------
@@ -58,7 +62,7 @@ const Piechart = ({ myBalance, totalSupply }) => {
           <span className="text-2xl font-bold">
             {percentage.toFixed(1)}%
           </span>
-          <p className="text-sm text-gray-500">Network Share</p>
+          <p className="text-sm text-gray-500">{commonT.networkShare}</p>
         </div>
       </div>
     </div>

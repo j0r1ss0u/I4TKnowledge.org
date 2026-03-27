@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import ui from '../../translations/ui.js';
 
 const NewsComponent = ({ currentLang = 'en' }) => {
+  const t = (ui[currentLang] || ui.en);
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -58,7 +60,7 @@ const NewsComponent = ({ currentLang = 'en' }) => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString(
-      currentLang === 'en' ? 'en-GB' : 'fr-FR',
+      t.common.dateLocale,
       { day: '2-digit', month: '2-digit', year: 'numeric' }
     );
   };
@@ -112,7 +114,7 @@ const NewsComponent = ({ currentLang = 'en' }) => {
                   rel="noopener noreferrer"
                   className="font-serif text-blue-600 hover:text-blue-800"
                 >
-                  {currentLang === 'en' ? 'Read more' : 'Lire plus'}
+                  {t.common.readMore}
                 </a>
                 <span className="font-serif text-sm text-gray-500">
                   {formatDate(article.webPublicationDate)}

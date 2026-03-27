@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
+import { useAuth } from '../../AuthContext';
+import ui from '../../../translations/ui.js';
 
 const RolesTable = ({ rolesRegistry, formatDate }) => {
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en);
   const [sortConfig, setSortConfig] = useState({
     key: 'createdAt',
     direction: 'desc'
@@ -60,18 +64,18 @@ const RolesTable = ({ rolesRegistry, formatDate }) => {
 
   return (
     <div className="mt-8 w-full">
-      <h3 className="text-lg font-bold mb-4">Roles Registry</h3>
+      <h3 className="text-lg font-bold mb-4">{t.adminView.rolesRegistry}</h3>
       <div className="w-full overflow-x-auto">
         <table className="w-full table-auto divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <SortableHeader label="Member Organisation" sortKey="memberName" />
-              <SortableHeader label="Wallet Address" sortKey="address" />
+              <SortableHeader label={t.adminView.memberOrg} sortKey="memberName" />
+              <SortableHeader label={t.adminView.walletAddress} sortKey="address" />
               <SortableHeader label="Role" sortKey="role" />
               <SortableHeader label="Action" sortKey="action" />
-              <SortableHeader label="Date" sortKey="createdAt" />
+              <SortableHeader label={t.adminView.date} sortKey="createdAt" />
               <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Transaction
+                {t.adminView.transaction}
               </th>
             </tr>
           </thead>

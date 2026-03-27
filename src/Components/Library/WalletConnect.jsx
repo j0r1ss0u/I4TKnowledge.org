@@ -4,10 +4,14 @@ import {
 } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { useAccount, useDisconnect } from 'wagmi';
+import { useAuth } from '../AuthContext';
+import ui from '../../translations/ui';
 
 const WalletConnect = () => {
   const { address, connector } = useAccount();
   const { disconnect } = useDisconnect();
+  const { language } = useAuth();
+  const commonT = (ui[language] || ui.en).common;
 
   return (
     <ConnectButton.Custom>
@@ -42,7 +46,7 @@ const WalletConnect = () => {
                     type="button"
                   >
                     <span className="mr-2">🌈</span>
-                    Connect Wallet
+                    {commonT.connectWallet}
                   </button>
                 );
               }

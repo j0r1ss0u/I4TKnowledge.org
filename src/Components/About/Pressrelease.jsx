@@ -4,8 +4,12 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import DocumentViewer from '../Library/components/DocumentViewer';
 import LargeDocumentViewer from '../Library/components/LargeDocumentViewer';
+import { useAuth } from '../AuthContext';
+import ui from '../../translations/ui.js';
 
 const Pressrelease = () => {
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en);
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(true);
   const [error, setError] = useState(null);
@@ -48,7 +52,7 @@ const Pressrelease = () => {
         setResults(formattedResults);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError('Error loading press releases: ' + err.message);
+        setError(t.pressRelease.loadError + err.message);
       } finally {
         setIsSearching(false);
       }
@@ -119,7 +123,7 @@ const Pressrelease = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="font-serif text-2xl font-bold mb-6">Press Releases</h2>
+      <h2 className="font-serif text-2xl font-bold mb-6">{t.pressRelease.pageTitle}</h2>
       {error && (
         <div className="text-red-600 mb-4 text-center">{error}</div>
       )}
@@ -135,7 +139,7 @@ const Pressrelease = () => {
         </>
       ) : (
         <div className="text-center py-8 text-gray-500">
-          No press releases found
+          {t.pressRelease.noResults}
         </div>
       )}
     </div>

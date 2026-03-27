@@ -47,6 +47,23 @@ const ui = {
       next:         'Next',
       submit:       'Submit',
       send:         'Send',
+      connectWallet: 'Connect Wallet',
+      networkShare:  'Network Share',
+      published:     'Published:',
+      readMore:      'Read more',
+      dateLocale:    'en-GB',
+    },
+
+    // ── passwordForm ──────────────────────────────────────
+    passwordForm: {
+      passwordLabel:        'Password',
+      passwordPlaceholder:  'Enter your password (min. 8 characters)',
+      confirmLabel:         'Confirm Password',
+      confirmPlaceholder:   'Confirm your password',
+      passwordsNotMatch:    'Passwords do not match',
+      passwordTooShort:     'Password must be at least 8 characters long',
+      passwordRequirements: 'Password must include at least 8 characters',
+      processing:           'Processing...',
     },
 
     // ── Header & navigation ───────────────────────────────
@@ -384,16 +401,25 @@ const ui = {
 
     // ── Library page ──────────────────────────────────────
     library: {
-      pageTitle:      'I4T Knowledge Library',
+      pageTitle:         'I4T Knowledge Library',
       searchPlaceholder: 'Search documents…',
-      loginPrompt:    'Login as a member to access peer-review features',
-      myContributions: 'My contributions to the I4TK community',
+      loginPrompt:       'Login as a member to access peer-review features',
+      myContributions:   'My contributions to the I4TK community',
       tabs: {
         peerReviews:        'Peer reviews',
         submitContribution: 'Submit Contribution',
         librarianSpace:     'Librarian Space',
         ipMonitoring:       'IP monitoring',
       },
+      errorLoadingDocs:  'Error loading documents',
+      noPublishedDocs:   'No published documents available',
+      onlyPdf:           'Only PDF files are accepted',
+      startingUpload:    'Starting upload...',
+      uploadingIpfs:     'Uploading to IPFS...',
+      finalizing:        'Finalizing...',
+      dropHere:          'Drop your PDF here...',
+      dragDrop:          'Drag & drop your PDF here, or click to select',
+      pdfMaxSize:        'PDF files only, max size 100MB',
     },
 
     // ── Library AI Chat ───────────────────────────────────
@@ -497,6 +523,16 @@ const ui = {
         africa:       'Africa',
         middleEast:   'Middle East',
       },
+      rolesRegistry:       'Roles Registry',
+      memberOrg:           'Member Organisation',
+      walletAddress:       'Wallet Address',
+      date:                'Date',
+      transaction:         'Transaction',
+      validationStatus:    'Validation status:',
+      validate:            'Validate',
+      validating:          'Validating...',
+      alreadyValidated:    'Already Validated',
+      alreadyValidatedMsg: 'You have already validated this document',
     },
 
     // ── Password reset (ForgotPassword) ───────────────────
@@ -530,6 +566,7 @@ const ui = {
 
     // ── Press Releases page ───────────────────────────────
     pressRelease: {
+      pageTitle:    'Press Releases',
       loadError:    'Error loading press releases: ',
       loading:      'Loading press releases…',
       noResults:    'No press releases found.',
@@ -537,9 +574,10 @@ const ui = {
 
     // ── Terms of Reference page ───────────────────────────
     tor: {
-      loadError: 'Error loading Terms of reference: ',
-      loading:   'Loading Terms of reference…',
-      noResults: 'No Terms of reference found.',
+      pageTitle:  'Terms of Reference',
+      loadError:  'Error loading Terms of reference: ',
+      loading:    'Loading Terms of reference…',
+      noResults:  'No Terms of reference found.',
     },
 
     // ── Citation Tree / Genealogy ─────────────────────────
@@ -721,6 +759,23 @@ const ui = {
       next:         'Siguiente',
       submit:       'Enviar',
       send:         'Enviar',
+      connectWallet: 'Conectar cartera',
+      networkShare:  'Participación en red',
+      published:     'Publicado:',
+      readMore:      'Leer más',
+      dateLocale:    'es-ES',
+    },
+
+    // ── passwordForm ──────────────────────────────────────
+    passwordForm: {
+      passwordLabel:        'Contraseña',
+      passwordPlaceholder:  'Ingrese su contraseña (mín. 8 caracteres)',
+      confirmLabel:         'Confirmar contraseña',
+      confirmPlaceholder:   'Confirme su contraseña',
+      passwordsNotMatch:    'Las contraseñas no coinciden',
+      passwordTooShort:     'La contraseña debe tener al menos 8 caracteres',
+      passwordRequirements: 'La contraseña debe tener al menos 8 caracteres',
+      processing:           'Procesando...',
     },
 
     header: {
@@ -1054,6 +1109,15 @@ const ui = {
         librarianSpace:     'Espacio del bibliotecario',
         ipMonitoring:       'Seguimiento de IP',
       },
+      errorLoadingDocs:  'Error al cargar los documentos',
+      noPublishedDocs:   'No hay documentos publicados disponibles',
+      onlyPdf:           'Solo se aceptan archivos PDF',
+      startingUpload:    'Iniciando carga...',
+      uploadingIpfs:     'Cargando a IPFS...',
+      finalizing:        'Finalizando...',
+      dropHere:          'Suelta tu PDF aquí...',
+      dragDrop:          'Arrastra y suelta tu PDF aquí, o haz clic para seleccionar',
+      pdfMaxSize:        'Solo archivos PDF, tamaño máximo 100MB',
     },
 
     // ── Library AI Chat ───────────────────────────────────
@@ -1157,6 +1221,16 @@ const ui = {
         africa:       'África',
         middleEast:   'Oriente Medio',
       },
+      rolesRegistry:       'Registro de roles',
+      memberOrg:           'Organización miembro',
+      walletAddress:       'Dirección de cartera',
+      date:                'Fecha',
+      transaction:         'Transacción',
+      validationStatus:    'Estado de validación:',
+      validate:            'Validar',
+      validating:          'Validando...',
+      alreadyValidated:    'Ya validado',
+      alreadyValidatedMsg: 'Ya ha validado este documento',
     },
 
     // ── Password reset (ForgotPassword) ───────────────────
@@ -1190,16 +1264,18 @@ const ui = {
 
     // ── Press Releases page ───────────────────────────────
     pressRelease: {
-      loadError: 'Error al cargar los comunicados de prensa: ',
-      loading:   'Cargando comunicados de prensa…',
-      noResults: 'No se encontraron comunicados de prensa.',
+      pageTitle:  'Comunicados de prensa',
+      loadError:  'Error al cargar los comunicados de prensa: ',
+      loading:    'Cargando comunicados de prensa…',
+      noResults:  'No se encontraron comunicados de prensa.',
     },
 
     // ── Terms of Reference page ───────────────────────────
     tor: {
-      loadError: 'Error al cargar los términos de referencia: ',
-      loading:   'Cargando términos de referencia…',
-      noResults: 'No se encontraron términos de referencia.',
+      pageTitle:  'Condiciones de uso',
+      loadError:  'Error al cargar los términos de referencia: ',
+      loading:    'Cargando términos de referencia…',
+      noResults:  'No se encontraron términos de referencia.',
     },
 
     // ── Citation Tree / Genealogy ─────────────────────────

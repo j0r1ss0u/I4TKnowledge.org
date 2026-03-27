@@ -1,54 +1,7 @@
 // PasswordForm.jsx
 import React, { useState } from 'react';
 import { EyeIcon, EyeOffIcon, Loader2 } from 'lucide-react';
-
-const translations = {
-  en: {
-    passwordLabel: "Password",
-    passwordPlaceholder: "Enter your password (min. 8 characters)",
-    confirmLabel: "Confirm Password",
-    confirmPlaceholder: "Confirm your password",
-    passwordsNotMatch: "Passwords do not match",
-    passwordTooShort: "Password must be at least 8 characters long",
-    passwordRequirements: "Password must include at least 8 characters",
-  },
-  fr: {
-    passwordLabel: "Mot de passe",
-    passwordPlaceholder: "Entrez votre mot de passe (min. 8 caractères)",
-    confirmLabel: "Confirmer le mot de passe",
-    confirmPlaceholder: "Confirmez votre mot de passe",
-    passwordsNotMatch: "Les mots de passe ne correspondent pas",
-    passwordTooShort: "Le mot de passe doit comporter au moins 8 caractères",
-    passwordRequirements: "Le mot de passe doit comporter au moins 8 caractères",
-  },
-  es: {
-    passwordLabel: "Contraseña",
-    passwordPlaceholder: "Ingrese su contraseña (mín. 8 caracteres)",
-    confirmLabel: "Confirmar contraseña",
-    confirmPlaceholder: "Confirme su contraseña",
-    passwordsNotMatch: "Las contraseñas no coinciden",
-    passwordTooShort: "La contraseña debe tener al menos 8 caracteres",
-    passwordRequirements: "La contraseña debe tener al menos 8 caracteres",
-  },
-  pt: {
-    passwordLabel: "Senha",
-    passwordPlaceholder: "Digite sua senha (mín. 8 caracteres)",
-    confirmLabel: "Confirmar senha",
-    confirmPlaceholder: "Confirme sua senha",
-    passwordsNotMatch: "As senhas não coincidem",
-    passwordTooShort: "A senha deve ter pelo menos 8 caracteres",
-    passwordRequirements: "A senha deve ter pelo menos 8 caracteres",
-  },
-  zh: {
-    passwordLabel: "密码",
-    passwordPlaceholder: "请输入密码（至少8个字符）",
-    confirmLabel: "确认密码",
-    confirmPlaceholder: "请再次输入密码",
-    passwordsNotMatch: "两次输入的密码不一致",
-    passwordTooShort: "密码至少需要8个字符",
-    passwordRequirements: "密码至少需要8个字符",
-  }
-};
+import ui from '../../translations/ui.js';
 
 const PasswordForm = ({ onSubmit, buttonText = 'Complete Registration', loading = false, language = 'en' }) => {
   const [password, setPassword] = useState('');
@@ -56,7 +9,7 @@ const PasswordForm = ({ onSubmit, buttonText = 'Complete Registration', loading 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
 
-  const t = translations[language] || translations.en;
+  const t = (ui[language] || ui.en).passwordForm;
 
   const validatePasswords = () => {
     if (password.length < 8) {
@@ -68,6 +21,7 @@ const PasswordForm = ({ onSubmit, buttonText = 'Complete Registration', loading 
       setError(t.passwordsNotMatch);
       return false;
     }
+
 
     setError(null);
     return true;
@@ -143,7 +97,7 @@ const PasswordForm = ({ onSubmit, buttonText = 'Complete Registration', loading 
         {loading ? (
           <div className="flex items-center justify-center">
             <Loader2 className="h-5 w-5 animate-spin mr-2" />
-            <span>Processing...</span>
+            <span>{t.processing}</span>
           </div>
         ) : (
           buttonText

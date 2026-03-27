@@ -6,6 +6,7 @@ import { torService } from '../../services/torService';
 import { useAuth } from '../../Components/AuthContext';
 import DocumentViewer from '../Library/components/DocumentViewer';
 import LargeDocumentViewer from '../Library/components/LargeDocumentViewer';
+import ui from '../../translations/ui.js';
 
 const SignatoriesList = ({ documentId }) => {
   // Le composant SignatoriesList reste inchangé
@@ -13,7 +14,8 @@ const SignatoriesList = ({ documentId }) => {
 };
 
 const Torpage = () => {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = (ui[language] || ui.en);
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(true);
   const [error, setError] = useState(null);
@@ -56,7 +58,7 @@ const Torpage = () => {
         setResults(formattedResults);
       } catch (err) {
         console.error('Fetch error:', err);
-        setError('Error loading Terms of reference: ' + err.message);
+        setError(t.tor.loadError + err.message);
       } finally {
         setIsSearching(false);
       }
@@ -133,7 +135,7 @@ const Torpage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="font-serif text-2xl font-bold mb-6">Terms of Reference</h2>
+      <h2 className="font-serif text-2xl font-bold mb-6">{t.tor.pageTitle}</h2>
       {error && (
         <div className="text-red-600 mb-4 text-center">{error}</div>
       )}
@@ -149,7 +151,7 @@ const Torpage = () => {
         </>
       ) : (
         <div className="text-center py-8 text-gray-500">
-          No Terms of reference found
+          {t.tor.noResults}
         </div>
       )}
     </div>

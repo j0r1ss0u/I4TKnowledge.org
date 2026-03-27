@@ -1,6 +1,10 @@
 import React from 'react';
+import { useAuth } from '../AuthContext';
+import ui from '../../translations/ui';
 
 const LibraryContent = ({ content }) => {
+  const { language } = useAuth();
+  const commonT = (ui[language] || ui.en).common;
   const contentData = {
     title: "Test Title",
     author: "Test Author",
@@ -32,7 +36,7 @@ const LibraryContent = ({ content }) => {
       </p>
 
       <p className="text-sm text-gray-500">
-        Published: {contentData.date}
+        {commonT.published} {contentData.date}
       </p>
     </div>
   );

@@ -1,14 +1,18 @@
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
+import { useAuth } from '../AuthContext';
+import ui from '../../translations/ui';
 
 const UNESCOReport = () => {
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en).unesco;
   const reportUrl = 'https://rodrigocetina.github.io/Reporte-UNESCO-CA-Car/en/';
 
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-serif text-2xl font-bold text-gray-800">
-          The Regulation of Digital Platforms in Mexico, Central America and the Caribbean
+          {t.title}
         </h2>
         <a
           href={reportUrl}
@@ -17,7 +21,7 @@ const UNESCOReport = () => {
           className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
         >
           <ExternalLink className="w-4 h-4" />
-          Open in new tab
+          {t.openNewTab}
         </a>
       </div>
 

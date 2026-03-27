@@ -7,6 +7,7 @@ import PRAI from './PRAI';
 import Events from './Events';
 import UNESCOReport from './UNESCOReport';
 import { useAuth } from '../AuthContext';
+import ui from '../../translations/ui.js';
 
 const TABS = {
   ABOUT: 'about',
@@ -27,7 +28,8 @@ const MissionCard = ({ title, description, icon: Icon, color }) => (
 
 const AboutPage = ({ currentLang }) => {
   const [activeTab, setActiveTab] = useState(TABS.ABOUT);
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = (ui[language] || ui[currentLang] || ui.en);
 
   // Log de débogage pour voir exactement ce qui se passe
   console.log("User info in AboutPage:", { 
@@ -54,26 +56,26 @@ const AboutPage = ({ currentLang }) => {
 
   const missionCards = [
     {
-      title: "World-class knowledge producers",
-      description: "Bringing together leading research centers and think tanks",
+      title: t.about.mission.knowledgeTitle,
+      description: t.about.mission.knowledgeDesc,
       icon: Globe2,
       color: "text-orange-600"
     },
     {
-      title: "Collective action",
-      description: "Fostering collaboration for better digital governance",
+      title: t.about.mission.collectiveTitle,
+      description: t.about.mission.collectiveDesc,
       icon: Users,
       color: "text-emerald-600"
     },
     {
-      title: "Independent network",
-      description: "Maintaining autonomy in research and recommendations",
+      title: t.about.mission.independentTitle,
+      description: t.about.mission.independentDesc,
       icon: Shield,
       color: "text-blue-600"
     },
     {
-      title: "Output-driven",
-      description: "Focused on producing actionable insights and solutions",
+      title: t.about.mission.outputTitle,
+      description: t.about.mission.outputDesc,
       icon: Target,
       color: "text-purple-600"
     }
@@ -114,11 +116,11 @@ const AboutPage = ({ currentLang }) => {
 
   // Créer les onglets de navigation
   const navigationTabs = {
-    [TABS.ABOUT]: 'Events',
-    [TABS.FOUNDERS]: 'Founding members',
-    [TABS.TOR]: 'Terms of reference',
-    [TABS.PRAI_PARTNERSHIP]: 'PRAI Partnership',
-    [TABS.UNESCO_REPORT]: 'Focus on Central America',
+    [TABS.ABOUT]:            t.about.tabs.events,
+    [TABS.FOUNDERS]:         t.about.tabs.founders,
+    [TABS.TOR]:              t.about.tabs.tor,
+    [TABS.PRAI_PARTNERSHIP]: t.about.tabs.prai,
+    [TABS.UNESCO_REPORT]:    t.about.tabs.focusCentralAm,
   };
 
   return (
@@ -160,7 +162,7 @@ const AboutPage = ({ currentLang }) => {
       <section className="bg-white/50 rounded-xl p-8 text-center mt-12">
         <div className="space-y-4">
           <p className="text-lg">
-            Contact us at{" "}
+            {t.about.contact.label}{" "}
             <a href="mailto:general.secretary@i4tknowledge.net" className="text-blue-600 hover:underline">
               general.secretary@i4tknowledge.net
             </a>

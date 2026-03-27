@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../../services/documentsService';
+import { useAuth } from '../../AuthContext';
+import ui from '../../../translations/ui.js';
 
 const ReferencesSelector = ({ value = '', onChange }) => {
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en);
   const [publishedDocs, setPublishedDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,11 +17,10 @@ const ReferencesSelector = ({ value = '', onChange }) => {
     const fetchPublishedDocs = async () => {
       try {
         const docs = await documentsService.getDocumentsByStatus('PUBLISHED');
-        console.log('Documents publiés chargés:', docs);
         setPublishedDocs(docs);
       } catch (err) {
-        console.error('Erreur chargement docs:', err);
-        setError('Erreur lors du chargement des documents publiés');
+        console.error('Error loading docs:', err);
+        setError(t.library.errorLoadingDocs);
       } finally {
         setLoading(false);
       }
@@ -30,18 +33,12 @@ const ReferencesSelector = ({ value = '', onChange }) => {
     let newSelection;
 
     if (selectedRefs.includes(parsedTokenId)) {
-      // Retirer l'ID de la sélection
       newSelection = selectedRefs.filter(id => id !== parsedTokenId);
     } else {
-      // Ajouter l'ID à la sélection
       newSelection = [...selectedRefs, parsedTokenId];
     }
 
-    // Trier les IDs et les joindre en chaîne
     const formattedString = newSelection.sort((a, b) => a - b).join(',');
-    console.log('Nouvelle sélection formatée:', formattedString);
-
-    // Appeler onChange avec la chaîne formatée
     onChange(formattedString);
   };
 
@@ -49,7 +46,7 @@ const ReferencesSelector = ({ value = '', onChange }) => {
     return (
       <div className="p-4 flex items-center justify-center text-gray-600">
         <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full mr-2"></div>
-        Chargement...
+        {t.common.loading}
       </div>
     );
   }
@@ -65,7 +62,7 @@ const ReferencesSelector = ({ value = '', onChange }) => {
   if (publishedDocs.length === 0) {
     return (
       <div className="p-4 text-gray-600">
-        Aucun document publié disponible
+        {t.library.noPublishedDocs}
       </div>
     );
   }

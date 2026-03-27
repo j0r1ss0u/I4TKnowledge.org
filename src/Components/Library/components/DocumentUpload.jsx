@@ -2,8 +2,12 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Loader2 } from 'lucide-react';
 import { ipfsService } from '../../../services/ipfsService';
+import { useAuth } from '../../AuthContext';
+import ui from '../../../translations/ui.js';
 
 const DocumentUpload = ({ onMetadataExtracted }) => {
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en);
   const [uploadState, setUploadState] = useState({
     isLoading: false,
     error: null,
@@ -20,7 +24,7 @@ const DocumentUpload = ({ onMetadataExtracted }) => {
 
     if (file.type !== 'application/pdf') {
       setUploadState({
-        error: 'Only PDF files are accepted'
+        error: t.library.onlyPdf
       });
       return;
     }
@@ -29,7 +33,7 @@ const DocumentUpload = ({ onMetadataExtracted }) => {
       isLoading: true,
       error: null,
       progress: 0,
-      step: 'Starting upload...'
+      step: t.library.startingUpload
     });
 
     try {
@@ -37,7 +41,7 @@ const DocumentUpload = ({ onMetadataExtracted }) => {
       setUploadState(prev => ({ 
         ...prev, 
         progress: 50,
-        step: 'Uploading to IPFS...'
+        step: t.library.uploadingIpfs
       }));
 
       const ipfsResult = await ipfsService.uploadFile(file);
@@ -60,7 +64,7 @@ const DocumentUpload = ({ onMetadataExtracted }) => {
       setUploadState(prev => ({ 
         ...prev, 
         progress: 100,
-        step: 'Finalizing...'
+        step: t.library.finalizing
       }));
 
       // Envoi des métadonnées au composant parent
@@ -127,12 +131,10 @@ const DocumentUpload = ({ onMetadataExtracted }) => {
             <Upload className={`w-10 h-10 mx-auto ${isDragActive ? 'text-blue-500' : 'text-gray-400'}`} />
             <div>
               <p className="text-sm text-gray-600">
-                {isDragActive
-                  ? "Drop your PDF here..."
-                  : "Drag & drop your PDF here, or click to select"}
+                {isDragActive ? t.library.dropHere : t.library.dragDrop}
               </p>
               <p className="text-xs text-gray-500 mt-2">
-                PDF files only, max size 100MB
+                {t.library.pdfMaxSize}
               </p>
             </div>
           </div>

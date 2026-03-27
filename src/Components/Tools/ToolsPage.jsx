@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../AuthContext';
 import Globaltoolkit from './Globaltoolkit';
+import ui from '../../translations/ui';
 
 const ToolsPage = ({ currentLang }) => {
   const { user } = useAuth();
@@ -18,7 +19,7 @@ const ToolsPage = ({ currentLang }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="text-3xl font-bold text-center mb-8">
-        {currentLang === 'en' ? 'Tools' : 'Outils'}
+        {(ui[currentLang] || ui.en).tools.pageTitle}
       </h1>
 
       {/* Accès direct à Globaltoolkit sans condition */}
