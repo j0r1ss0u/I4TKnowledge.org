@@ -27,7 +27,7 @@ Full EN/FR/ES translation system via `src/translations/ui.js` (single source of 
 
 ## Portuguese (PT) + Hindi (HI) added to ui.js — 783 keys each (COMPLETE)
 - Full `pt:` block (783 keys, European Portuguese) and `hi:` block (783 keys, Devanagari Hindi) in `ui.js`
-- Parity confirmed: **EN = FR = ES = PT = HI = 783 keys** ✅
+- Parity confirmed: **EN = FR = ES = PT = HI = 891 keys** ✅ (783 + 54 elementDescriptions + 54 elementContexts)
 - `AuthContext.jsx`: language validation accepts `'pt'` and `'hi'`; toggle cycle EN→FR→ES→PT→HI→ZH→EN
 - `Header.jsx`: `SUPPORTED_LANGUAGES` includes `PT — Português` and `HI — हिन्दी`
 - Build clean, no HMR errors
