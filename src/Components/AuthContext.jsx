@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   const [authPage, setAuthPage] = useState('login');
   const [language, setLanguage] = useState(() => {
     const saved = localStorage.getItem('preferredLanguage');
-    return (saved === 'en' || saved === 'es') ? saved : 'en';
+    return (saved === 'en' || saved === 'fr' || saved === 'es') ? saved : 'en';
   });
   const [translations, setTranslations] = useState({});
   const [translationsLoading, setTranslationsLoading] = useState(true);

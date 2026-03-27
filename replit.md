@@ -8,14 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (March 2026)
 
-## Translation System — EN/ES via ui.js (COMPLETE)
-Full EN/ES translation system via `src/translations/ui.js` (single source of truth):
-- **757 EN = 757 ES keys, parity 0 missing** across all sections
+## Translation System — EN/FR/ES via ui.js (COMPLETE)
+Full EN/FR/ES translation system via `src/translations/ui.js` (single source of truth):
+- **729 EN = 729 FR = 729 ES keys, parity 0 missing** across all sections
 - All 37 active components wired (V1–V5 migration waves complete)
 - 3 components intentionally left on `library.js`: NetworkPublications, LibrarianSpace, RecoverMissingDocument
-- `App.jsx`: fully migrated — RegisterComponent and AppContent use `ui[currentLang].register` keys; no hardcoded French strings remain
-- Language selector dropdown in Header (EN/ES); language persisted in `localStorage`
-- Single source of truth: `language` from `useAuth()` — no duplicate state in App.jsx
+- `App.jsx`: fully migrated — RegisterComponent and AppContent use `ui[currentLang].register` keys
+- Language selector dropdown in Header (EN / FR / ES); language persisted in `localStorage`
+- Single source of truth: `language` from `useAuth()` — AuthContext accepts `'en' | 'fr' | 'es'`
 - Fixed crash bugs: `Globaltoolkit.jsx` and `WalkThrough.jsx` used `import { ui }` (named import) instead of `import ui` (default) — caused blank page on Tools and Guide routes
 
 ## Periodic Table Wired to Translation System

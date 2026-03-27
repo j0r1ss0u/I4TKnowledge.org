@@ -8,6 +8,7 @@ import ui from '../translations/ui.js';
 // =============== LANGUAGE SELECTOR COMPONENT ===============
 const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'EN — English' },
+  { code: 'fr', label: 'FR — Français' },
   { code: 'es', label: 'ES — Español' },
 ];
 
