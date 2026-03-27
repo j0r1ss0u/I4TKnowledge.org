@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
-import { ui } from '../../translations/ui';
+import ui from '../../translations/ui';
 import {
   ChevronDown,
   ChevronRight,
