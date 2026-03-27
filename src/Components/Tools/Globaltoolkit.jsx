@@ -134,7 +134,9 @@ const Globaltoolkit = () => {
   const { user, language } = useAuth();
   const t = (ui[language] ?? ui.en).tools;
   const cat = (ui[language] ?? ui.en).categories;
-  const elementNames = (ui[language] ?? ui.en).elementNames ?? {};
+  const elementNames        = (ui[language] ?? ui.en).elementNames        ?? {};
+  const elementDescriptions = (ui[language] ?? ui.en).elementDescriptions ?? {};
+  const elementContexts     = (ui[language] ?? ui.en).elementContexts     ?? {};
   const isAdmin = user && (user.role === 'admin' || user.email === 'admin@i4tk.org' || user.email === 'joris.galea@i4tknowledge.net');
 
   // =================================================================
@@ -631,8 +633,8 @@ const Globaltoolkit = () => {
           escapeCSVField(categoryName),
           escapeCSVField(elementNames[element.id] ?? element.name ?? ''),
           escapeCSVField(element.id || ''),
-          escapeCSVField(element.description || ''),
-          escapeCSVField(element.context || ''),
+          escapeCSVField(elementDescriptions[element.id] ?? element.description ?? ''),
+          escapeCSVField(elementContexts[element.id] ?? element.context ?? ''),
           escapeCSVField(exampleTitles),
           escapeCSVField(relatedDocTitles)
         ].join(';');
@@ -1028,7 +1030,7 @@ const Globaltoolkit = () => {
                       className="w-full p-2 border rounded min-h-[80px]"
                     />
                   ) : (
-                    <p className="text-gray-700">{selectedElement.description}</p>
+                    <p className="text-gray-700">{elementDescriptions[selectedElement.id] ?? selectedElement.description}</p>
                   )}
                 </div>
 
@@ -1043,7 +1045,7 @@ const Globaltoolkit = () => {
                       className="w-full p-2 border rounded min-h-[80px]"
                     />
                   ) : (
-                    <p className="text-gray-700">{selectedElement.context || t.noContext}</p>
+                    <p className="text-gray-700">{(elementContexts[selectedElement.id] ?? selectedElement.context) || t.noContext}</p>
                   )}
                 </div>
 

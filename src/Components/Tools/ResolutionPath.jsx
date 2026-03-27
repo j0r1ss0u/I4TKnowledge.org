@@ -108,7 +108,9 @@ const ResolutionPath = ({ elements, onBack }) => {
   const t = (ui[language] ?? ui.en).resolutionPath;
   const cat = (ui[language] ?? ui.en).categories;
   const toolsT = (ui[language] ?? ui.en).tools;
-  const elementNames = (ui[language] ?? ui.en).elementNames ?? {};
+  const elementNames        = (ui[language] ?? ui.en).elementNames        ?? {};
+  const elementDescriptions = (ui[language] ?? ui.en).elementDescriptions ?? {};
+  const elementContexts     = (ui[language] ?? ui.en).elementContexts     ?? {};
 
   // Update local language when auth language changes
   useEffect(() => {
@@ -1344,15 +1346,19 @@ const ResolutionPath = ({ elements, onBack }) => {
 
               {/* Description */}
               <div className="mb-4">
-                <h4 className="font-semibold mb-2">Description</h4>
-                <p className="text-gray-700">{selectedElementForView.description || 'No description available'}</p>
+                <h4 className="font-semibold mb-2">{toolsT.descSection}</h4>
+                <p className="text-gray-700">
+                  {elementDescriptions[selectedElementForView.id] ?? selectedElementForView.description ?? toolsT.noContext}
+                </p>
               </div>
 
               {/* Contexte */}
-              {selectedElementForView.context && (
+              {(elementContexts[selectedElementForView.id] ?? selectedElementForView.context) && (
                 <div className="mb-4">
-                  <h4 className="font-semibold mb-2">Context</h4>
-                  <p className="text-gray-700">{selectedElementForView.context}</p>
+                  <h4 className="font-semibold mb-2">{toolsT.contextSection}</h4>
+                  <p className="text-gray-700">
+                    {elementContexts[selectedElementForView.id] ?? selectedElementForView.context}
+                  </p>
                 </div>
               )}
 
