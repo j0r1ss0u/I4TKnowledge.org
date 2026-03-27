@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import ui from '../../../translations/ui.js';
 
 // Dynamic PDF.js import to reduce initial bundle size
 let pdfjsLib = null;
@@ -19,6 +20,8 @@ const IPFS_GATEWAYS = [
 ];
 
 const LargeDocumentViewer = ({ documentCid, currentLang }) => {
+  const t = (ui[currentLang] || ui.en).largeViewer;
+
   const [state, setState] = useState({
     loading: true,
     error: null,
@@ -32,27 +35,6 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
   const pdfDocRef = React.useRef(null);
   const renderTaskRef = React.useRef(null);
 
-  // Messages d'erreur bilingues
-  const errorMessages = {
-    en: "The thumbnail display failed but you can open the document using the link below",
-    fr: "L'affichage de la miniature a échoué mais vous pouvez ouvrir le document avec le lien ci-dessous"
-  };
-
-  const openDocumentText = {
-    en: "Open the document",
-    fr: "Ouvrir le document"
-  };
-
-  const pageText = {
-    en: "Page",
-    fr: "Page"
-  };
-
-  const ofText = {
-    en: "of",
-    fr: "sur"
-  };
-
   const cancelCurrentRender = () => {
     if (renderTaskRef.current && renderTaskRef.current.cancel) {
       renderTaskRef.current.cancel();
@@ -63,7 +45,6 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
   const renderPage = async (pageNum) => {
     if (!pdfDocRef.current || !canvasRef.current) return;
 
-    // Annuler tout rendu en cours
     cancelCurrentRender();
 
     try {
@@ -71,7 +52,6 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
 
-      // Toujours utiliser la même échelle et forcer l'orientation
       const originalViewport = page.getViewport({ scale: 1.0 });
       const scale = Math.min(750 / originalViewport.width, 1.5);
 
@@ -171,10 +151,6 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
     }
   };
 
-  // La langue doit être exactement 'en' (minuscules) pour être considérée comme anglais
-  // Sinon on utilise le français par défaut
-  const lang = currentLang && currentLang.toLowerCase() === 'en' ? 'en' : 'fr';
-
   return (
     <div className="w-full bg-white rounded-lg border border-gray-200">
       <div className="w-full overflow-hidden p-4">
@@ -192,7 +168,7 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
               className="w-48 h-48 object-contain mb-6"
             />
             <p className="text-red-500 text-center max-w-md">
-              {errorMessages[lang]}
+              {t.loadError}
             </p>
           </div>
         )}
@@ -219,7 +195,7 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
           </button>
 
           <span className="text-sm text-gray-600">
-            {pageText[lang]} {state.currentPage} {ofText[lang]} {state.numPages}
+            Page {state.currentPage} {t.of} {state.numPages}
           </span>
 
           <button
@@ -240,7 +216,7 @@ const LargeDocumentViewer = ({ documentCid, currentLang }) => {
           className="text-blue-600 hover:underline text-sm flex items-center group"
         >
           <ExternalLink className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" />
-          {openDocumentText[lang]}
+          {t.openDoc}
         </a>
       </div>
     </div>

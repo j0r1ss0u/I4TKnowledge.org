@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ExternalLink, FileText, AlertCircle, RefreshCw } from 'lucide-react';
+import { useAuth } from '../../AuthContext';
+import ui from '../../../translations/ui.js';
 
 // Dynamic PDF.js import to reduce initial bundle size
 let pdfjsLib = null;
@@ -24,6 +26,9 @@ const FALLBACK_IMAGE = '/assets/logos/I4TK logo no text.png';
 const thumbnailCache = new Map();
 
 const DocumentViewer = ({ documentCid }) => {
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en).documentViewer;
+
   const [state, setState] = useState({
     isLoading: true,
     error: null,
@@ -73,7 +78,6 @@ const DocumentViewer = ({ documentCid }) => {
 
       const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
 
-      // Nettoyer
       canvas.width = 0;
       canvas.height = 0;
       pdf.destroy();
@@ -106,7 +110,6 @@ const DocumentViewer = ({ documentCid }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      // Vérifier d'abord le cache des miniatures
       if (thumbnailCache.has(documentCid)) {
         setState({
           isLoading: false,
@@ -136,7 +139,6 @@ const DocumentViewer = ({ documentCid }) => {
 
       if (unmountedRef.current) return;
 
-      // Mettre en cache la miniature
       thumbnailCache.set(documentCid, thumbnail);
 
       setState({
@@ -152,7 +154,7 @@ const DocumentViewer = ({ documentCid }) => {
         setState(prev => ({
           ...prev,
           isLoading: false,
-          error: 'Le document est temporairement inaccessible',
+          error: t.tempUnavailable,
           thumbnail: null,
           useProxy: !prev.useProxy
         }));
@@ -175,7 +177,7 @@ const DocumentViewer = ({ documentCid }) => {
       return (
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-5 w-5 md:h-6 md:w-6 border-b-2 border-blue-500"></div>
-          <p className="text-xs md:text-sm text-gray-500 mt-2">Chargement...</p>
+          <p className="text-xs md:text-sm text-gray-500 mt-2">{t.loading}</p>
         </div>
       );
     }
@@ -185,7 +187,7 @@ const DocumentViewer = ({ documentCid }) => {
         <img 
           key={`${documentCid}-${Date.now()}`}
           src={state.thumbnail} 
-          alt="Aperçu du document"
+          alt={t.docPreview}
           className="object-contain w-full h-full"
           onError={(e) => {
             e.target.src = FALLBACK_IMAGE;
@@ -199,7 +201,7 @@ const DocumentViewer = ({ documentCid }) => {
       <div className="relative w-full h-full">
         <img
           src={FALLBACK_IMAGE}
-          alt="Image par défaut"
+          alt={t.docPreview}
           className="object-contain w-full h-full"
         />
         {state.error && (
@@ -223,7 +225,7 @@ const DocumentViewer = ({ documentCid }) => {
 
       {(state.thumbnail || state.error) && (
         <div>
-          <p className="text-xs text-gray-500 font-medium mb-1">Open :</p>
+          <p className="text-xs text-gray-500 font-medium mb-1">{t.open}</p>
           <a
             href={getOpenUrl()}
             target="_blank"
@@ -231,7 +233,7 @@ const DocumentViewer = ({ documentCid }) => {
             className="text-blue-600 hover:underline text-sm flex items-center group"
           >
             <ExternalLink className="w-4 h-4 mr-1 group-hover:scale-110 transition-transform" />
-            Open the document
+            {t.openDoc}
           </a>
         </div>
       )}

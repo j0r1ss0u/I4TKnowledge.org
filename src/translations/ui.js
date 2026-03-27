@@ -201,6 +201,7 @@ const ui = {
     // ── Forum section ─────────────────────────────────────
     forum: {
       pageTitle:        'Community Projects',
+      subtitle:         'Support and collaborate on I4TK projects',
       newProject:       'New Project',
       backToList:       'Back to list',
       noProjects:       'No projects found',
@@ -720,6 +721,36 @@ const ui = {
       torCheckboxLabel:    'I have read and accept the Terms of Reference',
     },
 
+    // ── Notifications ──────────────────────────────────────
+    notifications: {
+      title:           'Notifications',
+      noNotifications: 'No notifications',
+    },
+
+    // ── MapView ────────────────────────────────────────────
+    mapView: {
+      searchPlaceholder: 'Search a member…',
+      allCategories:     'All categories',
+      allRegions:        'All regions',
+      membersFound:      '{n} members found',
+    },
+
+    // ── DocumentViewer ─────────────────────────────────────
+    documentViewer: {
+      loading:         'Loading…',
+      docPreview:      'Document preview',
+      open:            'Open:',
+      openDoc:         'Open the document',
+      tempUnavailable: 'Document temporarily unavailable',
+    },
+
+    // ── LargeDocumentViewer ────────────────────────────────
+    largeViewer: {
+      loadError: 'The thumbnail display failed but you can open the document using the link below',
+      openDoc:   'Open the document',
+      of:        'of',
+    },
+
     // ── Auth / session ────────────────────────────────────
     auth: {
       logout: 'Logout',
@@ -904,6 +935,7 @@ const ui = {
 
     forum: {
       pageTitle:   'Proyectos comunitarios',
+      subtitle:    'Apoya y colabora en proyectos I4TK',
       newProject:  'Nuevo proyecto',
       backToList:  'Volver a la lista',
       noProjects:  'No se encontraron proyectos',
@@ -1416,6 +1448,36 @@ const ui = {
       roleUpdated:         'Su rol ha sido actualizado. Debe aceptar las condiciones de uso para continuar.',
       torAcceptRequired:   'Debe aceptar las condiciones de uso para continuar',
       torCheckboxLabel:    'He leído y acepto las condiciones de uso',
+    },
+
+    // ── Notifications ──────────────────────────────────────
+    notifications: {
+      title:           'Notificaciones',
+      noNotifications: 'Sin notificaciones',
+    },
+
+    // ── MapView ────────────────────────────────────────────
+    mapView: {
+      searchPlaceholder: 'Buscar un miembro…',
+      allCategories:     'Todas las categorías',
+      allRegions:        'Todas las regiones',
+      membersFound:      '{n} miembros encontrados',
+    },
+
+    // ── DocumentViewer ─────────────────────────────────────
+    documentViewer: {
+      loading:         'Cargando…',
+      docPreview:      'Vista previa del documento',
+      open:            'Abrir:',
+      openDoc:         'Abrir el documento',
+      tempUnavailable: 'Documento temporalmente no disponible',
+    },
+
+    // ── LargeDocumentViewer ────────────────────────────────
+    largeViewer: {
+      loadError: 'La vista previa no pudo cargarse, pero puede abrir el documento con el enlace siguiente',
+      openDoc:   'Abrir el documento',
+      of:        'de',
     },
 
     // ── Auth / session ────────────────────────────────────

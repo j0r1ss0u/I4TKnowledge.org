@@ -5,6 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { MapPin, Building2, Users, Globe2, Search } from 'lucide-react';
 import { useMembers } from "./MembersContext";
+import { useAuth } from "../AuthContext";
+import ui from "../../translations/ui.js";
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -17,6 +19,10 @@ const Members = () => {
   // ==============================================
   const [isClient, setIsClient] = useState(false);
   const { members } = useMembers();
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en).mapView;
+  const tCommon = (ui[language] || ui.en).common;
+
   const [filters, setFilters] = useState({
     search: '',
     category: '',
@@ -91,7 +97,7 @@ const Members = () => {
   // RENDERING
   // ==============================================
   if (!isClient) {
-    return <div className="bg-white rounded-lg shadow p-6">Loading...</div>;
+    return <div className="bg-white rounded-lg shadow p-6">{tCommon.loading}</div>;
   }
 
   return (
@@ -102,7 +108,7 @@ const Members = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Rechercher un membre..."
+              placeholder={t.searchPlaceholder}
               className="w-full pl-10 pr-4 py-2 border rounded-lg"
               value={filters.search}
               onChange={(e) => setFilters(f => ({ ...f, search: e.target.value }))}
@@ -114,7 +120,7 @@ const Members = () => {
             value={filters.category}
             onChange={(e) => setFilters(f => ({ ...f, category: e.target.value }))}
           >
-            <option value="">All categories</option>
+            <option value="">{t.allCategories}</option>
             {categories.map(category => (
               <option key={category} value={category}>{category}</option>
             ))}
@@ -124,13 +130,13 @@ const Members = () => {
             value={filters.region}
             onChange={(e) => setFilters(f => ({ ...f, region: e.target.value }))}
           >
-            <option value="">All regions</option>
+            <option value="">{t.allRegions}</option>
             {regions.map(region => (
               <option key={region} value={region}>{region}</option>
             ))}
           </select>
           <div className="text-right text-sm text-gray-500">
-            {filteredMembers.length} members found
+            {t.membersFound.replace('{n}', filteredMembers.length)}
           </div>
         </div>
       </div>

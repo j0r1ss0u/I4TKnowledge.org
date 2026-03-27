@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectNotificationService } from '../services/projectNotificationService';
 import { db } from '../services/firebase';
+import ui from '../translations/ui.js';
 import { 
   collection, 
   query, 
@@ -21,7 +22,8 @@ import {
 const NotificationBell = ({ handlePageChange }) => {
   // ===== State Management =====
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = (ui[language] || ui.en).notifications;
   const containerRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -138,7 +140,7 @@ const NotificationBell = ({ handlePageChange }) => {
             className="absolute right-0 w-80 mt-2 bg-white rounded-lg shadow-lg z-50"
           >
             <div className="p-4">
-              <h3 className="text-lg font-medium mb-4">Notifications</h3>
+              <h3 className="text-lg font-medium mb-4">{t.title}</h3>
               <div className="space-y-4">
                 {error ? (
                   <p className="text-red-500 text-center">Error: {error.message}</p>
@@ -151,7 +153,7 @@ const NotificationBell = ({ handlePageChange }) => {
                     />
                   </div>
                 ) : notifications.length === 0 ? (
-                  <p className="text-gray-500 text-center">No notifications</p>
+                  <p className="text-gray-500 text-center">{t.noNotifications}</p>
                 ) : (
                   <motion.div layout className="space-y-2">
                     {notifications.map(notification => (

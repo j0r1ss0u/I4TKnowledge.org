@@ -2,15 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { documentsService } from '../../services/documentsService';
 import DocumentViewer from '../Library/components/DocumentViewer';
+import ui from '../../translations/ui.js';
 
 // =============== COMPOSANT PRINCIPAL ===============
 const LibraryRAG = ({ currentLang = 'en' }) => {
+  const t = (ui[currentLang] || ui.en).search;
+
   // =============== ÉTATS ===============
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState(null);
-  const [testStatus, setTestStatus] = useState('');
 
   // =============== INITIALISATION ET CONFIGURATION ===============
   useEffect(() => {
@@ -22,7 +24,6 @@ const LibraryRAG = ({ currentLang = 'en' }) => {
 
   // =============== RECHERCHE EN TEMPS RÉEL ===============
   useEffect(() => {
-    // Fonction pour gérer la recherche
     const handleSearch = async (searchQuery) => {
       if (!searchQuery.trim()) {
         setResults([]);
@@ -53,33 +54,26 @@ const LibraryRAG = ({ currentLang = 'en' }) => {
         setResults(formattedResults);
       } catch (err) {
         console.error('Search error:', err);
-        setError(currentLang === 'en' 
-          ? 'Error performing search' 
-          : 'Erreur lors de la recherche'
-        );
+        setError(t.error);
         setResults([]);
       } finally {
         setIsSearching(false);
       }
     };
 
-    // Timer pour le debounce
     const timeoutId = setTimeout(() => {
       handleSearch(query);
-    }, 300); // Délai de 300ms
+    }, 300);
 
-    // Nettoyage
     return () => clearTimeout(timeoutId);
-  }, [query, currentLang]); // Se déclenche quand la requête change
+  }, [query, currentLang]);
 
   // =============== RENDU DU COMPOSANT ===============
   return (
     <div className="container mx-auto">
       {/* Titre */}
       <h2 className="font-serif text-xl font-bold mb-6">
-        {currentLang === 'en' 
-          ? 'Search for title, author or content:' 
-          : 'Rechercher un titre, un auteur ou un contenu :'}
+        {t.title}
       </h2>
 
       {/* Barre de recherche */}
@@ -88,11 +82,9 @@ const LibraryRAG = ({ currentLang = 'en' }) => {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={currentLang === 'en' 
-            ? 'Search in the knowledge base...' 
-            : 'Rechercher dans la base de connaissances...'}
+          placeholder={t.placeholder}
           className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label={currentLang === 'en' ? 'Search' : 'Rechercher'}
+          aria-label={t.ariaLabel}
         />
       </div>
 
@@ -116,7 +108,6 @@ const LibraryRAG = ({ currentLang = 'en' }) => {
               className="bg-white/50 backdrop-blur-sm rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
             >
               <div className="p-4">
-                {/* En-tête du résultat */}
                 <div className="mb-4">
                   <h3 className="text-xl font-semibold mb-2">
                     {result.title}
@@ -127,15 +118,12 @@ const LibraryRAG = ({ currentLang = 'en' }) => {
                     <span>{result.date}</span>
                     <span>•</span>
                     <span className="text-blue-600">
-                      {Math.round(result.relevance*100)}%
-                      {currentLang === 'en' ? ' relevant' : ' pertinent'}
+                      {Math.round(result.relevance * 100)}% {t.relevant}
                     </span>
                   </div>
                 </div>
 
-                {/* Contenu du résultat - responsive */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-                  {/* Prévisualisation du document */}
                   <div className="w-full md:col-span-1">
                     {result.ipfsCid && (
                       <DocumentViewer 
@@ -144,7 +132,6 @@ const LibraryRAG = ({ currentLang = 'en' }) => {
                     )}
                   </div>
 
-                  {/* Description */}
                   <div className="md:col-span-3">
                     <p className="text-gray-600">
                       {result.excerpt}
@@ -156,7 +143,7 @@ const LibraryRAG = ({ currentLang = 'en' }) => {
           ))
         ) : query && (
           <div className="text-center py-8 text-gray-500">
-            {currentLang === 'en' ? 'No results found' : 'Aucun résultat trouvé'}
+            {t.noResults}
           </div>
         )}
       </div>

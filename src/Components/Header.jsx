@@ -3,10 +3,14 @@ import { useAuth, UserProfile, LoginForm } from './AuthContext';
 import WalletConnect from './Library/WalletConnect';
 import { LogIn, Menu, X } from 'lucide-react';
 import NotificationBell from './NotificationBell';
+import ui from '../translations/ui.js';
 
 // =============== LOGIN BUTTON COMPONENT ===============
 const LoginButton = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en).header;
+
   return (
     <>
       <button
@@ -14,7 +18,7 @@ const LoginButton = () => {
         className="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md text-blue-500 hover:bg-gray-100"
       >
         <LogIn className="h-4 w-4 mr-2" />
-        Connexion
+        {t.login}
       </button>
       {showLoginForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -24,7 +28,7 @@ const LoginButton = () => {
               onClick={() => setShowLoginForm(false)}
               className="mt-4 w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
             >
-              Cancel
+              {t.cancel}
             </button>
           </div>
         </div>
@@ -35,9 +39,9 @@ const LoginButton = () => {
 
 // =============== NAVIGATION COMPONENT ===============
 const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) => {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = (ui[language] || ui.en).header;
 
-  // Définition de la hiérarchie des rôles et leurs accès
   const ROLE_ACCESS = {
     admin: ['member', 'admin', 'validator'],
     validator: ['member', 'validator'],
@@ -51,15 +55,15 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
   };
 
   const navItems = [
-    { id: "home", label: "Home", public: true },
-    { id: "about", label: "About", public: true },
-    { id: "members", label: "Members", public: true },
-    { id: "library", label: "Library", public: true },
-    { id: "press-releases", label: "Press Releases", public: true },
-    { id: "forum", label: "Forum", requiredRoles: ['member'] },
-    { id: "tools", label: "Tools", requiredRoles: ['member', 'observer'] },
-    { id: "walkthrough", label: "Guide", requiredRoles: ['member', 'observer'] },
-    { id: "draft", label: "Draft", requiredRoles: ['admin'] }
+    { id: "home",          label: t.nav.home,         public: true },
+    { id: "about",         label: t.nav.about,        public: true },
+    { id: "members",       label: t.nav.members,      public: true },
+    { id: "library",       label: t.nav.library,      public: true },
+    { id: "press-releases",label: t.nav.pressReleases,public: true },
+    { id: "forum",         label: t.nav.forum,        requiredRoles: ['member'] },
+    { id: "tools",         label: t.nav.tools,        requiredRoles: ['member', 'observer'] },
+    { id: "walkthrough",   label: t.nav.guide,        requiredRoles: ['member', 'observer'] },
+    { id: "draft",         label: t.nav.draft,        requiredRoles: ['admin'] }
   ];
 
   const userAccess = getUserAccess(user);
@@ -77,7 +81,6 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
     }
   };
 
-  // Modification de la partie WalletConnect
   const showWalletConnect = user && userAccess.includes('member');
 
   return (
@@ -119,6 +122,8 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
 // =============== HEADER COMPONENT ===============
 const Header = ({ currentPage, handlePageChange }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { language } = useAuth();
+  const t = (ui[language] || ui.en).header;
 
   return (
     <header className="bg-white bg-opacity-90 border-b" role="banner">
@@ -153,7 +158,7 @@ const Header = ({ currentPage, handlePageChange }) => {
             <button
               className="md:hidden p-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              aria-label="Menu principal"
+              aria-label={t.menuAriaLabel}
             >
               {isMenuOpen ? (
                 <X className="h-6 w-6 text-gray-600" />
@@ -178,7 +183,7 @@ const Header = ({ currentPage, handlePageChange }) => {
           {/* Deuxième rangée: Tagline */}
           <div className="text-center mt-4 max-w-3xl w-full">
             <p className="font-serif text-lg md:text-2xl font-bold mb-6">
-              Global knowledge network for an Internet for Trust
+              {t.tagline}
             </p>
           </div>
         </div>

@@ -4,7 +4,8 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../services/firebase';
 import { useMembers } from '../Members/MembersContext';
 import { useAuth } from '../AuthContext';
-import NewsBlurComponent from './NewsBlurComponent'; // Remplacé par NewsBlurComponent
+import ui from '../../translations/ui.js';
+import NewsBlurComponent from './NewsBlurComponent';
 import LibraryRAG from './LibraryRAG';
 import LibraryChat from '../Library/LibraryChat';
 
@@ -31,6 +32,8 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
   // ===== STATE HOOKS =====
   const { members } = useMembers();
   const { user } = useAuth();
+  const t = (ui[currentLang] || ui.en);
+
   const [stats, setStats] = useState({
     totalMembers: 0,
     regionStats: { southPercent: 0, northPercent: 0 },
@@ -73,9 +76,7 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
         const publishedDocsQuery = query(documentsRef, where('validationStatus', '==', 'PUBLISHED'));
         const publishedDocsSnapshot = await getDocs(publishedDocsQuery);
 
-        // Modification pour filtrer les projets actifs uniquement
         const projectsRef = collection(db, 'projects');
-        // Exclure les projets avec status.current = 'draft' ou 'completed'
         const activeProjectsQuery = query(
           projectsRef,
           where('status.current', 'not-in', ['draft', 'completed'])
@@ -117,7 +118,7 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
             onClick={() => handleNavigation('members')}
             textColor="text-blue-800"
             value={stats.totalMembers}
-            label={currentLang === 'en' ? 'members' : 'membres'}
+            label={t.home.stats.members}
           />
           <StatCard
             onClick={() => handleNavigation('members')}
@@ -131,7 +132,7 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
                 </span>
               </div>
             }
-            label={currentLang === 'en' ? 'South / North' : 'Sud / Nord'}
+            label={t.home.stats.southNorth}
           />
           <StatCard
             onClick={() => handleNavigation('members')}
@@ -145,19 +146,19 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
                 </span>
               </div>
             }
-            label={currentLang === 'en' ? 'Civil Society / Academic' : 'Société Civile / Académique'}
+            label={t.home.stats.civilAcademic}
           />
           <StatCard
             onClick={() => handleNavigation('library')}
             textColor="text-emerald-700"
             value={stats.publishedDocumentsCount}
-            label={currentLang === 'en' ? 'Published Documents' : 'Documents Publiés'}
+            label={t.home.stats.publishedDocs}
           />
           <StatCard
             onClick={() => handleNavigation('forum')}
             textColor="text-orange-400"
             value={stats.projectsCount}
-            label={currentLang === 'en' ? 'Active Projects' : 'Projets actifs'}
+            label={t.home.stats.activeProjects}
           />
         </div>
       </div>
@@ -173,24 +174,22 @@ const HomePage = ({ currentLang, handlePageChange, setActiveView }) => {
         </div>
       </div>
 
-      {/* News Section - Remplacé par NewsBlurComponent */}
+      {/* News Section */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
         <div className="p-2">
           <NewsBlurComponent currentLang={currentLang} />
         </div>
       </div>
 
-      {/* Call to Action Section with single centered form */}
+      {/* Call to Action Section */}
       <div className="py-6">
         <div className="max-w-2xl mx-auto">
           <div className="bg-transparent rounded-lg p-6">
             <h2 className="text-2xl font-bold text-center text-blue-800 mb-4">
-              {currentLang === 'en' ? 'Join Our Network Today!' : 'Rejoignez Notre Réseau Aujourd\'hui !'}
+              {t.home.cta.title}
             </h2>
             <p className="text-center text-gray-600 mb-6">
-              {currentLang === 'en' 
-                ? 'Fill out the form below to become part of our global knowledge community' 
-                : 'Remplissez le formulaire ci-dessous pour faire partie de notre communauté mondiale de connaissances'}
+              {t.home.cta.subtitle}
             </p>
             <iframe 
               src="https://i4tknowledge.fillout.com/t/e63gkAQohAus" 

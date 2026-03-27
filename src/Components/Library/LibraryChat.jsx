@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { chatService } from '../../services/chatService';
+import ui from '../../translations/ui.js';
 
 const formatAuthors = (authors) => {
   if (Array.isArray(authors)) return authors.join(', ');
@@ -8,23 +9,10 @@ const formatAuthors = (authors) => {
   return 'N/A';
 };
 
-const suggestedPrompts = {
-  en: [
-    'What is the I4TK Network?',
-    'What are the UNESCO guidelines?',
-    'What are the priorities for regulating platforms?',
-    'What is Trump\'s election impact on digital platforms governance ?',     
-  ],
-  fr: [
-    'Qu\'est-ce que le réseau I4TK ?',
-    'Quelles sont les directives de l\'UNESCO ?',
-    'Quelles sont les priorités pour réguler les plateformes ?',
-    'En quoi l\'élection de Trump impacte t\'elle la gouvernance des plateformes numériques ?'
-  ]
-};
-
 const LibraryChat = ({ currentLang = 'en' }) => {
   const { user } = useAuth();
+  const t = (ui[currentLang] || ui.en).chat;
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,9 +37,7 @@ const LibraryChat = ({ currentLang = 'en' }) => {
       console.error('Chat error:', error);
       setMessages(prev => [...prev, {
         type: 'error',
-        content: currentLang === 'en' 
-          ? 'An error occurred. Please try again.'
-          : 'Une erreur est survenue. Veuillez réessayer.'
+        content: t.error
       }]);
     } finally {
       setIsLoading(false);
@@ -68,10 +54,10 @@ const LibraryChat = ({ currentLang = 'en' }) => {
         {messages.length === 0 && (
           <div className="p-4 space-y-4">
             <h3 className="text-lg font-medium text-gray-700">
-              {currentLang === 'en' ? 'Suggested Questions' : 'Questions Suggérées'}
+              {t.suggestedQuestions}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {suggestedPrompts[currentLang].map((prompt, index) => (
+              {t.prompts.map((prompt, index) => (
                 <button
                   key={index}
                   onClick={() => handlePromptClick(prompt)}
@@ -104,7 +90,7 @@ const LibraryChat = ({ currentLang = 'en' }) => {
                 {message.type === 'assistant' && (
                   <div className="mt-2 text-xs text-gray-600">
                     <p className="font-semibold">
-                      {currentLang === 'en' ? 'Sources:' : 'Sources :'}
+                      {t.sources}
                     </p>
                     <div className="space-y-1">
                       {/* I4T Guidelines toujours en première position */}
@@ -119,7 +105,6 @@ const LibraryChat = ({ currentLang = 'en' }) => {
                         </a>
                       </p>
 
-                      {/* Autres sources limitées à 3 pour avoir 4 au total avec les guidelines */}
                       {message.sources?.slice(0, 3).map((source, idx) => (
                         <p key={idx} className="italic">
                           <a 
@@ -148,9 +133,7 @@ const LibraryChat = ({ currentLang = 'en' }) => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={currentLang === 'en' 
-                ? 'Ask about our research documents...'
-                : 'Posez une question sur nos documents...'}
+              placeholder={t.placeholder}
               className="flex-1 px-4 py-2 rounded-lg border focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
             />
@@ -163,7 +146,7 @@ const LibraryChat = ({ currentLang = 'en' }) => {
               {isLoading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
               ) : (
-                currentLang === 'en' ? 'Send' : 'Envoyer'
+                t.send
               )}
             </button>
           </div>
