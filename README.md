@@ -7,8 +7,9 @@ A comprehensive web application for digital governance research and collaboratio
 ## 📅 Changelog
 
 ### March 2026
-- **Full EN/ES translation system**: Every user-facing string across 40+ components is now wired to a single source of truth (`src/translations/ui.js`). Switching between English and Spanish is instant and persistent (saved to localStorage). The language selector dropdown appears in the top-right navigation bar. Parity maintained at 757 EN = 757 ES keys with zero gaps.
-- **Periodic table translated**: Category names (Institutional framework, Content governance, etc.) and all Regulation Pathway labels now translate with the rest of the UI. The previous inline 5-language translation object in ResolutionPath has been replaced by the unified ui.js system.
+- **5-language translation system (EN/FR/ES/PT/HI)**: Every user-facing string across 40+ components is now wired to a single source of truth (`src/translations/ui.js`). Language selector in the top-right navigation bar; choice persisted in localStorage. Parity enforced at **891 keys per language** with zero gaps.
+- **Periodic table fully translated**: Element names (54 keys), descriptions (54 keys), and contextual notes (54 keys) all translated into EN/FR/ES/PT/HI in `ui.js` and wired to `Globaltoolkit.jsx` and `ResolutionPath.jsx`. Category names and Resolution Pathway labels also use the unified system. CSV export exports translated descriptions and contexts.
+- **Hindi (HI) and Portuguese (PT) added**: Full Devanagari-script Hindi block and European Portuguese block added to `ui.js`. AuthContext toggle cycle: EN → FR → ES → PT → HI → ZH → EN.
 - **Mobile UX**: Periodic table is now horizontally scrollable on mobile (min-width 660px). Regulation Pathway creation uses a full-screen overlay on mobile instead of a floating panel. Tap-based element search replaces HTML5 drag-and-drop on touch devices.
 - **LibrarianSpace improvements**: Firebase admins can access the admin panel without a connected wallet. Default tab is now Admin Validation. IP Monitoring tab is hidden unless a wallet is connected.
 
@@ -117,12 +118,13 @@ A unique visualization tool for categorizing regulatory elements:
 - **Project management** with milestone tracking
 - **Event calendar** for research activities
 
-### 🌐 Multilingual UI (EN / ES)
-- **Single source of truth**: all 757 user-facing strings centralized in `src/translations/ui.js`
+### 🌐 Multilingual UI (EN / FR / ES / PT / HI)
+- **Single source of truth**: all 891 user-facing strings centralized in `src/translations/ui.js`
+- **5 languages**: English, French, Spanish (Castilian), European Portuguese, Hindi (Devanagari script)
 - **40+ components wired**: every page, form, modal, and button responds to the active language
-- **Instant switching**: language selector in the top-right navigation bar; choice persisted in localStorage
-- **Zero hardcoded strings**: periodic table category names and Regulation Pathway labels fully translated
-- **Strict parity enforcement**: 757 EN = 757 ES keys, checked programmatically with 0 gaps
+- **Instant switching**: language selector dropdown in the top-right navigation bar; choice persisted in localStorage
+- **Periodic table fully translated**: 54 element names, 54 descriptions, and 54 contextual notes all in 5 languages, wired to element detail panels, Resolution Path modals, and CSV exports
+- **Strict parity enforcement**: EN = FR = ES = PT = HI = 891 keys, checked programmatically with 0 gaps
 
 ### 📤 Export & Integration
 - **CSV export** with 14 metadata columns (Token ID, Title, Authors, Description, etc.)
@@ -531,12 +533,8 @@ I4TKnowledge.org/
 │   │   └── index.js            # Enums, contract addresses
 │   │
 │   ├── translations/           # Multilingual string system
-│   │   ├── ui.js               # Master EN/ES inventory (757 keys, single source of truth)
-│   │   ├── library.js          # Legacy strings (LibrarianSpace, NetworkPublications, RecoverMissingDocument)
-│   │   ├── index.js            # Translation loader (AuthContext strings)
-│   │   ├── es.js               # Spanish AuthContext strings
-│   │   ├── pt.js               # Portuguese AuthContext strings
-│   │   └── zh.js               # Chinese (Simplified) AuthContext strings
+│   │   ├── ui.js               # Master EN/FR/ES/PT/HI inventory (891 keys × 5 languages, single source of truth)
+│   │   └── library.js          # Legacy strings (LibrarianSpace, NetworkPublications, RecoverMissingDocument)
 │   │
 │   ├── App.jsx                 # Main app component
 │   └── main.jsx                # Entry point
