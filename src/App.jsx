@@ -36,6 +36,9 @@ import {
   updateDoc 
 } from 'firebase/firestore';
 
+// Translations
+import ui from './translations/ui';
+
 // Components (immediate imports)
 import Header from './Components/Header';
 import { LoginForm } from "./Components/AuthContext";
@@ -99,6 +102,7 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
   const [error, setError] = useState(null);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
+  const t = (ui[currentLang] ?? ui.en).register;
 
   // Import nécessaire pour l'icône
   const AlertTriangle = () => (
@@ -146,12 +150,7 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
       localStorage.setItem('currentInvitationId', result.invitation.id);
 
       // Afficher un message de succès
-      showNotification(
-        currentLang === 'fr'
-          ? 'Code d\'invitation validé avec succès!'
-          : 'Invitation code successfully validated!',
-        'success'
-      );
+      showNotification(t.codeValidated, 'success');
 
       // Rediriger vers la page de finalisation
       setTimeout(() => {
@@ -175,7 +174,7 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
     return (
       <div className="bg-white shadow-lg rounded-lg p-6">
         <h2 className="text-2xl font-bold text-center mb-6">
-          {currentLang === 'fr' ? 'Validation en cours...' : 'Validating...'}
+          {t.validating}
         </h2>
         <div className="flex justify-center">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-amber-600"></div>
@@ -187,13 +186,13 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
   return (
     <div className="bg-white shadow-lg rounded-lg p-6">
       <h2 className="text-2xl font-bold text-center mb-6">
-        {currentLang === 'fr' ? 'Valider votre invitation' : 'Validate your invitation'}
+        {t.title}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {currentLang === 'fr' ? 'Adresse email' : 'Email address'}
+            {t.emailLabel}
           </label>
           <input
             type="email"
@@ -206,7 +205,7 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            {currentLang === 'fr' ? 'Code d\'invitation' : 'Invitation code'}
+            {t.codeLabel}
           </label>
           <input
             type="text"
@@ -230,7 +229,7 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
           disabled={loading}
           className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md transition-colors disabled:opacity-50"
         >
-          {currentLang === 'fr' ? 'Valider l\'invitation' : 'Validate invitation'}
+          {t.submitBtn}
         </button>
       </form>
     </div>
@@ -243,6 +242,7 @@ function AppContent() {
   // ===== State Management =====
   const { user, authPage, setAuthPage, showNotification, language } = useAuth();
   const currentLang = language;
+  const t = (ui[currentLang] ?? ui.en).register;
   const [currentPage, setCurrentPage] = useState("home");
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('preferredView') || 'cards');
@@ -418,7 +418,7 @@ function AppContent() {
 
           // Si toujours pas d'email, demander à l'utilisateur
           if (!email) {
-            email = window.prompt('Veuillez entrer votre email pour continuer');
+            email = window.prompt(t.emailPrompt);
 
             // Si l'utilisateur annule le prompt
             if (!email) {
@@ -452,7 +452,7 @@ function AppContent() {
           // Nettoyer l'URL et rediriger
           window.history.replaceState({}, '', '/finalize-invitation');
           handlePageChange('finalize-invitation');
-          showNotification('Veuillez compléter votre inscription', 'info', 5000);
+          showNotification(t.completeRegistration, 'info', 5000);
         } 
         else if (resetId) {
           console.log('Traitement de la réinitialisation de mot de passe');
@@ -466,18 +466,18 @@ function AppContent() {
           // Nettoyer l'URL et afficher la modal de réinitialisation
           window.history.replaceState({}, '', '/');
           setAuthPage('forgot-password');
-          showNotification('Veuillez définir votre nouveau mot de passe', 'info', 5000);
+          showNotification(t.setNewPassword, 'info', 5000);
         }
         else {
           console.log('Redirection vers la page d\'accueil');
           // Rediriger vers l'accueil
           window.history.replaceState({}, '', '/');
           handlePageChange('home');
-          showNotification('Connecté avec succès', 'success');
+          showNotification(t.loginSuccess, 'success');
         }
       } catch (error) {
         console.error('Erreur lors du traitement du lien d\'authentification:', error);
-        showNotification(error.message || 'Erreur lors de l\'authentification', 'error', 5000);
+        showNotification(error.message || t.authError, 'error', 5000);
 
         // Supprimer le marqueur en cas d'erreur pour permettre une nouvelle tentative
         localStorage.removeItem('processedAuthLink');
@@ -514,11 +514,11 @@ function AppContent() {
               console.log('Tentative de reconnexion après finalisation');
               // Tenter une connexion avec les identifiants stockés
               await firebaseAuthService.loginUser(email, password);
-              showNotification('Connexion réussie', 'success');
+              showNotification(t.loginSuccess, 'success');
             }
           } catch (error) {
             console.error('Échec de la reconnexion après finalisation:', error);
-            showNotification('Veuillez vous connecter avec votre nouveau mot de passe', 'info');
+            showNotification(t.loginWithNewPassword, 'info');
           } finally {
             // Nettoyer les données temporaires
             localStorage.removeItem('finalizationCompleted');
@@ -568,7 +568,7 @@ function AppContent() {
           
           if (!validationResult.valid) {
             showNotification(
-              validationResult.message || 'Code d\'invitation invalide',
+              validationResult.message || t.codeInvalid,
               'error'
             );
             // Nettoyer
@@ -590,20 +590,12 @@ function AppContent() {
           window.history.replaceState({}, '', '/#finalize-invitation');
           
           // Rediriger vers la page de finalisation
-          showNotification(
-            currentLang === 'fr' 
-              ? 'Code d\'invitation validé avec succès!' 
-              : 'Invitation code validated successfully!',
-            'success'
-          );
+          showNotification(t.codeValidated, 'success');
           
           handlePageChange('finalize-invitation');
         } catch (error) {
           console.error('Erreur lors de la validation du code:', error);
-          showNotification(
-            error.message || 'Erreur lors de la validation de l\'invitation',
-            'error'
-          );
+          showNotification(error.message || t.authError, 'error');
           // Nettoyer
           sessionStorage.removeItem('pendingInvitationEmail');
           sessionStorage.removeItem('pendingInvitationCode');
@@ -630,7 +622,7 @@ function AppContent() {
             
             if (!validationResult.valid) {
               showNotification(
-                validationResult.message || 'Code d\'invitation invalide',
+                validationResult.message || t.authError,
                 'error'
               );
               sessionStorage.removeItem('pendingInvitationEmail');
@@ -646,18 +638,13 @@ function AppContent() {
             
             window.history.replaceState({}, '', '/#finalize-invitation');
             
-            showNotification(
-              currentLang === 'fr' 
-                ? 'Code d\'invitation validé avec succès!' 
-                : 'Invitation code validated successfully!',
-              'success'
-            );
+            showNotification(t.codeValidated, 'success');
             
             handlePageChange('finalize-invitation');
           } catch (error) {
             console.error('Erreur lors de la validation du code:', error);
             showNotification(
-              error.message || 'Erreur lors de la validation de l\'invitation',
+              error.message || t.validationError,
               'error'
             );
             sessionStorage.removeItem('pendingInvitationEmail');
@@ -709,12 +696,7 @@ function AppContent() {
         window.history.replaceState({}, '', resetUrl);
         handlePageChange('reset-password');
         
-        showNotification(
-          currentLang === 'fr' 
-            ? 'Redirection vers la réinitialisation du mot de passe...' 
-            : 'Redirecting to password reset...',
-          'info'
-        );
+        showNotification(t.redirectingToReset, 'info');
       };
       
       redirectToReset();

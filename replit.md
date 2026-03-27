@@ -8,8 +8,18 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (March 2026)
 
+## Translation System — EN/ES via ui.js (COMPLETE)
+Full EN/ES translation system via `src/translations/ui.js` (single source of truth):
+- **685 EN = 685 ES keys, parity 0 missing** across all sections
+- All 37 active components wired (V1–V5 migration waves complete)
+- 3 components intentionally left on `library.js`: NetworkPublications, LibrarianSpace, RecoverMissingDocument
+- `App.jsx`: fully migrated — RegisterComponent and AppContent use `ui[currentLang].register` keys; no hardcoded French strings remain
+- Language selector dropdown in Header (EN/ES); language persisted in `localStorage`
+- Single source of truth: `language` from `useAuth()` — no duplicate state in App.jsx
+- Fixed crash bugs: `Globaltoolkit.jsx` and `WalkThrough.jsx` used `import { ui }` (named import) instead of `import ui` (default) — caused blank page on Tools and Guide routes
+
 ## Multilingual Support — 5 Languages (EN / FR / ES / PT / ZH)
-Full 5-language support added — EN → FR → ES → PT → ZH → EN cycle:
+Legacy 5-language toggle system (pre-ui.js migration):
 - Created `src/translations/es.js`, `pt.js`, `zh.js` for AuthContext strings
 - `src/translations/index.js`: added `es`, `pt`, `zh` cases; `getAvailableLanguages` returns `['en', 'fr', 'es', 'pt', 'zh']`
 - `src/translations/library.js`: ES section was already complete; PT and ZH sections added

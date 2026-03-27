@@ -1135,6 +1135,25 @@ const ui = {
       logout: 'Logout',
     },
 
+    // ── Register / Invitation ─────────────────────────────
+    register: {
+      validating:           'Validating...',
+      title:                'Validate your invitation',
+      emailLabel:           'Email address',
+      codeLabel:            'Invitation code',
+      submitBtn:            'Validate invitation',
+      codeValidated:        'Invitation code validated successfully!',
+      completeRegistration: 'Please complete your registration',
+      setNewPassword:       'Please set your new password',
+      loginSuccess:         'Successfully connected',
+      authError:            'Authentication error',
+      loginWithNewPassword: 'Please log in with your new password',
+      redirectingToReset:   'Redirecting to password reset...',
+      emailPrompt:          'Please enter your email to continue',
+      codeInvalid:          'Invalid invitation code',
+      validationError:      'Error validating the invitation',
+    },
+
   }, // end en
 
 
@@ -2241,6 +2260,25 @@ const ui = {
     // ── Auth / session ────────────────────────────────────
     auth: {
       logout: 'Cerrar sesión',
+    },
+
+    // ── Register / Invitation ─────────────────────────────
+    register: {
+      validating:           'Validando...',
+      title:                'Validar su invitación',
+      emailLabel:           'Dirección de correo',
+      codeLabel:            'Código de invitación',
+      submitBtn:            'Validar invitación',
+      codeValidated:        '¡Código de invitación validado correctamente!',
+      completeRegistration: 'Por favor complete su registro',
+      setNewPassword:       'Por favor establezca su nueva contraseña',
+      loginSuccess:         'Sesión iniciada correctamente',
+      authError:            'Error de autenticación',
+      loginWithNewPassword: 'Por favor inicie sesión con su nueva contraseña',
+      redirectingToReset:   'Redirigiendo al restablecimiento de contraseña...',
+      emailPrompt:          'Por favor ingrese su correo para continuar',
+      codeInvalid:          'Código de invitación inválido',
+      validationError:      'Error al validar la invitación',
     },
 
   }, // end es
