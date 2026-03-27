@@ -25,11 +25,11 @@ Full EN/FR/ES translation system via `src/translations/ui.js` (single source of 
 - `ResolutionPath.jsx`: inline `translations` object (400 lines) removed; element names in pathway builder, mobile picker, detail view, and element modal all use `elementNames[id] ?? element.name`; category labels use `cat[category]`
 - Pattern: `const elementNames = (ui[language] ?? ui.en).elementNames ?? {}` — fallback to Firestore English name if key missing
 
-## Portuguese (PT) added to ui.js — 783 keys (COMPLETE)
-- Full `pt:` block (783 keys, European Portuguese) inserted into `ui.js` after the `es:` block
-- Parity confirmed: **EN = FR = ES = PT = 783 keys** ✅
-- `AuthContext.jsx`: language validation accepts `'pt'`; toggle cycle EN→FR→ES→PT→ZH→EN
-- `Header.jsx`: `SUPPORTED_LANGUAGES` includes `PT — Português`
+## Portuguese (PT) + Hindi (HI) added to ui.js — 783 keys each (COMPLETE)
+- Full `pt:` block (783 keys, European Portuguese) and `hi:` block (783 keys, Devanagari Hindi) in `ui.js`
+- Parity confirmed: **EN = FR = ES = PT = HI = 783 keys** ✅
+- `AuthContext.jsx`: language validation accepts `'pt'` and `'hi'`; toggle cycle EN→FR→ES→PT→HI→ZH→EN
+- `Header.jsx`: `SUPPORTED_LANGUAGES` includes `PT — Português` and `HI — हिन्दी`
 - Build clean, no HMR errors
 
 ## Mobile UX — Tools Page

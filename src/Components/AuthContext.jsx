@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   const [authPage, setAuthPage] = useState('login');
   const [language, setLanguage] = useState(() => {
     const saved = localStorage.getItem('preferredLanguage');
-    return (saved === 'en' || saved === 'fr' || saved === 'es' || saved === 'pt') ? saved : 'en';
+    return (saved === 'en' || saved === 'fr' || saved === 'es' || saved === 'pt' || saved === 'hi') ? saved : 'en';
   });
   const [translations, setTranslations] = useState({});
   const [translationsLoading, setTranslationsLoading] = useState(true);
@@ -68,9 +68,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('preferredLanguage', language);
   }, [language]);
 
-  // Toggle language: EN → FR → ES → PT → ZH → EN
+  // Toggle language: EN → FR → ES → PT → HI → ZH → EN
   const toggleLanguage = () => {
-    const cycle = { en: 'fr', fr: 'es', es: 'pt', pt: 'zh', zh: 'en' };
+    const cycle = { en: 'fr', fr: 'es', es: 'pt', pt: 'hi', hi: 'zh', zh: 'en' };
     const newLanguage = cycle[language] || 'en';
     setLanguage(newLanguage);
     preloadTranslations(newLanguage);
