@@ -10,6 +10,7 @@ const SUPPORTED_LANGUAGES = [
   { code: 'en', label: 'EN — English' },
   { code: 'fr', label: 'FR — Français' },
   { code: 'es', label: 'ES — Español' },
+  { code: 'pt', label: 'PT — Português' },
 ];
 
 const LanguageSelector = () => {

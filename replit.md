@@ -25,16 +25,12 @@ Full EN/FR/ES translation system via `src/translations/ui.js` (single source of 
 - `ResolutionPath.jsx`: inline `translations` object (400 lines) removed; element names in pathway builder, mobile picker, detail view, and element modal all use `elementNames[id] ?? element.name`; category labels use `cat[category]`
 - Pattern: `const elementNames = (ui[language] ?? ui.en).elementNames ?? {}` — fallback to Firestore English name if key missing
 
-## Multilingual Support — 5 Languages (EN / FR / ES / PT / ZH)
-Legacy 5-language toggle system (pre-ui.js migration):
-- Created `src/translations/es.js`, `pt.js`, `zh.js` for AuthContext strings
-- `src/translations/index.js`: added `es`, `pt`, `zh` cases; `getAvailableLanguages` returns `['en', 'fr', 'es', 'pt', 'zh']`
-- `src/translations/library.js`: ES section was already complete; PT and ZH sections added
-- `AuthContext.jsx`: toggle cycle EN→FR→ES→PT→ZH→EN; logout button translated in all 5 languages
-- `Header.jsx`: LanguageToggle shows current language code (EN/FR/ES/PT/ZH); aria-label cycles correctly
-- `ForgotPassword.jsx`: PT and ZH sections added + 5-way toggle cycle
-- `PasswordForm.jsx`: PT and ZH sections added
-- `ResolutionPath.jsx`: full PT ("Itinerários de Regulação") and ZH ("监管路径") sections added
+## Portuguese (PT) added to ui.js — 783 keys (COMPLETE)
+- Full `pt:` block (783 keys, European Portuguese) inserted into `ui.js` after the `es:` block
+- Parity confirmed: **EN = FR = ES = PT = 783 keys** ✅
+- `AuthContext.jsx`: language validation accepts `'pt'`; toggle cycle EN→FR→ES→PT→ZH→EN
+- `Header.jsx`: `SUPPORTED_LANGUAGES` includes `PT — Português`
+- Build clean, no HMR errors
 
 ## Mobile UX — Tools Page
 - Periodic table: horizontal scroll on mobile (`overflow-x-auto`, min-width 660px); scroll hint banner on mobile, zoom/pan hint on desktop only
