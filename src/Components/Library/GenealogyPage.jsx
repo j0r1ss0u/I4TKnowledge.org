@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { GitFork, ArrowLeft } from 'lucide-react';
 import DocumentGenealogy from './components/DocumentGenealogy';
 import { documentsService } from '../../services/documentsService';
+import ui from '../../translations/ui';
 
 const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
+  const genealogyT = (ui[currentLang] || ui.en).genealogy;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [documentTitle, setDocumentTitle] = useState('');
@@ -55,10 +57,7 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
           <div className="flex">
             <div className="ml-3">
               <p className="text-sm text-red-700">
-                {currentLang === 'fr' 
-                  ? `Erreur lors du chargement de la généalogie : ${error}`
-                  : `Error loading genealogy: ${error}`
-                }
+                {genealogyT.loadError}{error}
               </p>
             </div>
           </div>
@@ -75,7 +74,7 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
           <div className="flex items-center gap-2">
             <GitFork className="w-5 h-5 md:w-6 md:h-6 text-gray-500" />
             <h1 className="text-xl md:text-2xl font-serif">
-              {currentLang === 'en' ? 'Citation Tree' : 'Arbre de citations'}
+              {genealogyT.pageTitle}
             </h1>
           </div>
           <button
@@ -83,7 +82,7 @@ const GenealogyPage = ({ tokenId, onBack, currentLang }) => {
             className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base text-gray-600 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            {currentLang === 'en' ? 'Back to Library' : 'Retour à la bibliothèque'}
+            {genealogyT.backToLibrary}
           </button>
         </div>
       </div>

@@ -23,6 +23,7 @@ import { passwordResetService } from "../services/passwordResetService";
 import { invitationsService } from "../services/invitationsService";
 import { usersService } from "../services/usersService";
 import { loadTranslations, preloadTranslations } from '../translations';
+import ui from '../translations/ui';
 
 // Dynamic import to avoid circular import
 // ForgotPassword will only be loaded when needed
@@ -520,7 +521,7 @@ export const UserProfile = () => {
         className="flex items-center px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
       >
         <LogOut className="h-4 w-4 mr-1" />
-        {language === 'fr' ? 'Déconnexion' : language === 'es' ? 'Cerrar sesión' : language === 'pt' ? 'Sair' : language === 'zh' ? '退出登录' : 'Logout'}
+        {(ui[language] || ui.en).auth.logout}
       </button>
     </div>
   );

@@ -682,6 +682,11 @@ const ui = {
       torCheckboxLabel:    'I have read and accept the Terms of Reference',
     },
 
+    // ── Auth / session ────────────────────────────────────
+    auth: {
+      logout: 'Logout',
+    },
+
   }, // end en
 
 
@@ -1335,6 +1340,11 @@ const ui = {
       roleUpdated:         'Su rol ha sido actualizado. Debe aceptar las condiciones de uso para continuar.',
       torAcceptRequired:   'Debe aceptar las condiciones de uso para continuar',
       torCheckboxLabel:    'He leído y acepto las condiciones de uso',
+    },
+
+    // ── Auth / session ────────────────────────────────────
+    auth: {
+      logout: 'Cerrar sesión',
     },
 
   }, // end es
