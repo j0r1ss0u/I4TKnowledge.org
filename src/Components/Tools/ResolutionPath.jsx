@@ -5,6 +5,7 @@ import Draggable from 'react-draggable';
 import { FaStar, FaRegStar, FaStarHalfAlt } from 'react-icons/fa';
 import { Globe } from 'lucide-react';
 import { globaltoolkitService } from '../../services/globaltoolkitService';
+import ui from '../../translations/ui';
 
 
 // ===============================================================
@@ -512,6 +513,7 @@ const ResolutionPath = ({ elements, onBack }) => {
   const { user, language: authLanguage, toggleLanguage } = useAuth();
   const [language, setLanguage] = useState(authLanguage || 'en');
   const t = translations[language] || translations.en;
+  const toolsT = (ui[language] || ui.en).tools;
 
   // Update local language when auth language changes
   useEffect(() => {
@@ -1032,7 +1034,7 @@ const ResolutionPath = ({ elements, onBack }) => {
 
   // Get element details and apply language
   const getElementDetails = (elementId) => {
-    const element = elements?.find(el => el.id === elementId) || { name: language === 'fr' ? 'Élément inconnu' : 'Unknown element', category: 'CONTENT' };
+    const element = elements?.find(el => el.id === elementId) || { name: toolsT.unknownElement, category: 'CONTENT' };
 
     // If we have a category, get the appropriate name based on language
     if (element.category && CATEGORIES[element.category]) {
@@ -1387,7 +1389,7 @@ const ResolutionPath = ({ elements, onBack }) => {
                             type="text"
                             value={elementSearchTerm}
                             onChange={(e) => setElementSearchTerm(e.target.value)}
-                            placeholder={language === 'fr' ? 'Rechercher un élément à ajouter...' : 'Search element to add...'}
+                            placeholder={toolsT.searchElementPlaceholder}
                             className="w-full p-2 pl-9 border border-amber-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-amber-50"
                           />
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 absolute left-2.5 top-2.5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1419,14 +1421,14 @@ const ResolutionPath = ({ elements, onBack }) => {
                               el.id.toLowerCase().includes(elementSearchTerm.toLowerCase())
                             ).length === 0 && (
                               <p className="px-3 py-4 text-sm text-gray-400 text-center">
-                                {language === 'fr' ? 'Aucun élément trouvé' : 'No element found'}
+                                {toolsT.noElementFound}
                               </p>
                             )}
                           </div>
                         )}
                         {elementSearchTerm.length === 0 && selectedElements.length === 0 && (
                           <p className="text-sm text-gray-400 italic mb-3">
-                            {language === 'fr' ? 'Tapez pour chercher et ajouter des éléments au parcours.' : 'Type to search and add elements to the pathway.'}
+                            {toolsT.searchHint}
                           </p>
                         )}
                         <div className="space-y-2">{elementList}</div>
@@ -1587,7 +1589,7 @@ const ResolutionPath = ({ elements, onBack }) => {
                               {element?.comment && (
                                 <div className="flex-1 border-l border-dashed border-gray-200 py-3 px-4 bg-amber-50">
                                   <p className="text-xs text-gray-400 uppercase tracking-wide mb-1 font-medium">
-                                    {language === 'fr' ? 'Justification' : 'Justification'}
+                                    {toolsT.justification}
                                   </p>
                                   <p className="text-sm text-gray-700 italic">"{element.comment}"</p>
                                 </div>

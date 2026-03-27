@@ -11,6 +11,7 @@ import { Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
 import { firebaseAuthService } from '../../services/firebaseAuthService';
 import { auth } from '../../services/firebase';
 import { useAuth } from '../../Components/AuthContext';
+import ui from '../../translations/ui';
 
 // =================================================================
 // CONSTANTS
@@ -29,33 +30,30 @@ const STEPS = {
 // PASSWORD FORM COMPONENT
 // =================================================================
 const PasswordForm = ({ onSubmit, password, setPassword, confirmPassword, setConfirmPassword, error, currentLang }) => {
+  const t = (ui[currentLang] || ui.en).finalizeInvitation;
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {currentLang === 'fr' ? 'Mot de passe' : 'Password'}
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t.password}</label>
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-          placeholder={currentLang === 'fr' ? '8 caractères minimum' : '8 characters minimum'}
+          placeholder={t.passwordMinLength}
           minLength={8}
           required
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {currentLang === 'fr' ? 'Confirmez le mot de passe' : 'Confirm password'}
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">{t.confirmPassword}</label>
         <input
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-          placeholder={currentLang === 'fr' ? 'Entrez à nouveau votre mot de passe' : 'Enter your password again'}
+          placeholder={t.confirmPasswordPlaceholder}
           minLength={8}
           required
         />
@@ -65,7 +63,7 @@ const PasswordForm = ({ onSubmit, password, setPassword, confirmPassword, setCon
         type="submit"
         className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md transition-colors"
       >
-        {currentLang === 'fr' ? 'Finaliser l\'inscription' : 'Complete registration'}
+        {t.completeRegistration}
       </button>
     </form>
   );
@@ -93,6 +91,8 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     return localStorage.getItem('preferredLanguage') || 'en';
   });
 
+  const t = (ui[currentLang] || ui.en).finalizeInvitation;
+
   // =================================================================
   // INITIALIZATION EFFECT - Version mise à jour pour FinalizeInvitation.jsx
   // Load invitation data and ToR document with support for URL parameters
@@ -115,9 +115,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
           const validationResult = await invitationsService.validateInvitationCode(emailParam, codeParam);
 
           if (!validationResult.valid) {
-            throw new Error(validationResult.message || (currentLang === 'fr' 
-              ? 'Code d\'invitation invalide' 
-              : 'Invalid invitation code'));
+            throw new Error(validationResult.message || t.invalidCode);
           }
 
           // Stocker l'ID d'invitation si valide
@@ -163,10 +161,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
           
           console.error('[DEBUG] Invitation ID non trouvé. Informations de debug:', debugInfo);
           
-          throw new Error((currentLang === 'fr' 
-            ? 'Invitation non trouvée. Veuillez valider votre invitation d\'abord.' 
-            : 'Invitation not found. Please validate your invitation first.') + 
-            '\n\nDEBUG INFO:\n' + JSON.stringify(debugInfo, null, 2));
+          throw new Error(t.invitationNotFound + '\n\nDEBUG INFO:\n' + JSON.stringify(debugInfo, null, 2));
         }
 
         // Valider l'invitation
@@ -174,7 +169,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         const invitationResult = await invitationsService.validateInvitation(invitationId);
 
         if (!invitationResult.valid) {
-          throw new Error(invitationResult.message || (currentLang === 'fr' ? 'Invitation invalide' : 'Invalid invitation'));
+          throw new Error(invitationResult.message || t.invitationInvalid);
         }
 
         const invitationData = invitationResult.invitation;
@@ -182,9 +177,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         // Récupérer le document des conditions d'utilisation
         const torResults = await documentsService.semanticSearch('TERMS OF REFERENCE');
         if (!torResults || torResults.length === 0) {
-          throw new Error(currentLang === 'fr' 
-            ? 'Document des conditions d\'utilisation introuvable' 
-            : 'Terms of Reference document not found');
+          throw new Error(t.torDocumentNotFound || 'Terms of Reference document not found');
         }
 
         // Mettre à jour l'état
@@ -210,9 +203,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   // =================================================================
   const handleTorAccept = async () => {
     if (!acceptTor) {
-      setError(currentLang === 'fr' 
-        ? 'Vous devez accepter les conditions d\'utilisation pour continuer' 
-        : 'You must accept the Terms of Reference to continue');
+      setError(t.torAcceptRequired);
       return;
     }
 
@@ -236,16 +227,12 @@ const FinalizeInvitation = ({ handlePageChange }) => {
   // =================================================================
   const validatePassword = () => {
     if (password !== confirmPassword) {
-      setError(currentLang === 'fr' 
-        ? 'Les mots de passe ne correspondent pas' 
-        : 'Passwords do not match');
+      setError(t.passwordsNoMatch);
       return false;
     }
 
     if (password.length < 8) {
-      setError(currentLang === 'fr' 
-        ? 'Le mot de passe doit contenir au moins 8 caractères' 
-        : 'Password must be at least 8 characters');
+      setError(t.passwordMinChars);
       return false;
     }
 
@@ -268,7 +255,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       setStep(STEPS.PROCESSING);
 
       if (!invitation || !invitation.id) {
-        throw new Error(currentLang === 'fr' ? 'Données d\'invitation manquantes' : 'Invitation data missing');
+        throw new Error(t.invitationDataMissing);
       }
 
       // 1. Create user account
@@ -316,9 +303,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       // 7. Show success message
       console.log('[DEBUG] Account created successfully');
       setStep(STEPS.SUCCESS);
-      showNotification(currentLang === 'fr' 
-        ? 'Votre compte a été créé avec succès!' 
-        : 'Your account has been created successfully!', 'success', 5000);
+      showNotification(t.accountCreated, 'success', 5000);
 
       // 8. Clean localStorage (except data needed for reconnection)
       localStorage.removeItem('currentInvitationId');
@@ -349,9 +334,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       <div className="flex flex-col justify-center items-center min-h-[60vh]">
         <Loader2 className="h-12 w-12 animate-spin text-amber-600 mb-4" />
         <p className="text-gray-600">
-          {step === STEPS.LOADING 
-            ? (currentLang === 'fr' ? 'Chargement...' : 'Loading...') 
-            : (currentLang === 'fr' ? 'Traitement en cours...' : 'Processing...')}
+          {step === STEPS.LOADING ? t.loading : t.processing}
         </p>
       </div>
     );
@@ -364,14 +347,14 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         <div className="bg-red-50 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg">
           <div className="flex items-center mb-4">
             <AlertTriangle className="h-8 w-8 text-red-500 mr-3" />
-            <h2 className="text-xl font-bold">{currentLang === 'fr' ? 'Erreur' : 'Error'}</h2>
+            <h2 className="text-xl font-bold">{t.error}</h2>
           </div>
           <p className="mb-4">{error}</p>
           <button
             onClick={() => handlePageChange('home')}
             className="w-full bg-red-100 hover:bg-red-200 text-red-700 py-2 px-4 rounded-md transition-colors"
           >
-            {currentLang === 'fr' ? 'Retour à l\'accueil' : 'Back to home'}
+            {t.backToHome}
           </button>
         </div>
       </div>
@@ -385,14 +368,9 @@ const FinalizeInvitation = ({ handlePageChange }) => {
         <div className="bg-green-50 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg">
           <div className="flex items-center justify-center mb-4">
             <CheckCircle className="h-12 w-12 text-green-500 mr-3" />
-            <h2 className="text-xl font-bold">
-              {currentLang === 'fr' ? 'Inscription réussie!' : 'Registration successful!'}
-            </h2>
+            <h2 className="text-xl font-bold">{t.registrationSuccess}</h2>
           </div>
-          <p className="text-center mb-4">
-            {currentLang === 'fr'
-              ? 'Votre compte a été créé avec succès. Vous allez être redirigé(e) vers la page d\'accueil.'
-              : 'Your account has been created successfully. You will be redirected to the home page.'}
+          <p className="text-center mb-4">{t.accountCreatedRedirect}
           </p>
           <div className="flex justify-center">
             <div className="animate-pulse h-2 w-24 bg-green-200 rounded"></div>
@@ -408,9 +386,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
       <div className="container mx-auto max-w-2xl p-6">
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-center mb-6">
-              {currentLang === 'fr' ? 'Conditions d\'utilisation' : 'Terms of Reference'}
-            </h2>
+            <h2 className="text-2xl font-bold text-center mb-6">{t.termsOfReference}</h2>
 
             {torDocument && (
               <div className="mb-6">
@@ -426,7 +402,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                         rel="noopener noreferrer"
                         className="text-amber-600 hover:text-amber-700"
                       >
-                        {currentLang === 'fr' ? 'Voir le document complet' : 'View full document'}
+                        {t.viewFullDocument}
                       </a>
                     </div>
                   )}
@@ -440,11 +416,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                       onChange={(e) => setAcceptTor(e.target.checked)}
                       className="form-checkbox h-5 w-5 text-amber-600"
                     />
-                    <span className="text-gray-700">
-                      {currentLang === 'fr' 
-                        ? 'J\'ai lu et j\'accepte les conditions d\'utilisation' 
-                        : 'I have read and accept the Terms of Reference'}
-                    </span>
+                    <span className="text-gray-700">{t.torCheckboxLabel}</span>
                   </label>
                 </div>
 
@@ -460,7 +432,7 @@ const FinalizeInvitation = ({ handlePageChange }) => {
                     disabled={!acceptTor}
                     className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {currentLang === 'fr' ? 'Continuer' : 'Continue'}
+                    {t.continue}
                   </button>
                 </div>
               </div>
@@ -476,15 +448,9 @@ const FinalizeInvitation = ({ handlePageChange }) => {
     <div className="container mx-auto max-w-md p-6">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-center mb-6">
-            {currentLang === 'fr' ? 'Créer un mot de passe' : 'Create a password'}
-          </h2>
+          <h2 className="text-2xl font-bold text-center mb-6">{t.createPassword}</h2>
 
-          <p className="text-gray-600 mb-6 text-center">
-            {currentLang === 'fr'
-              ? 'Dernière étape ! Veuillez créer un mot de passe sécurisé pour votre compte.'
-              : 'Final step! Please create a secure password for your account.'}
-          </p>
+          <p className="text-gray-600 mb-6 text-center">{t.finalStep}</p>
 
           {error && (
             <div className="mb-4 px-4 py-2 bg-red-50 border-l-4 border-red-500 text-red-700">

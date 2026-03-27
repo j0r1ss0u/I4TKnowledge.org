@@ -5,6 +5,7 @@ import { torService } from '../../services/torService';
 import { documentsService } from '../../services/documentsService';
 import { useAuth } from '../AuthContext';
 import { Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import ui from '../../translations/ui';
 
 const TorAcceptanceRequired = () => {
   const { user, showNotification } = useAuth();
@@ -15,15 +16,14 @@ const TorAcceptanceRequired = () => {
   const [error, setError] = useState(null);
   const [done, setDone] = useState(false);
   const lang = localStorage.getItem('preferredLanguage') || 'en';
+  const t = (ui[lang] || ui.en).torAcceptance;
 
   useEffect(() => {
     const fetchTor = async () => {
       try {
         const results = await documentsService.semanticSearch('TERMS OF REFERENCE');
         if (!results || results.length === 0) {
-          throw new Error(lang === 'fr'
-            ? 'Document des conditions d\'utilisation introuvable'
-            : 'Terms of Reference document not found');
+          throw new Error(t.torDocumentNotFound);
         }
         setTorDocument(results[0]);
       } catch (err) {
@@ -37,9 +37,7 @@ const TorAcceptanceRequired = () => {
 
   const handleAccept = async () => {
     if (!accepted) {
-      setError(lang === 'fr'
-        ? 'Vous devez accepter les conditions d\'utilisation pour continuer'
-        : 'You must accept the Terms of Reference to continue');
+      setError(t.torAcceptRequired);
       return;
     }
 
@@ -53,10 +51,7 @@ const TorAcceptanceRequired = () => {
       await updateDoc(userRef, { requiresTorAcceptance: false });
 
       setDone(true);
-      showNotification(
-        lang === 'fr' ? 'Conditions acceptées. Bienvenue !' : 'Terms accepted. Welcome!',
-        'success'
-      );
+      showNotification(t.termsAccepted, 'success');
 
       setTimeout(() => window.location.reload(), 2000);
     } catch (err) {
@@ -70,7 +65,7 @@ const TorAcceptanceRequired = () => {
     return (
       <div className="flex flex-col justify-center items-center min-h-[60vh]">
         <Loader2 className="h-12 w-12 animate-spin text-amber-600 mb-4" />
-        <p className="text-gray-600">{lang === 'fr' ? 'Chargement...' : 'Loading...'}</p>
+        <p className="text-gray-600">{t.loading}</p>
       </div>
     );
   }
@@ -80,10 +75,8 @@ const TorAcceptanceRequired = () => {
       <div className="container mx-auto max-w-md p-6">
         <div className="bg-green-50 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg text-center">
           <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">
-            {lang === 'fr' ? 'Conditions acceptées !' : 'Terms accepted!'}
-          </h2>
-          <p>{lang === 'fr' ? 'Redirection en cours...' : 'Redirecting...'}</p>
+          <h2 className="text-xl font-bold mb-2">{t.termsAcceptedTitle}</h2>
+          <p>{t.redirecting}</p>
         </div>
       </div>
     );
@@ -93,14 +86,8 @@ const TorAcceptanceRequired = () => {
     <div className="container mx-auto max-w-2xl p-6">
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="p-6">
-          <h2 className="text-2xl font-bold text-center mb-2">
-            {lang === 'fr' ? 'Conditions d\'utilisation requises' : 'Terms of Reference Required'}
-          </h2>
-          <p className="text-center text-gray-500 mb-6 text-sm">
-            {lang === 'fr'
-              ? 'Votre rôle a été mis à jour. Vous devez accepter les conditions d\'utilisation pour continuer.'
-              : 'Your role has been updated. You must accept the Terms of Reference to continue.'}
-          </p>
+          <h2 className="text-2xl font-bold text-center mb-2">{t.termsRequired}</h2>
+          <p className="text-center text-gray-500 mb-6 text-sm">{t.roleUpdated}</p>
 
           {error && (
             <div className="mb-4 px-4 py-2 bg-red-50 border-l-4 border-red-500 text-red-700 flex items-start gap-2">
@@ -122,7 +109,7 @@ const TorAcceptanceRequired = () => {
                       rel="noopener noreferrer"
                       className="text-amber-600 hover:text-amber-700 underline"
                     >
-                      {lang === 'fr' ? 'Voir le document complet' : 'View full document'}
+                      {t.viewFullDocument}
                     </a>
                   </div>
                 )}
@@ -138,11 +125,7 @@ const TorAcceptanceRequired = () => {
                   }}
                   className="form-checkbox h-5 w-5 text-amber-600"
                 />
-                <span className="text-gray-700">
-                  {lang === 'fr'
-                    ? 'J\'ai lu et j\'accepte les conditions d\'utilisation'
-                    : 'I have read and accept the Terms of Reference'}
-                </span>
+                <span className="text-gray-700">{t.torCheckboxLabel}</span>
               </label>
 
               <button
@@ -150,9 +133,7 @@ const TorAcceptanceRequired = () => {
                 disabled={submitting}
                 className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                {submitting
-                  ? (lang === 'fr' ? 'Traitement...' : 'Processing...')
-                  : (lang === 'fr' ? 'Continuer' : 'Continue')}
+                {submitting ? t.processing : t.continue}
               </button>
             </div>
           )}
