@@ -117,6 +117,13 @@ A unique visualization tool for categorizing regulatory elements:
 - **Project management** with milestone tracking
 - **Event calendar** for research activities
 
+### 🌐 Multilingual UI (EN / ES)
+- **Single source of truth**: all 757 user-facing strings centralized in `src/translations/ui.js`
+- **40+ components wired**: every page, form, modal, and button responds to the active language
+- **Instant switching**: language selector in the top-right navigation bar; choice persisted in localStorage
+- **Zero hardcoded strings**: periodic table category names and Regulation Pathway labels fully translated
+- **Strict parity enforcement**: 757 EN = 757 ES keys, checked programmatically with 0 gaps
+
 ### 📤 Export & Integration
 - **CSV export** with 14 metadata columns (Token ID, Title, Authors, Description, etc.)
 - **Resend email integration** for invitations and notifications
@@ -523,6 +530,14 @@ I4TKnowledge.org/
 │   ├── constants/              # App constants
 │   │   └── index.js            # Enums, contract addresses
 │   │
+│   ├── translations/           # Multilingual string system
+│   │   ├── ui.js               # Master EN/ES inventory (757 keys, single source of truth)
+│   │   ├── library.js          # Legacy strings (LibrarianSpace, NetworkPublications, RecoverMissingDocument)
+│   │   ├── index.js            # Translation loader (AuthContext strings)
+│   │   ├── es.js               # Spanish AuthContext strings
+│   │   ├── pt.js               # Portuguese AuthContext strings
+│   │   └── zh.js               # Chinese (Simplified) AuthContext strings
+│   │
 │   ├── App.jsx                 # Main app component
 │   └── main.jsx                # Entry point
 │
@@ -857,7 +872,8 @@ The platform uses AI to automatically suggest periodic table elements for docume
 ### Planned Features
 - [ ] Ethereum mainnet deployment
 - [ ] Advanced analytics dashboard
-- [ ] Full multilingual UI — 5 languages (EN / FR / ES / PT / ZH) — translation files ready, full UI coverage in progress
+- [x] Full EN/ES multilingual UI — 757 keys, 40+ components, zero hardcoded strings ✅
+- [ ] Extend to FR / PT / ZH — translation files in place, UI wiring pending
 - [ ] Mobile app (React Native)
 - [ ] Integration with additional LLM providers
 - [ ] Enhanced citation visualization (3D network graphs)
