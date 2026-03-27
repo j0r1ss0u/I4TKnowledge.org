@@ -7,10 +7,10 @@ A comprehensive web application for digital governance research and collaboratio
 ## 📅 Changelog
 
 ### March 2026
+- **Full EN/ES translation system**: Every user-facing string across 40+ components is now wired to a single source of truth (`src/translations/ui.js`). Switching between English and Spanish is instant and persistent (saved to localStorage). The language selector dropdown appears in the top-right navigation bar. Parity maintained at 757 EN = 757 ES keys with zero gaps.
+- **Periodic table translated**: Category names (Institutional framework, Content governance, etc.) and all Regulation Pathway labels now translate with the rest of the UI. The previous inline 5-language translation object in ResolutionPath has been replaced by the unified ui.js system.
 - **Mobile UX**: Periodic table is now horizontally scrollable on mobile (min-width 660px). Regulation Pathway creation uses a full-screen overlay on mobile instead of a floating panel. Tap-based element search replaces HTML5 drag-and-drop on touch devices.
 - **LibrarianSpace improvements**: Firebase admins can access the admin panel without a connected wallet. Default tab is now Admin Validation. IP Monitoring tab is hidden unless a wallet is connected.
-- **Multilingual infrastructure**: Translation files for EN / FR / ES / PT / ZH are in place in the codebase. The language toggle UI has been temporarily removed pending full UI coverage across all pages.
-- **Language default fixed**: All pages now render in English by default, regardless of any previously stored browser preference.
 
 ### February 2026
 - **Blockchain role registration fix**: Replaced wagmi v2 callback pattern with `useEffect` watching `isTxSuccess`; Firestore save now occurs only after blockchain confirmation.
