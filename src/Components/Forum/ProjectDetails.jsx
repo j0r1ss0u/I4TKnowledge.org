@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import { projetManagementService } from '../../services/projectManagement';
-import { Edit } from 'lucide-react'; // Import de l'icône Edit
+import { Edit } from 'lucide-react';
+import ui from '../../translations/ui';
 
 const ProjectDetails = ({ projectId, onBack, onEdit }) => {
   const [project, setProject] = useState(null);
@@ -10,7 +11,9 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
   const [newComment, setNewComment] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = ui[language] ?? ui.en;
+  const pd = t.projectDetails;
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -23,7 +26,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
         const projectData = projects.find(p => p.id === projectId);
 
         if (!projectData) {
-          setError('Project not found');
+          setError(pd.projectNotFound);
           return;
         }
 
@@ -45,7 +48,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
         setProject(normalizedProject);
       } catch (error) {
         console.error('Error loading project:', error);
-        setError('Unable to load project details');
+        setError(pd.projectNotFound);
       } finally {
         setLoading(false);
       }
@@ -63,9 +66,8 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
       setUpdatingStatus(true);
       setError(null);
 
-      // Vérifier si l'utilisateur est le créateur
       if (project.creator.uid !== user.uid) {
-        setError('Only the project creator can update the status');
+        setError(pd.onlyCreatorUpdate);
         return;
       }
 
@@ -83,7 +85,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
       console.log('Status updated successfully');
     } catch (error) {
       console.error('Error updating status:', error);
-      setError(error.message || 'Failed to update project status');
+      setError(error.message || pd.onlyCreatorUpdate);
     } finally {
       setUpdatingStatus(false);
     }
@@ -122,7 +124,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
-      setError('Failed to add comment');
+      setError(pd.projectNotFound);
     } finally {
       setSubmittingComment(false);
     }
@@ -132,7 +134,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading project details...</p>
+        <p className="mt-2 text-gray-600">{pd.loading}</p>
       </div>
     );
   }
@@ -145,7 +147,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
           onClick={onBack}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
         >
-          Back to Projects
+          {pd.backToProjects}
         </button>
       </div>
     );
@@ -154,12 +156,12 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
   if (!project) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-600 mb-4">Project not found</div>
+        <div className="text-gray-600 mb-4">{pd.projectNotFound}</div>
         <button
           onClick={onBack}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
         >
-          Back to Projects
+          {pd.backToProjects}
         </button>
       </div>
     );
@@ -172,7 +174,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
 
   const isCreator = project.creator.uid === user.uid;
   const isAdmin = user && user.role === 'admin';
-  const canEdit = isCreator || isAdmin; // Utilisateur peut éditer s'il est créateur ou admin
+  const canEdit = isCreator || isAdmin;
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md">
@@ -182,12 +184,12 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{project.title}</h2>
             <p className="mt-2 text-sm text-gray-500">
-              Created by {project.creator.email} • {new Date(project.createdAt).toLocaleDateString()}
+              {pd.createdBy} {project.creator.email} • {new Date(project.createdAt).toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center space-x-4">
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(project.status.current)}`}>
-              {project.status.current}
+              {pd.status[project.status.current] || project.status.current}
             </span>
             {isCreator && (
               <select
@@ -196,22 +198,21 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
                 disabled={updatingStatus}
                 className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50"
               >
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="inProgress">In Progress</option>
-                <option value="completed">Completed</option>
+                <option value="draft">{pd.status.draft}</option>
+                <option value="published">{pd.status.published}</option>
+                <option value="inProgress">{pd.status.inProgress}</option>
+                <option value="completed">{pd.status.completed}</option>
               </select>
             )}
 
-            {/* Bouton d'édition - Visible uniquement pour le créateur ou admin */}
             {canEdit && onEdit && (
               <button
                 onClick={onEdit}
                 className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-                title="Edit Project"
+                title={pd.edit}
               >
                 <Edit className="h-4 w-4 mr-1" />
-                Edit
+                {pd.edit}
               </button>
             )}
           </div>
@@ -227,14 +228,14 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
       <div className="p-6 space-y-6">
         {/* Description */}
         <div>
-          <h3 className="text-lg font-medium text-gray-900">Description</h3>
+          <h3 className="text-lg font-medium text-gray-900">{pd.description}</h3>
           <p className="mt-2 text-gray-600">{project.description}</p>
         </div>
 
         {/* Budget */}
         {project.budget && (
           <div>
-            <h3 className="text-lg font-medium text-gray-900">Budget</h3>
+            <h3 className="text-lg font-medium text-gray-900">{pd.budget}</h3>
             <div className="mt-2 text-gray-600">
               {project.budget.amount} {project.budget.currency}
             </div>
@@ -244,7 +245,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
         {/* Required Skills */}
         {project.requiredSkills?.length > 0 && (
           <div>
-            <h3 className="text-lg font-medium text-gray-900">Required Skills</h3>
+            <h3 className="text-lg font-medium text-gray-900">{pd.requiredSkills}</h3>
             <div className="mt-2 flex flex-wrap gap-2">
               {project.requiredSkills.map((skill, index) => (
                 <span 
@@ -261,9 +262,8 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
         {/* Comments Section */}
         <div className="pt-6 border-t">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
-            Comments ({commentsArray.length})
+            {pd.comments} ({commentsArray.length})
           </h3>
-
 
           {/* Comment Form */}
           <form onSubmit={handleCommentSubmit} className="mb-6">
@@ -272,7 +272,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
               onChange={(e) => setNewComment(e.target.value)}
               className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               rows={3}
-              placeholder="Add a comment..."
+              placeholder={pd.commentPlaceholder}
               disabled={submittingComment}
             />
             <div className="mt-2 flex justify-end">
@@ -281,7 +281,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
                 disabled={submittingComment || !newComment.trim()}
               >
-                {submittingComment ? 'Posting...' : 'Post Comment'}
+                {submittingComment ? pd.posting : pd.postComment}
               </button>
             </div>
           </form>
@@ -289,7 +289,7 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
           {/* Comments List */}
           <div className="space-y-4">
             {commentsArray.length === 0 ? (
-              <p className="text-center text-gray-500">No comments yet</p>
+              <p className="text-center text-gray-500">{pd.noComments}</p>
             ) : (
               commentsArray.map((comment) => (
                 <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
@@ -310,21 +310,19 @@ const ProjectDetails = ({ projectId, onBack, onEdit }) => {
 
         {/* Action Buttons */}
         <div className="flex justify-between pt-6">
-          {/* Back Button à gauche */}
           <button
             onClick={onBack}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
           >
-            Back to Projects
+            {pd.backToProjects}
           </button>
 
-          {/* Edit Button à droite (alternative pour les mobiles) */}
           {canEdit && onEdit && (
             <button
               onClick={onEdit}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
             >
-              Edit Project
+              {pd.editProject}
             </button>
           )}
         </div>

@@ -4,15 +4,17 @@ import { projetManagementService } from '../../services/projectManagement';
 import { projectNotificationService } from '../../services/projectNotificationService';
 import { torService } from '../../services/torService';
 import { motion } from 'framer-motion';
+import ui from '../../translations/ui';
 
 const ProjectSubmission = ({ projectId, onSubmit }) => {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const p = (ui[language] ?? ui.en).projectSubmission;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // État initial du formulaire
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -31,7 +33,6 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
     visibility: 'members'
   });
 
-  // Effet pour charger les données du projet lors de l'édition
   useEffect(() => {
     const fetchProjectData = async () => {
       if (!projectId) return;
@@ -39,17 +40,14 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log('Fetching project for editing:', projectId);
 
-        // Récupérer tous les projets (ou utilisez getProjetById si disponible)
         const projects = await projetManagementService.getProjets();
-        const projectToEdit = projects.find(p => p.id === projectId);
+        const projectToEdit = projects.find(pr => pr.id === projectId);
 
         if (!projectToEdit) {
           throw new Error('Project not found');
         }
 
-        // Préparer les données pour le formulaire
         const normalizedProject = {
           title: projectToEdit.title || '',
           description: projectToEdit.description || '',
@@ -70,17 +68,14 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
             ? projectToEdit.requiredSkills 
             : [''],
           visibility: projectToEdit.visibility || 'members',
-          // Conserver d'autres champs si nécessaire
           status: projectToEdit.status || { current: 'draft' }
         };
 
-        // Mettre à jour le formulaire
         setFormData(normalizedProject);
         setIsEditMode(true);
-        console.log('Project data loaded for editing', normalizedProject);
       } catch (err) {
         console.error('Error loading project for edit:', err);
-        setError('Failed to load project data. Please try again.');
+        setError(p.loadError);
       } finally {
         setIsLoading(false);
       }
@@ -105,65 +100,43 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
       };
 
       if (isEditMode) {
-        // Mise à jour d'un projet existant
-        console.log('Updating existing project:', projectId);
         await projetManagementService.updateProjet(projectId, projectData);
-        console.log('Project updated successfully');
       } else {
-        // Création d'un nouveau projet
-        console.log('Creating new project with data:', projectData);
         const newProject = await projetManagementService.ajouterProjet(projectData);
-        console.log('Project created:', newProject);
 
-        // Essayer d'envoyer les notifications pour un nouveau projet
         try {
           if (newProject && newProject.id) {
-            console.log('Attempting to send notifications...');
             await projectNotificationService.notifyNewProject({
               ...projectData,
               id: newProject.id
             });
-            console.log('Notifications sent successfully');
           }
         } catch (notifError) {
           console.error('Error sending notifications:', notifError);
-          // On continue même si la notification échoue
         }
       }
 
-      // Retourner à la liste des projets
       onSubmit();
     } catch (error) {
       console.error('Error in project submission:', error);
-      setError(isEditMode 
-        ? 'Une erreur est survenue lors de la mise à jour du projet.' 
-        : 'Une erreur est survenue lors de la création du projet.');
+      setError(isEditMode ? p.updateError : p.createError);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSkillAdd = () => {
-    setFormData({
-      ...formData,
-      requiredSkills: [...formData.requiredSkills, '']
-    });
+    setFormData({ ...formData, requiredSkills: [...formData.requiredSkills, ''] });
   };
 
   const handleSkillChange = (index, value) => {
     const newSkills = [...formData.requiredSkills];
     newSkills[index] = value;
-    setFormData({
-      ...formData,
-      requiredSkills: newSkills
-    });
+    setFormData({ ...formData, requiredSkills: newSkills });
   };
 
   const handleSkillRemove = (index) => {
-    setFormData({
-      ...formData,
-      requiredSkills: formData.requiredSkills.filter((_, i) => i !== index)
-    });
+    setFormData({ ...formData, requiredSkills: formData.requiredSkills.filter((_, i) => i !== index) });
   };
 
   const handleMilestoneAdd = () => {
@@ -178,17 +151,8 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
 
   const handleMilestoneChange = (index, field, value) => {
     const newMilestones = [...formData.timeline.milestones];
-    newMilestones[index] = {
-      ...newMilestones[index],
-      [field]: value
-    };
-    setFormData({
-      ...formData,
-      timeline: {
-        ...formData.timeline,
-        milestones: newMilestones
-      }
-    });
+    newMilestones[index] = { ...newMilestones[index], [field]: value };
+    setFormData({ ...formData, timeline: { ...formData.timeline, milestones: newMilestones } });
   };
 
   const handleMilestoneRemove = (index) => {
@@ -201,12 +165,11 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
     });
   };
 
-  // Affichage d'un spinner pendant le chargement des données du projet
   if (isLoading) {
     return (
       <div className="max-w-3xl mx-auto text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading project data...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+        <p className="text-gray-600">{p.loadingData}</p>
       </div>
     );
   }
@@ -217,15 +180,13 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
       animate={{ opacity: 1 }}
       className="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6"
     >
-      {/* === HEADER SECTION === */}
+      {/* Header */}
       <div className="border-b border-gray-200 pb-4 mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          {isEditMode ? 'Edit Project' : 'Create New Project'}
+          {isEditMode ? p.editTitle : p.createTitle}
         </h2>
         <p className="mt-1 text-sm text-gray-500">
-          {isEditMode 
-            ? 'Update the project details below.' 
-            : 'Fill in the details below to create a new project. All ToR signatories will be notified.'}
+          {isEditMode ? p.editSubtitle : p.createSubtitle}
         </p>
       </div>
 
@@ -236,14 +197,14 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        {/* === BASIC INFORMATION SECTION === */}
+        {/* Basic Information */}
         <section aria-labelledby="section-basic-info">
           <div className="border-b border-gray-200 mb-4">
-            <h3 id="section-basic-info" className="text-lg font-semibold text-gray-900">Basic Information</h3>
+            <h3 id="section-basic-info" className="text-lg font-semibold text-gray-900">{p.sections.basicInfo}</h3>
           </div>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Project Title</label>
+              <label className="block text-sm font-medium text-gray-700">{p.fields.title}</label>
               <input
                 type="text"
                 value={formData.title}
@@ -254,7 +215,7 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
+              <label className="block text-sm font-medium text-gray-700">{p.fields.description}</label>
               <textarea
                 value={formData.description}
                 onChange={e => setFormData({...formData, description: e.target.value})}
@@ -266,33 +227,27 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
           </div>
         </section>
 
-        {/* === BUDGET SECTION === */}
+        {/* Budget */}
         <section aria-labelledby="section-budget">
           <div className="border-b border-gray-200 mb-4">
-            <h3 id="section-budget" className="text-lg font-semibold text-gray-900">Budget Information</h3>
+            <h3 id="section-budget" className="text-lg font-semibold text-gray-900">{p.sections.budget}</h3>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Budget Amount</label>
+              <label className="block text-sm font-medium text-gray-700">{p.fields.budgetAmount}</label>
               <input
                 type="number"
                 value={formData.budget.amount}
-                onChange={e => setFormData({
-                  ...formData,
-                  budget: { ...formData.budget, amount: e.target.value }
-                })}
+                onChange={e => setFormData({ ...formData, budget: { ...formData.budget, amount: e.target.value } })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Currency</label>
+              <label className="block text-sm font-medium text-gray-700">{p.fields.currency}</label>
               <select
                 value={formData.budget.currency}
-                onChange={e => setFormData({
-                  ...formData,
-                  budget: { ...formData.budget, currency: e.target.value }
-                })}
+                onChange={e => setFormData({ ...formData, budget: { ...formData.budget, currency: e.target.value } })}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
                 <option value="EUR">EUR</option>
@@ -303,44 +258,38 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
           </div>
         </section>
 
-        {/* === TIMELINE SECTION === */}
+        {/* Timeline */}
         <section aria-labelledby="section-timeline">
           <div className="border-b border-gray-200 mb-4">
-            <h3 id="section-timeline" className="text-lg font-semibold text-gray-900">Project Timeline</h3>
+            <h3 id="section-timeline" className="text-lg font-semibold text-gray-900">{p.sections.timeline}</h3>
           </div>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                <label className="block text-sm font-medium text-gray-700">{p.fields.startDate}</label>
                 <input
                   type="date"
                   value={formData.timeline.startDate}
-                  onChange={e => setFormData({
-                    ...formData,
-                    timeline: { ...formData.timeline, startDate: e.target.value }
-                  })}
+                  onChange={e => setFormData({ ...formData, timeline: { ...formData.timeline, startDate: e.target.value } })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">End Date</label>
+                <label className="block text-sm font-medium text-gray-700">{p.fields.endDate}</label>
                 <input
                   type="date"
                   value={formData.timeline.endDate}
-                  onChange={e => setFormData({
-                    ...formData,
-                    timeline: { ...formData.timeline, endDate: e.target.value }
-                  })}
+                  onChange={e => setFormData({ ...formData, timeline: { ...formData.timeline, endDate: e.target.value } })}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   required
                 />
               </div>
             </div>
 
-            {/* === MILESTONES SUBSECTION === */}
+            {/* Milestones */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Project Milestones</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{p.fields.milestones}</label>
               {formData.timeline.milestones.map((milestone, index) => (
                 <motion.div 
                   key={index}
@@ -352,7 +301,7 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
                       type="text"
                       value={milestone.title}
                       onChange={e => handleMilestoneChange(index, 'title', e.target.value)}
-                      placeholder="Milestone title"
+                      placeholder={p.placeholders.milestoneTitle}
                       className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                     />
                     <input
@@ -365,7 +314,7 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
                   <textarea
                     value={milestone.description}
                     onChange={e => handleMilestoneChange(index, 'description', e.target.value)}
-                    placeholder="Milestone description"
+                    placeholder={p.placeholders.milestoneDesc}
                     rows={2}
                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
@@ -375,7 +324,7 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
                       onClick={() => handleMilestoneRemove(index)}
                       className="mt-2 text-sm text-red-600 hover:text-red-800"
                     >
-                      Remove Milestone
+                      {p.removeMilestone}
                     </button>
                   )}
                 </motion.div>
@@ -385,30 +334,26 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
                 onClick={handleMilestoneAdd}
                 className="mt-2 text-sm text-blue-600 hover:text-blue-800"
               >
-                + Add Milestone
+                {p.addMilestone}
               </button>
             </div>
           </div>
         </section>
 
-        {/* === REQUIRED SKILLS SECTION === */}
+        {/* Required Skills */}
         <section aria-labelledby="section-skills">
           <div className="border-b border-gray-200 mb-4">
-            <h3 id="section-skills" className="text-lg font-semibold text-gray-900">Required Skills</h3>
+            <h3 id="section-skills" className="text-lg font-semibold text-gray-900">{p.sections.skills}</h3>
           </div>
           <div className="space-y-2">
             {formData.requiredSkills.map((skill, index) => (
-              <motion.div
-                key={index}
-                layout
-                className="flex space-x-2"
-              >
+              <motion.div key={index} layout className="flex space-x-2">
                 <input
                   type="text"
                   value={skill}
                   onChange={e => handleSkillChange(index, e.target.value)}
                   className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="Enter a required skill"
+                  placeholder={p.placeholders.skill}
                 />
                 {index > 0 && (
                   <button
@@ -416,7 +361,7 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
                     onClick={() => handleSkillRemove(index)}
                     className="px-2 py-1 text-red-600 hover:text-red-800"
                   >
-                    Remove
+                    {p.removeSkill}
                   </button>
                 )}
               </motion.div>
@@ -426,12 +371,12 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
               onClick={handleSkillAdd}
               className="mt-2 text-sm text-blue-600 hover:text-blue-800"
             >
-              + Add Skill
+              {p.addSkill}
             </button>
           </div>
         </section>
 
-        {/* === SUBMIT SECTION === */}
+        {/* Submit */}
         <section className="border-t border-gray-200 pt-6">
           <div className="flex justify-end space-x-4">
             <button
@@ -440,20 +385,18 @@ const ProjectSubmission = ({ projectId, onSubmit }) => {
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
               disabled={isSubmitting}
             >
-              Cancel
+              {p.cancel}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className={`px-4 py-2 text-sm font-medium text-white rounded-md ${
-                isSubmitting
-                  ? 'bg-blue-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                isSubmitting ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
               {isSubmitting 
-                ? (isEditMode ? 'Updating...' : 'Creating...') 
-                : (isEditMode ? 'Update Project' : 'Create Project')}
+                ? (isEditMode ? p.updating : p.creating)
+                : (isEditMode ? p.updateProject : p.createProject)}
             </button>
           </div>
         </section>

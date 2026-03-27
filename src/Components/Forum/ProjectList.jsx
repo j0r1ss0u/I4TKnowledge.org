@@ -2,28 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { projetManagementService } from '../../services/projectManagement';
 import { useAuth } from '../AuthContext';
 import { Trash2, Edit } from 'lucide-react';
+import ui from '../../translations/ui';
 
-// Composant ProjectCard avec accès d'édition correct
-const ProjectCard = ({ project, onClick, onDelete, onEdit }) => {
+const ProjectCard = ({ project, onClick, onDelete, onEdit, t }) => {
   const { user } = useAuth();
 
-  // Vérifier si l'utilisateur est le créateur ou un administrateur
   const isCreatorOrAdmin = user && (
     user.role === 'admin' || 
     user.email === project.creator?.email
   );
 
   const handleDelete = (e) => {
-    e.stopPropagation(); // Empêcher le onClick du parent
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
+    e.stopPropagation();
+    if (window.confirm(t.forum.deleteConfirm)) {
       onDelete(project.id);
     }
   };
 
   const handleEdit = (e) => {
-    e.stopPropagation(); // Empêcher le onClick du parent
-
-    // Passer l'objet projet complet à la fonction onEdit
+    e.stopPropagation();
     onEdit(project);
   };
 
@@ -58,7 +55,7 @@ const ProjectCard = ({ project, onClick, onDelete, onEdit }) => {
             <button
               onClick={handleEdit}
               className="p-1 text-blue-600 hover:text-blue-800 transition-colors"
-              title="Modifier le projet"
+              title={t.common.edit}
             >
               <Edit className="w-4 h-4" />
             </button>
@@ -68,7 +65,7 @@ const ProjectCard = ({ project, onClick, onDelete, onEdit }) => {
             <button
               onClick={handleDelete}
               className="p-1 text-red-600 hover:text-red-800 transition-colors"
-              title="Supprimer le projet"
+              title={t.common.delete}
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -81,58 +78,48 @@ const ProjectCard = ({ project, onClick, onDelete, onEdit }) => {
       <div className="mt-4">
         {project.budget && (
           <div className="text-sm text-gray-500">
-            Budget: {project.budget.amount} {project.budget.currency}
+            {t.forum.card.budget} {project.budget.amount} {project.budget.currency}
           </div>
         )}
         {project.requiredSkills && (
           <div className="text-sm text-gray-500">
-            Required Skills: {project.requiredSkills.join(', ')}
+            {t.forum.card.requiredSkills} {project.requiredSkills.join(', ')}
           </div>
         )}
         <div className="text-xs text-gray-400 mt-2">
-          Created by: {project.creator?.email}       
+          {t.forum.card.createdBy} {project.creator?.email}       
         </div>
       </div>
     </div>
   );
 };
 
-// Composant ProjectList principal
 const ProjectList = ({ onProjectSelect, onProjectEdit }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [error, setError] = useState(null);
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = ui[language] ?? ui.en;
 
   const handleDeleteProject = async (projectId) => {
     try {
       await projetManagementService.supprimerProjet(projectId);
-      // Recharger la liste des projets
       const updatedProjects = await projetManagementService.getProjets();
       setProjects(updatedProjects);
     } catch (error) {
       console.error('Error deleting project:', error);
-      setError('Failed to delete project. Please try again.');
+      setError(t.forum.deleteError);
     }
   };
 
   const handleEditProject = (project) => {
     if (onProjectEdit) {
-      // Option 1: Utiliser la fonction de callback si disponible
-      // C'est la méthode préférée car elle reste dans la même instance React
       onProjectEdit(project);
     } else {
-      // Option 2: Navigation via hash avec paramètres
       window.location.hash = `forum?project=${project.id}&edit=true`;
-
-      // Option 3: Utiliser sessionStorage comme solution de secours
       sessionStorage.setItem('selectedProjectId', project.id);
       sessionStorage.setItem('editProjectMode', 'true');
-
-      // NE PAS utiliser ces approches qui causent la latence et l'écran blanc:
-      // window.location.reload(); // À éviter
-      // localStorage.setItem('selectedProjectId', project.id); // Trop persistant
     }
   };
 
@@ -155,7 +142,7 @@ const ProjectList = ({ onProjectSelect, onProjectEdit }) => {
         console.log('ProjectList: State updated with:', projectsData);
       } catch (error) {
         console.error('ProjectList: Error fetching projects:', error);
-        setError('Failed to load projects. Please try again later.');
+        setError(t.forum.loadError);
       } finally {
         setLoading(false);
       }
@@ -190,17 +177,17 @@ const ProjectList = ({ onProjectSelect, onProjectEdit }) => {
           onChange={(e) => setFilter(e.target.value)}
           className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
         >
-          <option value="all">All Projects</option>
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-          <option value="inProgress">In Progress</option>
-          <option value="completed">Completed</option>
+          <option value="all">{t.forum.filter.all}</option>
+          <option value="draft">{t.forum.filter.draft}</option>
+          <option value="published">{t.forum.filter.published}</option>
+          <option value="inProgress">{t.forum.filter.inProgress}</option>
+          <option value="completed">{t.forum.filter.completed}</option>
         </select>
       </div>
 
       {projects.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          No projects found
+          {t.forum.noProjects}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -211,6 +198,7 @@ const ProjectList = ({ onProjectSelect, onProjectEdit }) => {
               onClick={() => onProjectSelect(project.id)}
               onDelete={handleDeleteProject}
               onEdit={() => handleEditProject(project)}
+              t={t}
             />
           ))}
         </div>

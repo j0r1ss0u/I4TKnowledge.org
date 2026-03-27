@@ -1,6 +1,5 @@
 // -------------------------------------------
 // GovernanceView.jsx
-// Composant de gestion de la gouvernance
 // -------------------------------------------
 
 import React, { useState, useEffect } from 'react';
@@ -17,6 +16,7 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { db } from '../../services/firebase';
+import ui from '../../translations/ui';
 
 // -------------------------------------------
 // Types et constantes
@@ -29,10 +29,11 @@ const GOVERNANCE_TYPES = {
 };
 
 // -------------------------------------------
-// Composant de formulaire d'édition
+// Edit form sub-component
 // -------------------------------------------
-const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) => {
+const EditForm = ({ member, type, onSave, onCancel, availableOrganizations, t }) => {
   const [formData, setFormData] = useState(member);
+  const g = t.governance;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -42,7 +43,7 @@ const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) =>
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700">Name</label>
+        <label className="block text-sm font-medium text-gray-700">{g.form.name}</label>
         <input
           type="text"
           value={formData.name}
@@ -53,14 +54,14 @@ const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) =>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Organization</label>
+        <label className="block text-sm font-medium text-gray-700">{g.form.org}</label>
         <select
           value={formData.organization}
           onChange={(e) => setFormData(prev => ({ ...prev, organization: e.target.value }))}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
           required
         >
-          <option value="">Select an organization</option>
+          <option value="">{g.selectOrg}</option>
           {availableOrganizations.map(org => (
             <option key={org} value={org}>{org}</option>
           ))}
@@ -68,7 +69,7 @@ const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) =>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">LinkedIn URL</label>
+        <label className="block text-sm font-medium text-gray-700">{g.form.linkedin}</label>
         <input
           type="url"
           value={formData.linkedin}
@@ -78,7 +79,7 @@ const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) =>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Email</label>
+        <label className="block text-sm font-medium text-gray-700">{g.form.email}</label>
         <input
           type="email"
           value={formData.email}
@@ -88,7 +89,7 @@ const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) =>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">Comments</label>
+        <label className="block text-sm font-medium text-gray-700">{g.form.comments}</label>
         <textarea
           value={formData.comments}
           onChange={(e) => setFormData(prev => ({ ...prev, comments: e.target.value }))}
@@ -103,13 +104,13 @@ const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) =>
           onClick={onCancel}
           className="px-4 py-2 text-sm border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
         >
-          Cancel
+          {g.form.cancel}
         </button>
         <button
           type="submit"
           className="px-4 py-2 text-sm bg-amber-600 text-white rounded-md hover:bg-amber-700"
         >
-          Save
+          {g.form.save}
         </button>
       </div>
     </form>
@@ -117,83 +118,90 @@ const EditForm = ({ member, type, onSave, onCancel, availableOrganizations }) =>
 };
 
 // -------------------------------------------
-// Composant section de gouvernance
+// Governance section sub-component
 // -------------------------------------------
-const GovernanceSection = ({ title, type, members, ...props }) => (
-  <div className="mb-8">
-    <div className="flex justify-between items-center mb-6">
-      <h2 className="text-2xl font-serif font-bold text-gray-900">{title}</h2>
-      {props.onAdd && (
-        <button onClick={() => props.onAdd(type)} className="flex items-center px-3 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700">
-          <Plus className="h-4 w-4 mr-1" />
-          Add Member
-        </button>
-      )}
-    </div>
+const GovernanceSection = ({ title, type, members, t, ...props }) => {
+  const g = t.governance;
+  return (
+    <div className="mb-8">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-serif font-bold text-gray-900">{title}</h2>
+        {props.onAdd && (
+          <button onClick={() => props.onAdd(type)} className="flex items-center px-3 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700">
+            <Plus className="h-4 w-4 mr-1" />
+            {g.addMember}
+          </button>
+        )}
+      </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {members.map(member => (
-        <div key={member.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-100">
-          {props.editMode && props.editingItem?.id === member.id ? (
-            <EditForm
-              member={member}
-              type={type}
-              onSave={props.onSave}
-              onCancel={() => props.onEdit(null)}
-              availableOrganizations={props.availableOrganizations}
-            />
-          ) : (
-            <div className="space-y-4">
-              <div className="flex justify-between items-start">
-                <h3 className="text-xl font-medium text-gray-900">{member.name}</h3>
-                {props.onEdit && props.onDelete && (
-                  <div className="flex space-x-2">
-                    <button onClick={() => props.onEdit(member)} className="p-1 text-gray-600 hover:text-gray-900">
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button onClick={() => props.onDelete(type, member.id)} className="p-1 text-red-600 hover:text-red-900">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {members.map(member => (
+          <div key={member.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6 border border-gray-100">
+            {props.editMode && props.editingItem?.id === member.id ? (
+              <EditForm
+                member={member}
+                type={type}
+                onSave={props.onSave}
+                onCancel={() => props.onEdit(null)}
+                availableOrganizations={props.availableOrganizations}
+                t={t}
+              />
+            ) : (
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xl font-medium text-gray-900">{member.name}</h3>
+                  {props.onEdit && props.onDelete && (
+                    <div className="flex space-x-2">
+                      <button onClick={() => props.onEdit(member)} className="p-1 text-gray-600 hover:text-gray-900">
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => props.onDelete(type, member.id)} className="p-1 text-red-600 hover:text-red-900">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-base text-gray-600">{member.organization}</p>
+
+                <div className="pt-4 flex space-x-4">
+                  {member.linkedin && (
+                    <a href={member.linkedin} target="_blank" rel="noopener noreferrer" 
+                       className="flex items-center text-blue-600 hover:text-blue-800">
+                      <Linkedin className="h-5 w-5 mr-1" />
+                      LinkedIn
+                    </a>
+                  )}
+                  {member.email && (
+                    <a href={`mailto:${member.email}`} 
+                       className="flex items-center text-blue-600 hover:text-blue-800">
+                      <Mail className="h-5 w-5 mr-1" />
+                      {g.form.email}
+                    </a>
+                  )}
+                </div>
+
+                {member.comments && (
+                  <p className="text-sm text-gray-500 mt-2 italic">"{member.comments}"</p>
                 )}
               </div>
-
-              <p className="text-base text-gray-600">{member.organization}</p>
-
-              <div className="pt-4 flex space-x-4">
-                {member.linkedin && (
-                  <a href={member.linkedin} target="_blank" rel="noopener noreferrer" 
-                     className="flex items-center text-blue-600 hover:text-blue-800">
-                    <Linkedin className="h-5 w-5 mr-1" />
-                    LinkedIn
-                  </a>
-                )}
-                {member.email && (
-                  <a href={`mailto:${member.email}`} 
-                     className="flex items-center text-blue-600 hover:text-blue-800">
-                    <Mail className="h-5 w-5 mr-1" />
-                    Email
-                  </a>
-                )}
-              </div>
-
-              {member.comments && (
-                <p className="text-sm text-gray-500 mt-2 italic">"{member.comments}"</p>
-              )}
-            </div>
-          )}
-        </div>
-      ))}
+            )}
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // -------------------------------------------
-// Composant principal GovernanceView
+// Main GovernanceView component
 // -------------------------------------------
 const GovernanceView = () => {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
   const { members } = useMembers();
+  const t = ui[language] ?? ui.en;
+  const g = t.governance;
+
   const [searchTerm, setSearchTerm] = useState('');
   const [governanceData, setGovernanceData] = useState({
     [GOVERNANCE_TYPES.PRESIDENCY]: [],
@@ -206,7 +214,6 @@ const GovernanceView = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Chargement initial des données
   useEffect(() => {
     const loadGovernanceData = async () => {
       try {
@@ -232,7 +239,7 @@ const GovernanceView = () => {
         setError(null);
       } catch (err) {
         console.error('Error loading governance data:', err);
-        setError('Failed to load governance data. Please try again later.');
+        setError(g.loadError);
       } finally {
         setIsLoading(false);
       }
@@ -270,7 +277,7 @@ const GovernanceView = () => {
       setError(null);
     } catch (err) {
       console.error('Error adding member:', err);
-      setError('Failed to add member. Please try again.');
+      setError(g.addError);
     }
   };
 
@@ -302,12 +309,12 @@ const GovernanceView = () => {
       setError(null);
     } catch (err) {
       console.error('Error updating member:', err);
-      setError('Failed to update member. Please try again.');
+      setError(g.updateError);
     }
   };
 
   const handleDelete = async (type, memberId) => {
-    if (user?.role !== 'admin' || !window.confirm('Are you sure you want to delete this member?')) return;
+    if (user?.role !== 'admin' || !window.confirm(g.deleteConfirm)) return;
 
     try {
       await deleteDoc(doc(db, 'gouvernance', memberId));
@@ -319,7 +326,7 @@ const GovernanceView = () => {
       setError(null);
     } catch (err) {
       console.error('Error deleting member:', err);
-      setError('Failed to delete member. Please try again.');
+      setError(g.deleteError);
     }
   };
 
@@ -337,13 +344,13 @@ const GovernanceView = () => {
   if (!user || (user.role !== 'admin' && user.role !== 'member')) {
     return (
       <div className="p-4 text-center text-gray-600">
-        You need to be logged in as a member or administrator to view this page.
+        {g.loginRequired}
       </div>
     );
   }
 
   if (isLoading) {
-    return <div className="p-4 text-center">Loading governance data...</div>;
+    return <div className="p-4 text-center">{g.loading}</div>;
   }
 
   const sectionProps = {
@@ -353,7 +360,8 @@ const GovernanceView = () => {
     onSave: handleSave,
     editMode,
     editingItem,
-    availableOrganizations: members.map(m => m.name)
+    availableOrganizations: members.map(m => m.name),
+    t,
   };
 
   return (
@@ -361,7 +369,7 @@ const GovernanceView = () => {
       <div className="mb-8">
         <input
           type="text"
-          placeholder="Search in governance..."
+          placeholder={g.searchPlaceholder}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-amber-500 focus:border-amber-500"

@@ -3,6 +3,8 @@ import { documentsService } from '../../../services/documentsService';
 import { globaltoolkitService } from '../../../services/globaltoolkitService';
 import { autoTaggingService } from '../../../services/autoTaggingService';
 import { Save, X, Tag, Sparkles, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { useAuth } from '../../AuthContext';
+import ui from '../../../translations/ui';
 
 const PROGRAMMES = [
   "I4TK Opteam",
@@ -49,6 +51,10 @@ const CATEGORY_NAMES = {
 };
 
 const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
+  const { language } = useAuth();
+  const t = ui[language] ?? ui.en;
+  const m = t.metadata;
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -81,7 +87,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
         setPeriodicElements(elements);
       } catch (err) {
         console.error('Error loading periodic elements:', err);
-        setError('Failed to load periodic table elements');
+        setError(m.loadElemError);
       } finally {
         setLoading(false);
       }
@@ -116,7 +122,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
       }
     } catch (err) {
       console.error('Error saving document:', err);
-      setError('Failed to save document: ' + err.message);
+      setError(m.saveError + err.message);
     } finally {
       setSaving(false);
     }
@@ -226,7 +232,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
       <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 z-10">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Edit Document Metadata</h2>
+            <h2 className="text-2xl font-bold">{m.modalTitle}</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
@@ -246,7 +252,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
           <div className="space-y-4">
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Title<span className="text-red-500">*</span>
+                {m.fields.title}<span className="text-red-500">*</span>
               </label>
               <input
                 id="title"
@@ -260,7 +266,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
 
             <div>
               <label htmlFor="authors" className="block text-sm font-medium text-gray-700 mb-1">
-                Authors<span className="text-red-500">*</span>
+                {m.fields.authors}<span className="text-red-500">*</span>
               </label>
               <input
                 id="authors"
@@ -268,14 +274,14 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border"
                 value={formData.authors}
                 onChange={e => setFormData({...formData, authors: e.target.value})}
-                placeholder="Enter authors separated by commas"
+                placeholder={m.placeholders.authors}
                 required
               />
             </div>
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
+                {m.fields.description}
               </label>
               <textarea
                 id="description"
@@ -288,7 +294,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
 
             <div>
               <label htmlFor="programme" className="block text-sm font-medium text-gray-700 mb-1">
-                Programme<span className="text-red-500">*</span>
+                {m.fields.programme}<span className="text-red-500">*</span>
               </label>
               <select
                 id="programme"
@@ -297,7 +303,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                 onChange={e => setFormData({...formData, programme: e.target.value})}
                 required
               >
-                <option value="">Select a programme</option>
+                <option value="">{m.placeholders.programme}</option>
                 {PROGRAMMES.map(prog => (
                   <option key={prog} value={prog}>{prog}</option>
                 ))}
@@ -306,7 +312,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
 
             <div>
               <label htmlFor="collection" className="block text-sm font-medium text-gray-700 mb-1">
-                Collection
+                {m.fields.collection}
               </label>
               <select
                 id="collection"
@@ -314,7 +320,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                 value={formData.collection}
                 onChange={e => setFormData({...formData, collection: e.target.value})}
               >
-                <option value="">Select a collection (optional)</option>
+                <option value="">{m.placeholders.collection}</option>
                 {COLLECTIONS.map(collection => (
                   <option key={collection} value={collection}>{collection}</option>
                 ))}
@@ -323,7 +329,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Categories
+                {m.fields.categories}
               </label>
               <div className="grid grid-cols-2 gap-4">
                 {CATEGORIES.map(category => (
@@ -342,7 +348,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Geographic Scope
+                {m.fields.geoScope}
               </label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {GEOGRAPHIES.map(geo => (
@@ -357,12 +363,12 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                   </label>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-1">All regions selected by default. Uncheck regions where this document does not apply.</p>
+              <p className="text-xs text-gray-500 mt-1">{m.hints.geoDefault}</p>
             </div>
 
             <div>
               <label htmlFor="references" className="block text-sm font-medium text-gray-700 mb-1">
-                Bibliographic references
+                {m.fields.references}
               </label>
               <input
                 id="references"
@@ -370,7 +376,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border"
                 value={formData.references}
                 onChange={e => setFormData({...formData, references: e.target.value})}
-                placeholder="Enter reference IDs separated by commas"
+                placeholder={m.placeholders.references}
               />
             </div>
 
@@ -379,7 +385,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                 <div className="flex items-center gap-2">
                   <Tag className="w-5 h-5 text-gray-700" />
                   <label className="block text-sm font-medium text-gray-700">
-                    Periodic Table Elements
+                    {m.fields.elements}
                   </label>
                 </div>
                 
@@ -394,19 +400,19 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                   {aiLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Analyzing...
+                      {m.ai.analyzing}
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      AI Suggest Tags
+                      {m.ai.suggestButton}
                     </>
                   )}
                 </button>
               </div>
 
               <p className="text-sm text-gray-600 mb-4">
-                Tag this document with relevant elements from the Periodic Table of Platform Regulation
+                {m.hints.elementTag}
               </p>
 
               {/* AI Suggestions Section */}
@@ -414,7 +420,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                 <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
                   <XCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm font-medium text-red-800">AI Suggestion Error</p>
+                    <p className="text-sm font-medium text-red-800">{m.ai.errorTitle}</p>
                     <p className="text-sm text-red-600 mt-1">{aiError}</p>
                   </div>
                 </div>
@@ -426,7 +432,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-purple-600" />
                       <h4 className="text-sm font-semibold text-purple-900">
-                        AI Tag Suggestions ({aiSuggestions.length})
+                        {m.ai.suggestions} ({aiSuggestions.length})
                       </h4>
                     </div>
                     <div className="flex items-center gap-2">
@@ -435,14 +441,14 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                         onClick={applyAllAISuggestions}
                         className="text-xs px-3 py-1 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
                       >
-                        Apply All
+                        {m.ai.applyAll}
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowSuggestions(false)}
                         className="text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
                       >
-                        Dismiss
+                        {m.ai.dismiss}
                       </button>
                     </div>
                   </div>
@@ -480,7 +486,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                                       : 'bg-orange-100 text-orange-800'
                                   }`}
                                 >
-                                  {confidencePercent}% confident
+                                  {confidencePercent}% {m.ai.confident}
                                 </span>
 
                                 {isAlreadySelected && (
@@ -509,7 +515,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                   </div>
 
                   <p className="text-xs text-purple-700 mt-3">
-                    💡 AI analyzed your document using semantic embeddings and GPT-4o-mini
+                    {m.hints.aiAnalysis}
                   </p>
                 </div>
               )}
@@ -517,7 +523,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
               {showSuggestions && aiSuggestions.length === 0 && (
                 <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                   <p className="text-sm text-yellow-800">
-                    No tag suggestions found. The AI couldn't find strong matches for this document.
+                    {m.ai.noMatches}
                   </p>
                 </div>
               )}
@@ -525,7 +531,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
               <div className="mb-4">
                 <input
                   type="text"
-                  placeholder="Search elements..."
+                  placeholder={m.placeholders.searchElements}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 border"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
@@ -559,7 +565,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
                     </label>
                   ))}
                   {filteredElements.length === 0 && (
-                    <p className="text-sm text-gray-500 text-center py-4">No elements found</p>
+                    <p className="text-sm text-gray-500 text-center py-4">{m.noElements}</p>
                   )}
                 </div>
               ) : (
@@ -597,7 +603,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
               {formData.periodicElementIds.length > 0 && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-md">
                   <p className="text-sm font-medium text-blue-900 mb-2">
-                    Selected elements ({formData.periodicElementIds.length}):
+                    {m.selectedPrefix} ({formData.periodicElementIds.length}):
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {formData.periodicElementIds.map(id => {
@@ -627,7 +633,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               disabled={saving}
             >
-              Cancel
+              {m.cancel}
             </button>
             <button
               onClick={handleSave}
@@ -635,7 +641,7 @@ const DocumentMetadataEditor = ({ document, onClose, onSave }) => {
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4" />
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? m.saving : m.save}
             </button>
           </div>
         </div>

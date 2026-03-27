@@ -17,6 +17,7 @@ import { torService } from '../../services/torService';
 import { createPortal } from 'react-dom';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../services/firebase';
+import ui from '../../translations/ui';
 
 // Constantes pour les rôles
 const ROLES = {
@@ -59,7 +60,8 @@ const AdminView = () => {
   // États généraux
   const [activeTab, setActiveTab] = useState('organizations');
   const [searchTerm, setSearchTerm] = useState('');
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, language } = useAuth();
+  const a = (ui[language] ?? ui.en).adminView;
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [notification, setNotification] = useState(null);
 
@@ -183,7 +185,7 @@ const AdminView = () => {
   };
 
   const handleDeleteMember = async (memberId) => {
-    if (window.confirm('Are you sure you want to delete this organization?')) {
+    if (window.confirm(a.confirmDeleteOrg)) {
       try {
         await membersService.deleteMember(memberId);
         await reloadMembers();
@@ -207,7 +209,7 @@ const AdminView = () => {
     }
   };
   const handleCancelInvitation = async (invitationId) => {
-    if (window.confirm('Are you sure you want to cancel this invitation?')) {
+    if (window.confirm(a.confirmCancelInvite)) {
       try {
         await invitationsService.cancelInvitation(invitationId);
         loadData(); // Recharger les données
@@ -222,24 +224,23 @@ const AdminView = () => {
     const expiresAt = invitation.expiresAt?.toDate();
 
     if (!expiresAt) {
-      return { status: 'unknown', label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
+      return { status: 'unknown', label: a.invStatus.unknown, color: 'bg-gray-100 text-gray-800' };
     }
 
     if (invitation.status === 'accepted') {
-      return { status: 'accepted', label: 'Accepted', color: 'bg-green-100 text-green-800' };
+      return { status: 'accepted', label: a.invStatus.accepted, color: 'bg-green-100 text-green-800' };
     }
 
     if (invitation.status === 'expired' || expiresAt < now) {
-      return { status: 'expired', label: 'Expired', color: 'bg-red-100 text-red-800' };
+      return { status: 'expired', label: a.invStatus.expired, color: 'bg-red-100 text-red-800' };
     }
 
-    // Vérifier si l'invitation expire bientôt (dans moins de 24h)
     const twentyFourHoursFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
     if (expiresAt < twentyFourHoursFromNow) {
-      return { status: 'expiring', label: 'Expiring Soon', color: 'bg-yellow-100 text-yellow-800' };
+      return { status: 'expiring', label: a.invStatus.expiringSoon, color: 'bg-yellow-100 text-yellow-800' };
     }
 
-    return { status: 'active', label: 'Active', color: 'bg-blue-100 text-blue-800' };
+    return { status: 'active', label: a.invStatus.active, color: 'bg-blue-100 text-blue-800' };
   };
 
   const formatExpirationDate = (invitation) => {
@@ -262,14 +263,14 @@ const AdminView = () => {
   };
 
   const handleResendInvitation = async (invitationId) => {
-    if (window.confirm('Are you sure you want to resend this invitation?')) {
+    if (window.confirm(a.confirmResendInvite)) {
       try {
         await invitationsService.resendInvitation(invitationId);
-        showNotification('Invitation resent successfully', 'success');
+        showNotification(a.notifications.inviteResent, 'success');
         loadData();
       } catch (error) {
         console.error('Error resending invitation:', error);
-        showNotification(error.message || 'Error resending invitation', 'error');
+        showNotification(error.message || a.notifications.inviteResendError, 'error');
       }
     }
   };
@@ -307,18 +308,18 @@ const AdminView = () => {
 
       const needsTor = upgradingFromObserver && updateData.requiresTorAcceptance;
       const message = needsTor
-        ? `Rôle mis à jour : ${newRole}. L'utilisateur devra accepter le ToR à sa prochaine connexion.`
-        : `Rôle mis à jour avec succès: ${newRole}`;
+        ? a.notifications.roleUpdatedWithTor.replace('{role}', newRole)
+        : a.notifications.roleUpdated;
       showNotification(message, 'success');
 
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du rôle:', error);
-      showNotification('Erreur lors de la mise à jour du rôle', 'error');
+      console.error('Error updating role:', error);
+      showNotification(a.notifications.roleUpdateError, 'error');
     }
   };
 
   const handleDeleteUser = async (uid) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+    if (window.confirm(a.confirmDeleteUser)) {
       try {
         await usersService.deleteUser(uid);
         loadData(); // Recharger les données
@@ -339,7 +340,7 @@ const AdminView = () => {
       };
 
       await invitationsService.createInvitation(invitationData);
-      showNotification('Invitation sent successfully');
+      showNotification(a.notifications.inviteSent);
       
       // Réinitialiser le formulaire
       setInviteForm({
@@ -417,7 +418,7 @@ const AdminView = () => {
                   activeTab === TABS.ORGANIZATIONS ? 'text-amber-600' : 'text-gray-600'
                 }`} />
                 <div className="ml-4 text-left">
-                  <h3 className="text-lg font-medium">Organizations</h3>
+                  <h3 className="text-lg font-medium">{a.tabs.organizations}</h3>
                   <p className="text-2xl font-semibold">{members.length}</p>
                 </div>
               </div>
@@ -433,7 +434,7 @@ const AdminView = () => {
                   activeTab === TABS.USERS ? 'text-amber-600' : 'text-gray-600'
                 }`} />
                 <div className="ml-4 text-left">
-                  <h3 className="text-lg font-medium">Users</h3>
+                  <h3 className="text-lg font-medium">{a.tabs.users}</h3>
                   <p className="text-2xl font-semibold">{users.length}</p>
                 </div>
               </div>
@@ -449,7 +450,7 @@ const AdminView = () => {
                   activeTab === TABS.INVITATIONS ? 'text-amber-600' : 'text-gray-600'
                 }`} />
                 <div className="ml-4 text-left">
-                  <h3 className="text-lg font-medium">Pending Invites</h3>
+                  <h3 className="text-lg font-medium">{a.pendingInvites}</h3>
                   <p className="text-2xl font-semibold">{pendingInvitations.length}</p>
                 </div>
               </div>
@@ -469,7 +470,7 @@ const AdminView = () => {
                   activeTab === TABS.INVITATIONS ? 'text-amber-600' : 'text-gray-600'
                 }`} />
                 <div className="ml-4 text-left">
-                  <h3 className="text-lg font-medium">Pending Invites for {currentUser.organization}</h3>
+                  <h3 className="text-lg font-medium">{a.pendingInvitesFor} {currentUser.organization}</h3>
                   <p className="text-2xl font-semibold">
                     {pendingInvitations.filter(inv => inv.organization === currentUser.organization).length}
                   </p>
@@ -492,7 +493,7 @@ const AdminView = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  Organizations
+                  {a.tabs.organizations}
                 </button>
                 <button
                   onClick={() => setActiveTab(TABS.USERS)}
@@ -502,7 +503,7 @@ const AdminView = () => {
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                   }`}
                 >
-                  Users
+                  {a.tabs.users}
                 </button>
               </>
             )}
@@ -514,7 +515,7 @@ const AdminView = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              Invitations
+              {a.tabs.invitations}
             </button>
           </nav>
         </div>
@@ -524,7 +525,7 @@ const AdminView = () => {
         <div className="relative flex-1 max-w-md">
           <input
             type="text"
-            placeholder={`Search ${activeTab}...`}
+            placeholder={`${a.searchPlaceholder} ${activeTab}...`}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md"
@@ -537,7 +538,7 @@ const AdminView = () => {
             className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 flex items-center"
           >
             <Plus className="h-5 w-5 mr-2" />
-            {activeTab === 'organizations' ? 'Add Organization' : 'Invite User'}
+            {activeTab === 'organizations' ? a.addOrganization : a.inviteUser}
           </button>
         </div>
       </div>
@@ -550,12 +551,12 @@ const AdminView = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Name</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Location</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Category</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">Website</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Visibility</th>
-                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">Actions</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">{a.th.name}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{a.th.location}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">{a.th.category}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">{a.th.website}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">{a.th.visibility}</th>
+                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">{a.th.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -635,12 +636,12 @@ const AdminView = () => {
               <table className="min-w-[1600px] divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[350px]">Email</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[250px]">Organization</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">Role</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[220px]">Expiration Date</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[150px] sticky right-0 bg-white">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[350px]">{a.th.email}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[250px]">{a.th.organization}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">{a.th.role}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">{a.th.status}</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[220px]">{a.th.expirationDate}</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[150px] sticky right-0 bg-white">{a.th.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -707,17 +708,17 @@ const AdminView = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">Email</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Organization</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">Role</th>
-                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Status</th>
-                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">Actions</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">{a.th.email}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">{a.th.organization}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">{a.th.role}</th>
+                    <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">{a.th.status}</th>
+                    <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px]">{a.th.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {loadingUsers ? (
                     <tr>
-                      <td colSpan="5" className="px-3 sm:px-6 py-4 text-center">Loading users...</td>
+                      <td colSpan="5" className="px-3 sm:px-6 py-4 text-center">{a.loadingUsers}</td>
                     </tr>
                   ) : getFilteredData().map((user) => (
                     <tr key={user.uid} className="hover:bg-gray-50">
@@ -738,10 +739,10 @@ const AdminView = () => {
                             onChange={(e) => handleUpdateUserRole(user.uid, e.target.value)}
                             className="text-sm text-gray-900 border border-gray-300 rounded px-2 py-1 w-full"
                           >
-                            <option value="member">Member</option>
-                            <option value="observer">Observer</option>
-                            <option value="validator">Organization Validator</option>
-                            <option value="admin">Admin</option>
+                            <option value="member">{a.roles.member}</option>
+                            <option value="observer">{a.roles.observer}</option>
+                            <option value="validator">{a.roles.validator}</option>
+                            <option value="admin">{a.roles.admin}</option>
                           </select>
                         </div>
                       </td>
@@ -779,7 +780,7 @@ const AdminView = () => {
           <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium text-gray-900">
-                {editingMember ? 'Edit Organization' : 'Add Organization'}
+                {editingMember ? a.orgForm.editTitle : a.orgForm.addTitle}
               </h3>
               <button onClick={() => {
                 setShowMemberForm(false);
@@ -807,7 +808,7 @@ const AdminView = () => {
               handleMemberSubmit(formData);
             }} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.name}</label>
                 <input
                   name="name"
                   type="text"
@@ -818,7 +819,7 @@ const AdminView = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.fullName}</label>
                 <input
                   name="fullName"
                   type="text"
@@ -828,7 +829,7 @@ const AdminView = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">City</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.city}</label>
                 <input
                   name="city"
                   type="text"
@@ -839,7 +840,7 @@ const AdminView = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Country</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.country}</label>
                 <input
                   name="country"
                   type="text"
@@ -850,7 +851,7 @@ const AdminView = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Website</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.website}</label>
                 <input
                   name="website"
                   type="text"
@@ -860,40 +861,40 @@ const AdminView = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.category}</label>
                 <select
                   name="category"
                   defaultValue={editingMember?.category || ""}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
                   required
                 >
-                  <option value="" disabled>Select a category</option>
-                  <option value="Academic">Academic</option>
-                  <option value="Civil society">Civil society</option>
-                  <option value="Think tank">Think tank</option>
+                  <option value="" disabled>{a.orgForm.categoryPlaceholder}</option>
+                  <option value="Academic">{a.orgForm.categories.academic}</option>
+                  <option value="Civil society">{a.orgForm.categories.civilSociety}</option>
+                  <option value="Think tank">{a.orgForm.categories.thinkTank}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Region</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.region}</label>
                 <select
                   name="region"
                   defaultValue={editingMember?.region || ""}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
                   required
                 >
-                  <option value="" disabled>Select a region</option>
-                  <option value="Europe">Europe</option>
-                  <option value="Asia-Pacific">Asia-Pacific</option>
-                  <option value="North America">North America</option>
-                  <option value="South America">South America</option>
-                  <option value="Africa">Africa</option>
-                  <option value="Middle East">Middle East</option>
+                  <option value="" disabled>{a.orgForm.regionPlaceholder}</option>
+                  <option value="Europe">{a.orgForm.regions.europe}</option>
+                  <option value="Asia-Pacific">{a.orgForm.regions.asiaPacific}</option>
+                  <option value="North America">{a.orgForm.regions.northAmerica}</option>
+                  <option value="South America">{a.orgForm.regions.southAmerica}</option>
+                  <option value="Africa">{a.orgForm.regions.africa}</option>
+                  <option value="Middle East">{a.orgForm.regions.middleEast}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Latitude</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.lat}</label>
                 <input
                   name="lat"
                   type="number"
@@ -905,7 +906,7 @@ const AdminView = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Longitude</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.lng}</label>
                 <input
                   name="lng"
                   type="number"
@@ -917,14 +918,14 @@ const AdminView = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Member Type</label>
+                <label className="block text-sm font-medium text-gray-700">{a.orgForm.memberType}</label>
                 <select
                   name="memberType"
                   defaultValue={editingMember?.memberType || 'member'}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
                 >
-                  <option value="member">Member</option>
-                  <option value="observer">Observer</option>
+                  <option value="member">{a.roles.member}</option>
+                  <option value="observer">{a.roles.observer}</option>
                 </select>
               </div>
 
@@ -937,7 +938,7 @@ const AdminView = () => {
                   className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
                 />
                 <label htmlFor="isVisible" className="ml-2 block text-sm text-gray-900">
-                  Visible
+                  {a.orgForm.visible}
                 </label>
               </div>
 
@@ -950,13 +951,13 @@ const AdminView = () => {
                   }}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                 >
-                  Cancel
+                  {a.orgForm.cancel}
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
                 >
-                  {editingMember ? 'Update' : 'Add'}
+                  {editingMember ? a.orgForm.update : a.orgForm.add}
                 </button>
               </div>
             </form>
@@ -970,7 +971,7 @@ const AdminView = () => {
             <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-gray-900">
-                  Invite New User
+                  {a.inviteForm.title}
                 </h3>
                 <button onClick={() => setShowUserForm(false)}>
                   <X className="h-5 w-5 text-gray-400 hover:text-gray-500" />
@@ -979,7 +980,7 @@ const AdminView = () => {
 
               <form onSubmit={handleInviteUser} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
+                  <label className="block text-sm font-medium text-gray-700">{a.inviteForm.email}</label>
                   <input
                     type="email"
                     value={inviteForm.email}
@@ -990,7 +991,7 @@ const AdminView = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Organization</label>
+                  <label className="block text-sm font-medium text-gray-700">{a.inviteForm.organization}</label>
                   {isValidator ? (
                     // Pour les validators : champ en lecture seule avec leur organisation
                     <input
@@ -1007,7 +1008,7 @@ const AdminView = () => {
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
                       required
                     >
-                      <option value="">Select an organization</option>
+                      <option value="">{a.inviteForm.selectOrg}</option>
                       {members.map(org => (
                         <option key={org.id} value={org.name}>{org.name}</option>
                       ))}
@@ -1016,16 +1017,16 @@ const AdminView = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Role</label>
+                  <label className="block text-sm font-medium text-gray-700">{a.inviteForm.role}</label>
                   <select
                     value={inviteForm.role}
                     onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500"
                     required
                   >
-                    <option value="member">Member</option>
-                    <option value="observer">Observer</option>
-                    {isAdmin && <option value="validator">Organization Validator</option>}
+                    <option value="member">{a.roles.member}</option>
+                    <option value="observer">{a.roles.observer}</option>
+                    {isAdmin && <option value="validator">{a.roles.validator}</option>}
                   </select>
                 </div>
 
@@ -1035,13 +1036,13 @@ const AdminView = () => {
                     onClick={() => setShowUserForm(false)}
                     className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                   >
-                    Cancel
+                    {a.inviteForm.cancel}
                   </button>
                   <button
                     type="submit"
                     className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
                   >
-                    Send Invitation
+                    {a.inviteForm.send}
                   </button>
                 </div>
               </form>

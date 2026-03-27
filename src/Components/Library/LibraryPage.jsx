@@ -11,6 +11,7 @@ import LibrarianSpace from './components/LibrarianSpace';
 import { documentsService } from '../../services/documentsService';
 import I4TKDashboard from './components/I4TDashboard';
 import GenealogyPage from './GenealogyPage';
+import ui from '../../translations/ui';
 
 
 // =============== ROLE HASHES (from shared contractConfig) ===============
@@ -30,7 +31,6 @@ const TABS = {
   GENEALOGY: 'genealogy', 
 };
 
-// Hiérarchie des roles
 const ROLE_ACCESS = {
   admin: ['member', 'admin', 'validator'],
   validator: ['member', 'validator'],
@@ -39,9 +39,9 @@ const ROLE_ACCESS = {
 
 const USER_PERMISSIONS = {
   PEER_REVIEW: 'member',
-  SUBMIT_CONTRIBUTION: 'member', // Nécessite aussi le rôle web3 Contributor
+  SUBMIT_CONTRIBUTION: 'member',
   IP_MONITORING: 'member',
-  LIBRARIAN_SPACE: 'admin'  // Nécessite aussi le rôle web3 Admin
+  LIBRARIAN_SPACE: 'admin'
 };
 
 const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: updateSelectedTokenId }) => {
@@ -72,14 +72,13 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
     }
   });
 
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = ui[language] ?? ui.en;
 
   // =============== NAVIGATION HANDLERS ===============
   const handleGenealogyNavigation = (tokenId) => {
     setSelectedTokenId(tokenId);
-    // Mise à jour de l'état local
     updateSelectedTokenId(tokenId);
-    // Ajouter le tokenId dans l'URL
     window.location.hash = `genealogy?tokenId=${tokenId}`;
     handlePageChange('genealogy');
   };
@@ -178,19 +177,19 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
 
   const getAvailableTabs = () => {
     const tabs = {
-      [TABS.NETWORK_PUBLICATIONS]: 'Peer reviews'
+      [TABS.NETWORK_PUBLICATIONS]: t.library.tabs.peerReviews
     };
 
     if (hasAccess('SUBMIT_CONTRIBUTION')) {
-      tabs[TABS.SUBMIT_CONTRIBUTION] = 'Submit Contribution';
+      tabs[TABS.SUBMIT_CONTRIBUTION] = t.library.tabs.submitContribution;
     }
 
     if (hasAccess('LIBRARIAN_SPACE')) {
-      tabs[TABS.LIBRARIAN_SPACE] = 'Librarian Space';
+      tabs[TABS.LIBRARIAN_SPACE] = t.library.tabs.librarianSpace;
     }
 
     if (hasAccess('IP_MONITORING') && !!address) {
-      tabs[TABS.I4T_AND_I] = 'IP monitoring';
+      tabs[TABS.I4T_AND_I] = t.library.tabs.ipMonitoring;
     }
 
     return tabs;
@@ -205,7 +204,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
 
   const renderI4TAndITab = () => (
     <div className="max-w-6xl mx-auto space-y-6">
-      <h2 className="text-2xl font-serif font-bold">My contributions to the I4TK community</h2>
+      <h2 className="text-2xl font-serif font-bold">{t.library.myContributions}</h2>
       <div className="mt-4">
         <I4TKDashboard />
       </div>
@@ -240,7 +239,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
           ? <GenealogyPage
               tokenId={selectedTokenId}
               onBack={handleBackToLibrary}
-              currentLang={'fr'}
+              currentLang={language}
             />
           : null;
 
@@ -272,7 +271,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
             <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8">
               <div className="text-center mb-12">
                 <h1 className="text-4xl tracking-tight font-serif text-gray-900 sm:text-5xl md:text-6xl">
-                  <span className="block">I4T Knowledge Library</span>
+                  <span className="block">{t.library.pageTitle}</span>
                 </h1>
 
                 {isWebMember && (
@@ -285,7 +284,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search documents..."
+                      placeholder={t.library.searchPlaceholder}
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-300 focus:border-transparent"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -298,7 +297,7 @@ const LibraryPage = ({ currentLang, handlePageChange, setSelectedTokenId: update
 
                 {!isWebMember && (
                   <div className="mt-4 text-sm text-gray-600">
-                    Login as a member to access peer-review features
+                    {t.library.loginPrompt}
                   </div>
                 )}
 

@@ -9,6 +9,8 @@ import { parseBase64DataURL } from "../../../utils/utilis";
 import Piechart from "./Piechart";
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../../services/firebase';
+import { useAuth } from '../../AuthContext';
+import ui from '../../../translations/ui';
 
 // =================================================================================
 // 2. ENVIRONMENT CONFIGURATION
@@ -35,6 +37,9 @@ const I4TDashboard = () => {
   const [ownedTokens, setOwnedTokens] = useState([]);
   const [myTotalBalance, setMyTotalBalance] = useState(0);
   const [networkTotalBalance, setNetworkTotalBalance] = useState(0);
+
+  const { language } = useAuth();
+  const t = ui[language] ?? ui.en;
 
   // -----------------------------------------------------------------------------
   // 3.2 Contract Reads
@@ -270,9 +275,9 @@ const I4TDashboard = () => {
 
       {/* Statistics Section */}
       <div className="mx-auto max-w-2xl px-0 py-0 sm:px-6 sm:py-2 lg:max-w-7xl lg:px-2">
-        <h2 className="text-2xl font-serif tracking-tight text-gray-900">Community statistics</h2>
+        <h2 className="text-2xl font-serif tracking-tight text-gray-900">{t.ipDashboard.communityStats}</h2>
         <h3 className="text-lg font-serif text-gray-600 mt-2">
-          Network total IP value: {formatTokenAmount(networkTotalBalance)} i4t Tokens
+          {t.ipDashboard.networkIPValue} {formatTokenAmount(networkTotalBalance)} i4t Tokens
         </h3>
         <div className="mt-4">
           <Piechart myBalance={myTotalBalance} totalSupply={networkTotalBalance} />
@@ -281,7 +286,7 @@ const I4TDashboard = () => {
 
       {/* NFTs Grid */}
       <div className="mx-auto max-w-2xl px-2 py-4 sm:px-6 sm:py-4 lg:max-w-7xl lg:px-2">
-        <h2 className="text-2xl font-serif tracking-tight text-gray-900">My intellectual property in i4t tokens</h2>
+        <h2 className="text-2xl font-serif tracking-tight text-gray-900">{t.ipDashboard.myIP}</h2>
 
         <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
           {ownedTokens.map((token) => (
@@ -301,7 +306,7 @@ const I4TDashboard = () => {
                   {token.tokenURIJson.properties.title}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
-                  <p className="text-sm text-gray-700">Token #{token.tokenId}</p>
+                  <p className="text-sm text-gray-700">{t.ipDashboard.tokenLabel}{token.tokenId}</p>
                   <p className="text-sm font-medium text-blue-600">
                     {formatTokenAmount(token.balance)} i4t Tokens
                   </p>
@@ -313,7 +318,7 @@ const I4TDashboard = () => {
 
         {ownedTokens.length === 0 && (
           <div className="text-center text-gray-500 py-8">
-            No documents found for this address
+            {t.ipDashboard.noDocuments}
           </div>
         )}
       </div>

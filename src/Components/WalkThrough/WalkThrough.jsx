@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
+import { ui } from '../../translations/ui';
 import {
   ChevronDown,
   ChevronRight,
@@ -120,8 +121,21 @@ const Step = ({ number, title, desc, color = "blue" }) => {
   );
 };
 
+const periodicTableColors = [
+  "bg-green-500",
+  "bg-green-500",
+  "bg-red-500",
+  "bg-blue-500",
+  "bg-blue-500",
+  "bg-blue-500",
+];
+
+const footerIcons = [Grid3X3, Sparkles, CheckCircle, Coins];
+const footerIconColors = ["text-green-500", "text-purple-500", "text-blue-500", "text-orange-500"];
+
 const WalkThrough = () => {
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const g = (ui[language] ?? ui.en).guide;
 
   const roleToTab = {
     admin: 'admin',
@@ -134,10 +148,10 @@ const WalkThrough = () => {
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   const tabs = [
-    { id: 'observer', label: 'Observer', icon: Eye },
-    { id: 'member', label: 'Member', icon: Users },
-    { id: 'validator', label: 'Validator', icon: CheckCircle },
-    { id: 'admin', label: 'Administrator', icon: Shield }
+    { id: 'observer',  label: g.tabs.observer,  icon: Eye },
+    { id: 'member',    label: g.tabs.member,    icon: Users },
+    { id: 'validator', label: g.tabs.validator, icon: CheckCircle },
+    { id: 'admin',     label: g.tabs.admin,     icon: Shield }
   ];
 
   return (
@@ -146,8 +160,8 @@ const WalkThrough = () => {
 
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 sm:p-8">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-1">I4TK Knowledge Network</h1>
-          <p className="text-blue-100 text-base sm:text-lg">User Guide</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1">{g.appName}</h1>
+          <p className="text-blue-100 text-base sm:text-lg">{g.subtitle}</p>
         </div>
 
         {/* Tab Navigation — scrollable on mobile */}
@@ -177,55 +191,48 @@ const WalkThrough = () => {
           {activeTab === 'observer' && (
             <div className="space-y-4">
               <p className="text-gray-600 mb-4">
-                As an <strong>Observer</strong>, you have full access to the I4TK knowledge base and research tools.
+                {g.observer.intro}
               </p>
 
-              <Section icon={BookOpen} title="Document Library" defaultOpen={true} color="blue">
+              <Section icon={BookOpen} title={g.observer.library} defaultOpen={true} color="blue">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <FeatureCard icon={FileText} title="Browse & Search">
-                    Access all published documents. Filter by category, programme, or geographic area. Full metadata visible for every document.
+                  <FeatureCard icon={FileText} title={g.observer.libBrowseTitle}>
+                    {g.observer.libBrowseDesc}
                   </FeatureCard>
-                  <FeatureCard icon={Link2} title="Citation Network" color="blue">
-                    Click any document to explore its citation tree — see which documents it references and which cite it in return.
+                  <FeatureCard icon={Link2} title={g.observer.libCitationTitle} color="blue">
+                    {g.observer.libCitationDesc}
                     <span className="block mt-2 space-x-1">
-                      <Highlight color="green">Green = citing this doc</Highlight>
+                      <Highlight color="green">{g.observer.libCitationGreen}</Highlight>
                       {' '}
-                      <Highlight>Gray = referenced by it</Highlight>
+                      <Highlight>{g.observer.libCitationGray}</Highlight>
                     </span>
                   </FeatureCard>
                 </div>
               </Section>
 
-              <Section icon={Bot} title="AI Research Assistant" color="purple">
+              <Section icon={Bot} title={g.observer.ai} color="purple">
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
-                    Ask questions in <strong>English or French</strong> and get answers drawn directly from the library documents, with citations.
+                    {g.observer.aiDesc}
                   </p>
                   <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                    <p className="text-sm text-purple-800 italic">"What are the main AI regulations in Europe?"</p>
+                    <p className="text-sm text-purple-800 italic">{g.observer.aiExample}</p>
                     <p className="text-xs text-purple-600 mt-2">
-                      The assistant searches the library semantically and returns a synthesised answer with links to the source documents.
+                      {g.observer.aiNote}
                     </p>
                   </div>
                 </div>
               </Section>
 
-              <Section icon={Grid3X3} title="Periodic Table of Platform Regulation" color="green">
+              <Section icon={Grid3X3} title={g.observer.periodicTable} color="green">
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
-                    Explore <strong>54 regulatory elements</strong> organised across <strong>6 thematic categories</strong>. Click any element to read its definition and see which library documents cover it.
+                    {g.observer.periodicTableDesc}
                   </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {[
-                      { color: "bg-green-500", label: "Institutional Framework" },
-                      { color: "bg-green-500", label: "Legislating Platforms" },
-                      { color: "bg-red-500",   label: "Human Rights" },
-                      { color: "bg-blue-500",  label: "Content Governance" },
-                      { color: "bg-blue-500",  label: "Systemic Risks" },
-                      { color: "bg-blue-500",  label: "Pro-social Design" },
-                    ].map(({ color, label }) => (
+                    {g.periodicTableCats.map((label, i) => (
                       <div key={label} className="flex items-center gap-2 text-xs">
-                        <div className={`w-3 h-3 rounded flex-shrink-0 ${color}`}></div>
+                        <div className={`w-3 h-3 rounded flex-shrink-0 ${periodicTableColors[i]}`}></div>
                         <span>{label}</span>
                       </div>
                     ))}
@@ -233,16 +240,16 @@ const WalkThrough = () => {
                 </div>
               </Section>
 
-              <Section icon={Route} title="Regulation Pathways" color="orange">
+              <Section icon={Route} title={g.observer.pathways} color="orange">
                 <p className="text-gray-700 text-sm">
-                  Browse all regulation pathways created by network members. Each pathway combines several periodic table elements into a coherent regulatory approach. You can view the elements chosen, read author justifications for each step, and rate pathways with stars.
+                  {g.observer.pathwaysDesc}
                 </p>
               </Section>
 
-              <Section icon={ArrowUpCircle} title="Join as a full Member" color="green">
+              <Section icon={ArrowUpCircle} title={g.observer.joinTitle} color="green">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
                   <p className="text-sm text-green-800">
-                    To contribute to the network — submit documents, participate in peer review, access the community forum, or create your own regulation pathways — contact the I4TK team to request full membership:
+                    {g.observer.joinDesc}
                   </p>
                   <a
                     href="mailto:joris.galea@i4tknowledge.net"
@@ -260,69 +267,61 @@ const WalkThrough = () => {
           {activeTab === 'member' && (
             <div className="space-y-4">
               <p className="text-gray-600 mb-4">
-                As a member, you have access to the document library, AI assistant, community, and research tools.
+                {g.member.intro}
               </p>
 
-              <Section icon={BookOpen} title="Document Library" defaultOpen={true} color="blue">
+              <Section icon={BookOpen} title={g.member.library} defaultOpen={true} color="blue">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <FeatureCard icon={FileText} title="Browse Documents">
-                    View all published documents with full metadata. Filter by category (Research Paper, Guideline, Policy Brief…) or search by title and content.
+                  <FeatureCard icon={FileText} title={g.member.libBrowseTitle}>
+                    {g.member.libBrowseDesc}
                   </FeatureCard>
-                  <FeatureCard icon={Link2} title="Citation Tree">
-                    Click any document to see its citation network.
+                  <FeatureCard icon={Link2} title={g.member.libCitationTitle}>
+                    {g.member.libCitationDesc}
                     <span className="block mt-2 space-x-1">
-                      <Highlight color="green">Green = citing this document</Highlight>
+                      <Highlight color="green">{g.member.libCitationGreen}</Highlight>
                       {' '}
-                      <Highlight>Gray = referenced by this document</Highlight>
+                      <Highlight>{g.member.libCitationGray}</Highlight>
                     </span>
                   </FeatureCard>
                 </div>
               </Section>
 
-              <Section icon={Bot} title="RAG AI Assistant" color="purple">
+              <Section icon={Bot} title={g.member.ai} color="purple">
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
-                    Ask questions in <strong>English or French</strong> and get answers based on library documents.
+                    {g.member.aiDesc}
                   </p>
                   <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
                     <p className="text-sm text-purple-800 italic">
-                      "What are the main AI regulations in Europe?"
+                      {g.member.aiExample}
                     </p>
                     <p className="text-xs text-purple-600 mt-2">
-                      The assistant searches the library and provides citations to relevant documents.
+                      {g.member.aiNote}
                     </p>
                   </div>
                 </div>
               </Section>
 
-              <Section icon={Grid3X3} title="Periodic Table of Regulation" color="green">
+              <Section icon={Grid3X3} title={g.member.periodicTable} color="green">
                 <p className="text-gray-700 text-sm mb-3">
-                  A unique visualization with <strong>54 regulatory elements</strong> in <strong>6 categories</strong>:
+                  {g.member.periodicTableDesc}
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
-                  {[
-                    { color: "bg-green-500", label: "Institutional Framework" },
-                    { color: "bg-green-500", label: "Legislating Platforms" },
-                    { color: "bg-red-500", label: "Human Rights" },
-                    { color: "bg-blue-500", label: "Content Governance" },
-                    { color: "bg-blue-500", label: "Systemic Risks" },
-                    { color: "bg-blue-500", label: "Pro-social Design" },
-                  ].map(({ color, label }) => (
+                  {g.periodicTableCats.map((label, i) => (
                     <div key={label} className="flex items-center gap-2 text-xs">
-                      <div className={`w-3 h-3 rounded flex-shrink-0 ${color}`}></div>
+                      <div className={`w-3 h-3 rounded flex-shrink-0 ${periodicTableColors[i]}`}></div>
                       <span>{label}</span>
                     </div>
                   ))}
                 </div>
                 <p className="text-sm text-gray-600">
-                  Click any element to view its description and linked documents.
+                  {g.member.periodicTableClick}
                 </p>
               </Section>
 
-              <Section icon={Route} title="Regulation Pathways" color="orange">
+              <Section icon={Route} title={g.member.pathways} color="orange">
                 <p className="text-gray-700 text-sm">
-                  Create custom regulatory pathways by combining multiple periodic table elements.
-                  Visualize complete regulatory approaches and share them with collaborators.
+                  {g.member.pathwaysDesc}
                 </p>
               </Section>
             </div>
@@ -332,30 +331,30 @@ const WalkThrough = () => {
           {activeTab === 'validator' && (
             <div className="space-y-4">
               <p className="text-gray-600 mb-4">
-                Validators can submit documents to the library and participate in the peer validation process. Two submission paths are available.
+                {g.validator.intro}
               </p>
 
-              <Section icon={Upload} title="Submit a Document" defaultOpen={true} color="blue">
+              <Section icon={Upload} title={g.validator.submitDoc} defaultOpen={true} color="blue">
                 <p className="text-sm text-gray-600 mb-4">
-                  When you click <strong>"Submit Contribution"</strong>, you choose between two paths:
+                  {g.validator.submitChoose}
                 </p>
 
                 {/* Path 1 — Admin Validation */}
                 <div className="border border-gray-300 rounded-xl p-4 mb-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-2 h-2 rounded-full bg-gray-500 flex-shrink-0"></div>
-                    <h4 className="font-semibold text-gray-800">Path A — Admin Validation</h4>
-                    <Highlight color="gray">No wallet needed</Highlight>
+                    <h4 className="font-semibold text-gray-800">{g.validator.pathATitle}</h4>
+                    <Highlight color="gray">{g.validator.pathANoWallet}</Highlight>
                   </div>
                   <p className="text-sm text-gray-600 mb-4">
-                    The document is submitted for review by an I4TK administrator. Once approved, an admin publishes it.
+                    {g.validator.pathADesc}
                   </p>
                   <div className="space-y-3">
-                    <Step number="1" title="Upload PDF" desc="Drag and drop your document — it is stored on IPFS via Pinata." />
-                    <Step number="2" title="Fill Metadata" desc="Title, authors, programme, categories, geographic area, references." />
-                    <Step number="3" title="AI Auto-Tagging (optional)" desc='Click "Suggest Tags with AI" to identify periodic table elements.' color="purple" />
-                    <Step number="4" title='Submit for Admin Validation' desc="Your document enters the admin review queue with status Pending." color="orange" />
-                    <Step number="5" title="Admin Review" desc="An admin approves (publishes) or rejects (with reason) your document." color="orange" />
+                    <Step number="1" title={g.validator.step1Title} desc={g.validator.step1Desc} />
+                    <Step number="2" title={g.validator.step2Title} desc={g.validator.step2Desc} />
+                    <Step number="3" title={g.validator.step3Title} desc={g.validator.step3DescA} color="purple" />
+                    <Step number="4" title={g.validator.step4ATitle} desc={g.validator.step4ADesc} color="orange" />
+                    <Step number="5" title={g.validator.step5ATitle} desc={g.validator.step5ADesc} color="orange" />
                   </div>
                 </div>
 
@@ -363,86 +362,84 @@ const WalkThrough = () => {
                 <div className="border-2 border-blue-300 rounded-xl p-4 bg-blue-50/30">
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     <div className="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0"></div>
-                    <h4 className="font-semibold text-gray-800">Path B — Peer Review</h4>
-                    <Highlight color="blue">Recommended</Highlight>
-                    <Highlight>Requires wallet</Highlight>
+                    <h4 className="font-semibold text-gray-800">{g.validator.pathBTitle}</h4>
+                    <Highlight color="blue">{g.validator.pathBRecommended}</Highlight>
+                    <Highlight>{g.validator.pathBWallet}</Highlight>
                   </div>
                   <p className="text-sm text-gray-600 mb-4">
-                    The document is recorded on the blockchain and submitted for review by 4 independent validators.
+                    {g.validator.pathBDesc}
                   </p>
                   <div className="space-y-3">
-                    <Step number="1" title="Upload PDF" desc="Drag and drop your document — stored on IPFS via Pinata." />
-                    <Step number="2" title="Fill Metadata" desc="Title, authors, programme, categories, geographic area, references." />
-                    <Step number="3" title="AI Auto-Tagging (optional)" desc='Click "Suggest Tags with AI" — GPT-4o-mini analysis with confidence scores.' color="purple" />
-                    <Step number="4" title="Connect Wallet & Submit" desc="Confirm the transaction in MetaMask — ERC1155 token minted on Sepolia." color="blue" />
-                    <Step number="5" title="Peer Review (4 validations)" desc="4 validators must approve before publication. Each vote is on-chain." color="green" />
+                    <Step number="1" title={g.validator.step1Title} desc={g.validator.step1Desc} />
+                    <Step number="2" title={g.validator.step2Title} desc={g.validator.step2Desc} />
+                    <Step number="3" title={g.validator.step3Title} desc={g.validator.step3DescB} color="purple" />
+                    <Step number="4" title={g.validator.step4BTitle} desc={g.validator.step4BDesc} color="blue" />
+                    <Step number="5" title={g.validator.step5BTitle} desc={g.validator.step5BDesc} color="green" />
                   </div>
                   <div className="mt-4 bg-white border border-blue-200 rounded-lg p-3 text-xs">
                     <p className="font-medium text-gray-700 mb-1 flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-purple-500" /> AI Auto-Tagging details:
+                      <Sparkles className="w-3.5 h-3.5 text-purple-500" /> {g.validator.aiTagDetails}
                     </p>
                     <ul className="text-gray-600 space-y-0.5 ml-4">
-                      <li>• PDF text extracted from IPFS server-side</li>
-                      <li>• Semantic pre-selection with TensorFlow.js</li>
-                      <li>• GPT-4o-mini validation with confidence scores</li>
+                      <li>• {g.validator.aiTagItem1}</li>
+                      <li>• {g.validator.aiTagItem2}</li>
+                      <li>• {g.validator.aiTagItem3}</li>
                     </ul>
                     <div className="flex gap-2 mt-2">
-                      <Highlight color="green">80%+ High confidence</Highlight>
-                      <Highlight color="yellow">60–79% Medium</Highlight>
+                      <Highlight color="green">{g.validator.aiTagHigh}</Highlight>
+                      <Highlight color="yellow">{g.validator.aiTagMedium}</Highlight>
                     </div>
                   </div>
                 </div>
               </Section>
 
-              <Section icon={ClipboardCheck} title="Validate Documents (Peer Review)" color="green">
+              <Section icon={ClipboardCheck} title={g.validator.validate} color="green">
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
-                    Go to <strong>Network Publications</strong> to see documents pending peer validation.
-                    Connect your wallet and click <strong>Validate</strong> on any document you have reviewed.
+                    {g.validator.validateDesc}
                   </p>
                   <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                    <h4 className="font-medium text-green-800 mb-2 text-sm">Validation progress</h4>
+                    <h4 className="font-medium text-green-800 mb-2 text-sm">{g.validator.validationProgress}</h4>
                     <div className="flex items-center gap-3 mb-2">
                       <div className="flex gap-1">
                         {[1, 2, 3, 4].map(i => (
                           <div key={i} className={`w-8 h-2 rounded ${i <= 2 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
                         ))}
                       </div>
-                      <span className="text-sm text-green-700">2/4 validations</span>
+                      <span className="text-sm text-green-700">2/4 {g.validator.validationOf}</span>
                     </div>
                     <p className="text-xs text-green-700">
-                      4 validations required. Each validation is recorded immutably on-chain. You cannot validate a document you have already validated.
+                      {g.validator.validationNote}
                     </p>
                   </div>
                 </div>
               </Section>
 
-              <Section icon={Coins} title="Token Distribution" color="orange">
+              <Section icon={Coins} title={g.validator.tokens} color="orange">
                 <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                   <p className="text-orange-800 text-sm mb-3">
-                    When a document is published via peer review, <strong>100 million I4TK tokens</strong> are distributed:
+                    {g.validator.tokensDesc}
                   </p>
                   <div className="flex gap-6">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-orange-600">40%</div>
-                      <div className="text-xs text-orange-700 mt-0.5">Creator</div>
+                      <div className="text-xs text-orange-700 mt-0.5">{g.validator.tokensCreator}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-orange-600">60%</div>
-                      <div className="text-xs text-orange-700 mt-0.5">Referenced documents (recursive)</div>
+                      <div className="text-xs text-orange-700 mt-0.5">{g.validator.tokensRefs}</div>
                     </div>
                   </div>
                   <p className="text-xs text-orange-700 mt-3">
-                    This creates a token-based incentive aligned with knowledge production — not speculation.
+                    {g.validator.tokensNote}
                   </p>
                 </div>
               </Section>
 
-              <Section icon={Wallet} title="Don't have a wallet?" color="gray">
+              <Section icon={Wallet} title={g.validator.walletTitle} color="gray">
                 <div className="space-y-3 text-sm">
                   <p className="text-gray-700">
-                    A wallet is only required for the Peer Review path. You can always use Admin Validation without one.
-                    To use Peer Review, install <strong>MetaMask</strong> and send your wallet address to the I4TK team to be granted on-chain rights.
+                    {g.validator.walletDesc}
                   </p>
                   <a
                     href="https://metamask.io/download/"
@@ -450,10 +447,10 @@ const WalkThrough = () => {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-medium underline"
                   >
-                    <Wallet className="w-4 h-4" /> Download MetaMask →
+                    <Wallet className="w-4 h-4" /> {g.validator.walletDownload}
                   </a>
                   <p className="text-gray-600">
-                    Then contact:{' '}
+                    {g.validator.walletContact}{' '}
                     <a href="mailto:joris.galea@i4tknowledge.net" className="text-blue-600 hover:text-blue-800 underline">
                       joris.galea@i4tknowledge.net
                     </a>
@@ -467,17 +464,12 @@ const WalkThrough = () => {
           {activeTab === 'admin' && (
             <div className="space-y-4">
               <p className="text-gray-600 mb-4">
-                Administrators have full control over users, document validation, blockchain roles, and data export.
+                {g.admin.intro}
               </p>
 
-              <Section icon={Users} title="User Management" defaultOpen={true} color="blue">
+              <Section icon={Users} title={g.admin.userMgmt} defaultOpen={true} color="blue">
                 <ul className="space-y-2 text-sm text-gray-700">
-                  {[
-                    'View all users with their roles (Observer, Member, Validator, Admin)',
-                    'Promote Members to Validators (or downgrade)',
-                    'Synchronize roles with the blockchain',
-                    'Send email invitations to new members',
-                  ].map((item, i) => (
+                  {g.admin.userMgmtItems.map((item, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
                       {item}
@@ -486,16 +478,16 @@ const WalkThrough = () => {
                 </ul>
               </Section>
 
-              <Section icon={ClipboardCheck} title="Admin Validation Queue" color="orange">
+              <Section icon={ClipboardCheck} title={g.admin.validationQueue} color="orange">
                 <div className="space-y-3 text-sm">
                   <p className="text-gray-700">
-                    Documents submitted via <strong>Admin Validation</strong> appear in the <strong>Librarian Space</strong> tab of the Library.
+                    {g.admin.validationQueueDesc}
                   </p>
                   <div className="grid gap-2 sm:grid-cols-3">
                     {[
-                      { label: "Approve & Publish", desc: "Document is published immediately.", color: "border-green-200 bg-green-50 text-green-800" },
-                      { label: "Reject", desc: "Document returned with optional reason.", color: "border-red-200 bg-red-50 text-red-800" },
-                      { label: "Promote to Peer Review", desc: "Transfer to blockchain workflow.", color: "border-blue-200 bg-blue-50 text-blue-800" },
+                      { label: g.admin.approve, desc: g.admin.approveDesc, color: "border-green-200 bg-green-50 text-green-800" },
+                      { label: g.admin.reject,  desc: g.admin.rejectDesc,  color: "border-red-200 bg-red-50 text-red-800" },
+                      { label: g.admin.promote, desc: g.admin.promoteDesc, color: "border-blue-200 bg-blue-50 text-blue-800" },
                     ].map(({ label, desc, color }) => (
                       <div key={label} className={`border rounded-lg p-3 ${color}`}>
                         <p className="font-medium text-xs mb-1">{label}</p>
@@ -506,14 +498,14 @@ const WalkThrough = () => {
                 </div>
               </Section>
 
-              <Section icon={Shield} title="Blockchain Roles" color="purple">
-                <p className="text-gray-700 text-sm mb-3">Assign on-chain roles via OpenZeppelin AccessControl:</p>
+              <Section icon={Shield} title={g.admin.blockchainRoles} color="purple">
+                <p className="text-gray-700 text-sm mb-3">{g.admin.blockchainRolesDesc}</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {[
-                    { role: "CONTRIBUTOR_ROLE", desc: "Can submit documents" },
-                    { role: "VALIDATOR_ROLE", desc: "Can validate documents" },
-                    { role: "MINTER_ROLE", desc: "Can create tokens" },
-                    { role: "ADMIN_ROLE", desc: "Full control" },
+                    { role: "CONTRIBUTOR_ROLE", desc: g.admin.roles.contributor },
+                    { role: "VALIDATOR_ROLE",   desc: g.admin.roles.validator },
+                    { role: "MINTER_ROLE",      desc: g.admin.roles.minter },
+                    { role: "ADMIN_ROLE",        desc: g.admin.roles.admin },
                   ].map(({ role, desc }) => (
                     <div key={role} className="bg-gray-50 rounded p-2">
                       <span className="font-mono text-xs text-purple-600">{role}</span>
@@ -523,23 +515,25 @@ const WalkThrough = () => {
                 </div>
               </Section>
 
-              <Section icon={Download} title="CSV Export" color="green">
+              <Section icon={Download} title={g.admin.csvExport} color="green">
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" /> Full library export — all metadata (Title, Authors, Categories, IPFS CID, Token ID…)</li>
-                  <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" /> Heatmap CSV — document coverage by periodic table element</li>
-                  <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" /> UTF-8 encoding with Excel compatibility</li>
+                  {g.admin.csvItems.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" /> {item}
+                    </li>
+                  ))}
                 </ul>
               </Section>
 
-              <Section icon={Eye} title="Blockchain Monitoring" color="blue">
-                <p className="text-gray-700 text-sm mb-3">View all transactions on Sepolia Etherscan:</p>
+              <Section icon={Eye} title={g.admin.monitoring} color="blue">
+                <p className="text-gray-700 text-sm mb-3">{g.admin.monitoringDesc}</p>
                 <div className="space-y-2 text-sm overflow-x-auto">
                   <div className="bg-gray-50 rounded p-2 flex flex-wrap items-center gap-2">
-                    <span className="font-medium whitespace-nowrap">I4TKnetwork:</span>
+                    <span className="font-medium whitespace-nowrap">{g.admin.networkLabel}</span>
                     <code className="text-xs text-gray-600 break-all">0xa987...4F55</code>
                   </div>
                   <div className="bg-gray-50 rounded p-2 flex flex-wrap items-center gap-2">
-                    <span className="font-medium whitespace-nowrap">I4TKdocToken:</span>
+                    <span className="font-medium whitespace-nowrap">{g.admin.tokenLabel}</span>
                     <code className="text-xs text-gray-600 break-all">0x06Fc...5288</code>
                   </div>
                 </div>
@@ -550,16 +544,11 @@ const WalkThrough = () => {
 
         {/* Footer */}
         <div className="bg-gray-50 border-t border-gray-200 p-4 sm:p-6">
-          <h3 className="font-semibold text-gray-800 mb-3 text-sm">Key Features</h3>
+          <h3 className="font-semibold text-gray-800 mb-3 text-sm">{g.footerKeyFeatures}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            {[
-              { icon: Grid3X3, color: "text-green-500", label: "54 Regulatory Elements" },
-              { icon: Sparkles, color: "text-purple-500", label: "AI Auto-Tagging" },
-              { icon: CheckCircle, color: "text-blue-500", label: "Peer Validation" },
-              { icon: Coins, color: "text-orange-500", label: "Token Distribution" },
-            ].map(({ icon: Icon, color, label }) => (
+            {g.footerFeatures.map((label, i) => (
               <div key={label} className="flex items-center gap-2 text-gray-600">
-                <Icon className={`w-4 h-4 flex-shrink-0 ${color}`} />
+                {React.createElement(footerIcons[i], { className: `w-4 h-4 flex-shrink-0 ${footerIconColors[i]}` })}
                 <span className="text-xs sm:text-sm">{label}</span>
               </div>
             ))}

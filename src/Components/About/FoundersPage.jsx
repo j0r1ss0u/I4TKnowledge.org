@@ -1,4 +1,6 @@
 import React from 'react';
+import { useAuth } from '../AuthContext';
+import ui from '../../translations/ui';
 
 const MemberCard = ({ name, title, imageUrl, linkedinUrl }) => (
   <div className="flex flex-col items-center text-center">
@@ -38,6 +40,9 @@ const OrganizationSection = ({ logo, members }) => (
 );
 
 const FoundersPage = () => {
+  const { language } = useAuth();
+  const t = ui[language] ?? ui.en;
+
   const organizations = [
     {
       logo: { url: "/assets/founders/logos/portulans.png", alt: "Portulans Institute" },
@@ -315,7 +320,7 @@ const FoundersPage = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-8">
-      <h1 className="text-4xl font-serif font-bold text-gray-900 mb-16 text-center">Founding Members</h1>
+      <h1 className="text-4xl font-serif font-bold text-gray-900 mb-16 text-center">{t.founders.pageTitle}</h1>
       <div className="space-y-24">
         {organizations.map((org, index) => (
           <OrganizationSection key={index} {...org} />

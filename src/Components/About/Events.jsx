@@ -3,50 +3,34 @@ import { Calendar, MapPin, ExternalLink, Globe, Users, PlusCircle } from 'lucide
 import { eventsManagementService } from '../../services/eventsManagement';
 import { projetManagementService } from '../../services/projectManagement';
 import { useAuth } from '../AuthContext';
+import ui from '../../translations/ui';
 
-// composant TimelineEvent
-
+// -------------------------------------------
+// TimelineEvent sub-component
+// -------------------------------------------
 const TimelineEvent = ({ date, title, location, organizer, url, isProject = false, projectId = null }) => {
-  const { user } = useAuth();  // Assurez-vous d'importer useAuth
+  const { user, language } = useAuth();
+  const t = ui[language] ?? ui.en;
+  const ev = t.events;
 
-  // Vérifier si l'utilisateur peut accéder au forum (admin, validator ou member)
   const canAccessForum = user && (user.role === 'admin' || user.role === 'validator' || user.role === 'member');
 
-  // Ensure date is properly formatted
-  let formattedDate = 'Date undefined';
-
+  let formattedDate = ev.dateUndefined;
   if (date) {
-    if (typeof date === 'string') {
+    try {
       formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    } else if (date instanceof Date) {
-      formattedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-    } else {
-      // If it's a Firestore timestamp or another format
-      try {
-        formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      } catch (error) {
-        console.error("Date formatting error:", error, date);
-      }
+    } catch (error) {
+      console.error("Date formatting error:", error, date);
     }
   }
 
-  // Handle project click to view project details
   const handleProjectClick = () => {
-    if (isProject && projectId) {
-      // Vérifier si l'utilisateur a les permissions nécessaires
-      if (canAccessForum) {
-        // Si oui, permettre la navigation vers le projet
-        window.location.hash = `forum?project=${projectId}`;
-        sessionStorage.setItem('selectedProjectId', projectId);
-      } else {
-        // Si l'utilisateur n'a pas les permissions, ne rien faire
-        // Optionnel: Vous pouvez ajouter une notification ici si vous le souhaitez
-        console.log("User does not have permission to access projects");
-      }
+    if (isProject && projectId && canAccessForum) {
+      window.location.hash = `forum?project=${projectId}`;
+      sessionStorage.setItem('selectedProjectId', projectId);
     }
   };
 
-  // Déterminer si le style de curseur doit être "pointer" ou "default"
   const cursorStyle = (isProject && !canAccessForum) ? "default" : "pointer";
 
   return (
@@ -65,41 +49,39 @@ const TimelineEvent = ({ date, title, location, organizer, url, isProject = fals
               )}
               {organizer && <p className="text-sm text-gray-500">By: {organizer}</p>}
               {url && (
-                <a 
-                  href={url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="text-blue-500 hover:underline inline-flex items-center mt-1 justify-end"
                 >
-                  <span className="mr-1">More info</span>
+                  <span className="mr-1">{ev.moreInfo}</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               )}
             </div>
           </div>
           <div className="relative flex flex-col items-center w-[10%]">
-            <div className="absolute top-0 bottom-0 w-1 bg-gradient-to-b from-orange-300 to-orange-500" 
-                 style={{ transform: 'translateY(-50%)', height: 'calc(100% + 80px)' }}>
-            </div>
-            <div className="relative w-4 h-4 bg-orange-500 rounded-full border-4 border-orange-200 z-10 
-                          transition-all duration-200 group-hover:scale-150 group-hover:border-orange-100">
-            </div>
+            <div
+              className="absolute top-0 bottom-0 w-1 bg-gradient-to-b from-orange-300 to-orange-500"
+              style={{ transform: 'translateY(-50%)', height: 'calc(100% + 80px)' }}
+            />
+            <div className="relative w-4 h-4 bg-orange-500 rounded-full border-4 border-orange-200 z-10 transition-all duration-200 group-hover:scale-150 group-hover:border-orange-100" />
           </div>
-          <div className="w-[45%]"></div>
+          <div className="w-[45%]" />
         </>
       ) : (
         <>
-          <div className="w-[45%]"></div>
+          <div className="w-[45%]" />
           <div className="relative flex flex-col items-center w-[10%]">
-            <div className="absolute top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-300 to-emerald-500"
-                 style={{ transform: 'translateY(-50%)', height: 'calc(100% + 80px)' }}>
-            </div>
-            <div className="relative w-4 h-4 bg-emerald-500 rounded-full border-4 border-emerald-200 z-10 
-                          transition-all duration-200 group-hover:scale-150 group-hover:border-emerald-100">
-            </div>
+            <div
+              className="absolute top-0 bottom-0 w-1 bg-gradient-to-b from-emerald-300 to-emerald-500"
+              style={{ transform: 'translateY(-50%)', height: 'calc(100% + 80px)' }}
+            />
+            <div className="relative w-4 h-4 bg-emerald-500 rounded-full border-4 border-emerald-200 z-10 transition-all duration-200 group-hover:scale-150 group-hover:border-emerald-100" />
           </div>
           <div className="w-[45%] pl-8">
-            <div 
+            <div
               className={`${canAccessForum ? 'group-hover:transform group-hover:scale-105 transition-transform' : ''}`}
               style={{ cursor: cursorStyle }}
               onClick={handleProjectClick}
@@ -114,11 +96,11 @@ const TimelineEvent = ({ date, title, location, organizer, url, isProject = fals
               )}
               <div className="mt-2">
                 <span className="px-2 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-800">
-                  Community Project
+                  {ev.communityProject}
                 </span>
                 {!canAccessForum && (
                   <span className="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
-                    Login required
+                    {ev.loginRequired}
                   </span>
                 )}
               </div>
@@ -130,8 +112,14 @@ const TimelineEvent = ({ date, title, location, organizer, url, isProject = fals
   );
 };
 
-// Event form component for adding/editing events
+// -------------------------------------------
+// EventForm sub-component
+// -------------------------------------------
 const EventForm = ({ event, onSubmit, onCancel }) => {
+  const { language } = useAuth();
+  const t = ui[language] ?? ui.en;
+  const ev = t.events;
+
   const [formData, setFormData] = useState({
     title: event?.title || '',
     date: event?.date ? (typeof event.date === 'string' ? event.date : event.date.toISOString().split('T')[0]) : '',
@@ -143,26 +131,20 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    setFormData({ ...formData, [name]: type === 'checkbox' ? checked : value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
-      date: formData.date // Date string in ISO format
-    });
+    onSubmit({ ...formData, date: formData.date });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow">
-      <h3 className="text-lg font-medium">{event ? 'Edit Event' : 'Add New Event'}</h3>
+      <h3 className="text-lg font-medium">{event ? ev.form.editTitle : ev.form.addTitle}</h3>
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">Event Title*</label>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700">{ev.form.titleField}</label>
         <input
           type="text"
           id="title"
@@ -175,7 +157,7 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date*</label>
+        <label htmlFor="date" className="block text-sm font-medium text-gray-700">{ev.form.date}</label>
         <input
           type="date"
           id="date"
@@ -188,7 +170,7 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
+        <label htmlFor="location" className="block text-sm font-medium text-gray-700">{ev.form.location}</label>
         <input
           type="text"
           id="location"
@@ -200,7 +182,7 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="organizer" className="block text-sm font-medium text-gray-700">Organizer</label>
+        <label htmlFor="organizer" className="block text-sm font-medium text-gray-700">{ev.form.organizer}</label>
         <input
           type="text"
           id="organizer"
@@ -212,7 +194,7 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
       </div>
 
       <div>
-        <label htmlFor="url" className="block text-sm font-medium text-gray-700">Website URL</label>
+        <label htmlFor="url" className="block text-sm font-medium text-gray-700">{ev.form.websiteUrl}</label>
         <input
           type="url"
           id="url"
@@ -233,7 +215,7 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
         <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-700">
-          Public Event (visible on timeline)
+          {ev.form.isPublic}
         </label>
       </div>
 
@@ -243,21 +225,27 @@ const EventForm = ({ event, onSubmit, onCancel }) => {
           onClick={onCancel}
           className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
         >
-          Cancel
+          {ev.form.cancel}
         </button>
         <button
           type="submit"
           className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
         >
-          {event ? 'Update' : 'Add'}
+          {event ? ev.form.update : ev.form.add}
         </button>
       </div>
     </form>
   );
 };
 
-// Event Management Component
+// -------------------------------------------
+// EventManagement sub-component
+// -------------------------------------------
 const EventManagement = () => {
+  const { language } = useAuth();
+  const t = ui[language] ?? ui.en;
+  const ev = t.events;
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -272,12 +260,11 @@ const EventManagement = () => {
     try {
       setLoading(true);
       const eventsData = await eventsManagementService.getAllEvents();
-      console.log("Events retrieved:", eventsData); // Debug logging
       setEvents(eventsData);
       setError(null);
     } catch (err) {
       console.error('Error fetching events:', err);
-      setError('Failed to load events. Please try again.');
+      setError(ev.loadError);
     } finally {
       setLoading(false);
     }
@@ -291,7 +278,7 @@ const EventManagement = () => {
       setCurrentEvent(null);
     } catch (err) {
       console.error('Error adding event:', err);
-      setError('Failed to add event. Please try again.');
+      setError(ev.addError);
     }
   };
 
@@ -303,18 +290,18 @@ const EventManagement = () => {
       setCurrentEvent(null);
     } catch (err) {
       console.error('Error updating event:', err);
-      setError('Failed to update event. Please try again.');
+      setError(ev.updateError);
     }
   };
 
   const handleDeleteEvent = async (eventId) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
+    if (window.confirm(ev.deleteConfirm)) {
       try {
         await eventsManagementService.removeEvent(eventId);
         await fetchEvents();
       } catch (err) {
         console.error('Error deleting event:', err);
-        setError('Failed to delete event. Please try again.');
+        setError(ev.deleteError);
       }
     }
   };
@@ -327,7 +314,7 @@ const EventManagement = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
     );
   }
@@ -342,7 +329,7 @@ const EventManagement = () => {
 
   if (isFormVisible) {
     return (
-      <EventForm 
+      <EventForm
         event={currentEvent}
         onSubmit={currentEvent ? handleUpdateEvent : handleAddEvent}
         onCancel={() => {
@@ -356,7 +343,7 @@ const EventManagement = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Manage Events</h2>
+        <h2 className="text-xl font-semibold">{ev.manageEvents}</h2>
         <button
           onClick={() => {
             setCurrentEvent(null);
@@ -364,30 +351,30 @@ const EventManagement = () => {
           }}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          Add New Event
+          {ev.addNewEvent}
         </button>
       </div>
 
       {events.length === 0 ? (
-        <p className="text-gray-500 text-center py-8">No events found. Add your first event using the button above.</p>
+        <p className="text-gray-500 text-center py-8">{ev.noEvents}</p>
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{ev.table.date}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{ev.table.title}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{ev.table.location}</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{ev.table.status}</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{ev.table.actions}</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {events.map((event) => (
                 <tr key={event.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {event.date instanceof Date 
-                      ? event.date.toLocaleDateString() 
+                    {event.date instanceof Date
+                      ? event.date.toLocaleDateString()
                       : event.date ? new Date(event.date).toLocaleDateString() : '-'}
                   </td>
                   <td className="px-6 py-4">
@@ -401,7 +388,7 @@ const EventManagement = () => {
                     <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                       event.isPublic ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {event.isPublic ? 'Public' : 'Private'}
+                      {event.isPublic ? ev.table.public : ev.table.private}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right text-sm font-medium">
@@ -409,13 +396,13 @@ const EventManagement = () => {
                       onClick={() => handleEditEvent(event)}
                       className="text-blue-600 hover:text-blue-900 mr-3"
                     >
-                      Edit
+                      {ev.table.edit}
                     </button>
                     <button
                       onClick={() => handleDeleteEvent(event.id)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      Delete
+                      {ev.table.delete}
                     </button>
                   </td>
                 </tr>
@@ -428,18 +415,20 @@ const EventManagement = () => {
   );
 };
 
-// Main Events Timeline Component
+// -------------------------------------------
+// Main Events component
+// -------------------------------------------
 const Events = ({ isAdmin = false }) => {
+  const { user, language } = useAuth();
+  const t = ui[language] ?? ui.en;
+  const ev = t.events;
+
   const [publicEvents, setPublicEvents] = useState([]);
   const [communityProjects, setCommunityProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [view, setView] = useState('timeline'); // 'timeline' or 'manage'
-  const { user } = useAuth();
+  const [view, setView] = useState('timeline');
 
-  // Check if user is admin
   const userIsAdmin = isAdmin || (user && user.role === 'admin');
-
-  // Check if user is member or validator (can access Forum)
   const canAccessForum = user && (user.role === 'member' || user.role === 'validator' || user.role === 'admin');
 
   useEffect(() => {
@@ -452,35 +441,16 @@ const Events = ({ isAdmin = false }) => {
     try {
       setIsLoading(true);
 
-      // Fetch public events
-      console.log("Fetching public events...");
       const events = await eventsManagementService.getPublicEvents();
-      console.log("Public events retrieved:", events);
       setPublicEvents(events || []);
 
-      // Fetch community projects
-      console.log("Fetching projects...");
       try {
         const projects = await projetManagementService.getProjets();
-        console.log("Raw projects data:", projects);
-
-        // Filter projects that have an endDate and are not in draft status
         const validProjects = Array.isArray(projects) ? projects.filter(project => {
-          // Check if we have an endDate (either in timeline object or directly)
-          const hasEndDate = project && (
-            project.timeline?.endDate || 
-            project.endDate
-          );
-
-          // Check if the project status is not draft
-          const isNotDraft = project && 
-            project.status?.current && 
-            project.status.current !== 'draft';
-
+          const hasEndDate = project && (project.timeline?.endDate || project.endDate);
+          const isNotDraft = project && project.status?.current && project.status.current !== 'draft';
           return hasEndDate && isNotDraft;
         }) : [];
-
-        console.log("Valid projects for timeline:", validProjects);
         setCommunityProjects(validProjects);
       } catch (projectError) {
         console.error("Error retrieving projects:", projectError);
@@ -493,30 +463,17 @@ const Events = ({ isAdmin = false }) => {
     }
   };
 
-  // Combine and sort all timeline events by date
   const getTimelineEvents = () => {
-    console.log("Generating timeline with:", 
-                publicEvents.length, "events and", 
-                communityProjects.length, "projects");
-
-    // If no events are available, return an empty array
-    if (!publicEvents.length && !communityProjects.length) {
-      return [];
-    }
+    if (!publicEvents.length && !communityProjects.length) return [];
 
     const allEvents = [
-      ...publicEvents.map(event => ({
-        ...event,
-        isProject: false
-      })),
+      ...publicEvents.map(event => ({ ...event, isProject: false })),
       ...(Array.isArray(communityProjects) ? communityProjects.map(project => {
-        // Get the endDate from timeline object or directly from project
         const endDate = project.timeline?.endDate || project.endDate;
-
         return {
           id: project.id,
           title: project.title || "Untitled Project",
-          date: endDate, // Use only endDate for the timeline
+          date: endDate,
           location: project.location || "",
           isProject: true,
           projectId: project.id,
@@ -525,35 +482,19 @@ const Events = ({ isAdmin = false }) => {
       }) : [])
     ];
 
-    console.log("Combined events before sorting:", allEvents);
-
-    // Sort by date while avoiding errors for invalid dates
-    const sortedEvents = allEvents
-      .filter(event => event.date) // Filter out events without dates
+    return allEvents
+      .filter(event => event.date)
       .sort((a, b) => {
         try {
           const dateA = new Date(a.date);
           const dateB = new Date(b.date);
-
-          if (isNaN(dateA.getTime())) {
-            console.warn("Invalid date A:", a.date, a);
-            return 1; // Place at the end
-          }
-
-          if (isNaN(dateB.getTime())) {
-            console.warn("Invalid date B:", b.date, b);
-            return -1; // Place at the end
-          }
-
-          return dateB - dateA; // Most recent first
+          if (isNaN(dateA.getTime())) return 1;
+          if (isNaN(dateB.getTime())) return -1;
+          return dateB - dateA;
         } catch (error) {
-          console.error("Error during date sorting:", error, a, b);
           return 0;
         }
       });
-
-    console.log("Sorted events:", sortedEvents);
-    return sortedEvents;
   };
 
   const toggleView = () => {
@@ -561,7 +502,6 @@ const Events = ({ isAdmin = false }) => {
   };
 
   const goToForum = () => {
-    // Use hash-based navigation to go to forum
     window.location.hash = 'forum';
   };
 
@@ -569,43 +509,41 @@ const Events = ({ isAdmin = false }) => {
     <div className="max-w-7xl mx-auto">
       <div className="mb-12 mt-8">
         <h2 className="text-2xl font-serif font-bold text-gray-900 text-center mb-6">
-          Our Journey & Milestones
+          {ev.sectionTitle}
         </h2>
 
         <div className="flex justify-between">
           <div className="flex-1">
             {userIsAdmin && (
               <div className="flex justify-start">
-                <button 
+                <button
                   onClick={toggleView}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-1"
                 >
                   {view === 'timeline' ? (
                     <>
                       <PlusCircle className="h-4 w-4 mr-1" />
-                      <span>Manage Events</span>
+                      <span>{ev.manageEvents}</span>
                     </>
                   ) : (
-                    <span>View Timeline</span>
+                    <span>{ev.viewTimeline}</span>
                   )}
                 </button>
               </div>
             )}
           </div>
 
-          <div className="flex-1 text-center">
-            {/* Empty center column for spacing */}
-          </div>
+          <div className="flex-1 text-center" />
 
           <div className="flex-1">
             {canAccessForum && (
               <div className="flex justify-end">
-                <button 
+                <button
                   onClick={goToForum}
                   className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 flex items-center space-x-1"
                 >
                   <PlusCircle className="h-4 w-4 mr-1" />
-                  <span>Add Project</span>
+                  <span>{ev.addProject}</span>
                 </button>
               </div>
             )}
@@ -619,16 +557,16 @@ const Events = ({ isAdmin = false }) => {
         <div>
           {isLoading ? (
             <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
             </div>
           ) : (
             <div className="relative space-y-12">
               {getTimelineEvents().length > 0 ? (
                 getTimelineEvents().map((event) => (
-                  <TimelineEvent 
+                  <TimelineEvent
                     key={event.id || `event-${event.title}-${event.date}`}
-                    date={event.date} 
-                    title={event.title} 
+                    date={event.date}
+                    title={event.title}
                     location={event.location}
                     organizer={event.organizer}
                     url={event.url}
@@ -637,9 +575,7 @@ const Events = ({ isAdmin = false }) => {
                   />
                 ))
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  No events or projects to display. Add events using the "Manage Events" button.
-                </div>
+                <p className="text-center text-gray-500 py-8">{ev.noEvents}</p>
               )}
             </div>
           )}

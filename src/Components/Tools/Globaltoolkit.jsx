@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { globaltoolkitService } from '../../services/globaltoolkitService';
 import { documentsService } from '../../services/documentsService';
 import { useAuth } from '../AuthContext';
+import { ui } from '../../translations/ui';
 import ResolutionPath from './ResolutionPath'; // Importation du composant ResolutionPath
 import { ExternalLink, Download } from 'lucide-react';
 
@@ -130,7 +131,8 @@ const Globaltoolkit = () => {
   // =================================================================
 
   // Hook d'authentification
-  const { user } = useAuth();
+  const { user, language } = useAuth();
+  const t = (ui[language] ?? ui.en).tools;
   const isAdmin = user && (user.role === 'admin' || user.email === 'admin@i4tk.org' || user.email === 'joris.galea@i4tknowledge.net');
 
   // =================================================================
@@ -157,7 +159,7 @@ const Globaltoolkit = () => {
         }
       } catch (err) {
         console.error("Error fetching toolkit elements:", err);
-        setError("Failed to load toolkit elements. Please try again later.");
+        setError(t.loadError);
       } finally {
         setLoading(false);
       }
@@ -464,7 +466,7 @@ const Globaltoolkit = () => {
 
     } catch (err) {
       console.error("Error updating element:", err);
-      setError("Failed to update element. Please try again.");
+      setError(t.updateError);
     } finally {
       setLoading(false);
     }
@@ -518,7 +520,7 @@ const Globaltoolkit = () => {
 
     } catch (err) {
       console.error("Error adding example:", err);
-      setError("Failed to add example. Please try again.");
+      setError(t.addExError);
     } finally {
       setLoading(false);
     }
@@ -702,7 +704,7 @@ const Globaltoolkit = () => {
           className="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
           onClick={() => window.location.reload()}
         >
-          Retry
+          {t.retry}
         </button>
       </div>
     );
@@ -725,18 +727,16 @@ const Globaltoolkit = () => {
             SECTION 13: EN-TÊTE ET CONTRÔLES
             ================================================================= */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-4">Periodic Table of Platform Regulation</h2>
+          <h2 className="text-3xl font-bold mb-4">{t.mainTitle}</h2>
           <p className="text-gray-700 mb-6">
-            The Periodic Table of Platform Regulation is a visual tool that organizes the key elements
-            of digital platform governance. Inspired by the periodic table of chemical elements,
-            it allows you to explore and understand the different dimensions of platform regulation.
+            {t.mainDesc1}
           </p>
 
           {/* Barre de recherche */}
           <div className="mb-6">
             <input
               type="text"
-              placeholder="Search for an element..."
+              placeholder={t.searchPlaceholder}
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -751,10 +751,10 @@ const Globaltoolkit = () => {
                 onClick={exportToCSV}
                 disabled={exportingCSV || elements.length === 0}
                 className="flex items-center gap-2 px-3 py-2 rounded-md bg-amber-500 hover:bg-amber-600 text-white font-medium disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                title="Export to CSV"
+                title={t.exportCsv}
               >
                 <Download className="h-4 w-4" />
-                {exportingCSV ? 'Exporting...' : 'Export CSV'}
+                {exportingCSV ? t.exporting : t.exportCsv}
               </button>
             ) : (
               <div></div>
@@ -765,7 +765,7 @@ const Globaltoolkit = () => {
               <button
                 onClick={zoomOut}
                 className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-                title="Zoom Out"
+                title={t.zoomOut}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M3 10h12" />
@@ -775,7 +775,7 @@ const Globaltoolkit = () => {
               <button
                 onClick={zoomIn}
                 className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-                title="Zoom In"
+                title={t.zoomIn}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m-9-7v4m7-4v4M12 10V6m0 4v4m0-4h6m-6 0H6" />
@@ -784,7 +784,7 @@ const Globaltoolkit = () => {
               <button
                 onClick={resetView}
                 className="p-1 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700"
-                title="Reset View"
+                title={t.resetView}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
@@ -794,24 +794,24 @@ const Globaltoolkit = () => {
           </div>
 
           <div className="hidden md:block text-xs text-gray-500 mb-3 text-center">
-            Scroll to zoom • Hold Alt/Option + drag to pan • Double-click to reset view
+            {t.desktopHint}
           </div>
           <div className="flex md:hidden items-center justify-center gap-2 mb-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
             </svg>
-            <span>Scroll horizontally to explore • Rotate to landscape for full view</span>
+            <span>{t.mobileHint}</span>
           </div>
 
           {/* Filtre par géographies */}
           <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Filter by Geographic Scope:</span>
+              <span className="text-sm font-medium text-gray-700">{t.filterLabel}</span>
               <button
                 onClick={toggleAllGeographies}
                 className="text-xs text-amber-600 hover:text-amber-800 font-medium"
               >
-                {selectedGeographies.length === GEOGRAPHIES.length ? 'Deselect All' : 'Select All'}
+                {selectedGeographies.length === GEOGRAPHIES.length ? t.deselectAll : t.selectAll}
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -829,7 +829,7 @@ const Globaltoolkit = () => {
             </div>
             {selectedGeographies.length < GEOGRAPHIES.length && (
               <p className="mt-2 text-xs text-amber-600">
-                Showing documents and examples from: {selectedGeographies.join(', ') || 'None'}
+                {t.showingFrom} {selectedGeographies.join(', ') || t.noGeography}
               </p>
             )}
           </div>
@@ -935,21 +935,10 @@ const Globaltoolkit = () => {
             SECTION 15: SECTION D'INFORMATION ET RÉFÉRENCES
             ================================================================= */}
         <div className="mt-12 bg-gray-50 p-6 rounded-lg">
-          <h3 className="text-2xl font-bold mb-4">About this project</h3>
-          <p className="mb-4">
-            This periodic table is a component of the Global Toolkit Methodology, developed to provide a framework for understanding
-            digital platform governance. It is structured around six main categories that cover
-            the essential aspects of platform regulation.
-          </p>
-          <p className="mb-4">
-            This tool allows members of the I4TK network to contribute examples and references to enrich the understanding
-            of each element. The goal is to create a comprehensive knowledge base that helps regulators, policy makers,
-            researchers, and civil society navigate the complexity of digital platform regulation.
-          </p>
-          <p>
-            Developed as part of the I4TKnowledge initiative, this project builds on UNESCO's guidelines
-            for digital platform governance and aims to promote a human rights-based approach.
-          </p>
+          <h3 className="text-2xl font-bold mb-4">{t.aboutTitle}</h3>
+          <p className="mb-4">{t.aboutDesc1}</p>
+          <p className="mb-4">{t.mainDesc2}</p>
+          <p>{t.aboutDesc3}</p>
         </div>
 
         {/* =================================================================
@@ -1007,7 +996,7 @@ const Globaltoolkit = () => {
                         onClick={handleEditToggle}
                         className="text-blue-500 hover:text-blue-700"
                       >
-                        {editMode ? 'Cancel' : 'Edit'}
+                        {editMode ? t.cancelEdit : t.editMode}
                       </button>
                     )}
 
@@ -1026,7 +1015,7 @@ const Globaltoolkit = () => {
 
                 {/* Section Description */}
                 <div className="mb-4">
-                  <h4 className="font-semibold mb-2">Description</h4>
+                  <h4 className="font-semibold mb-2">{t.descSection}</h4>
                   {editMode && isAdmin ? (
                     <textarea
                       name="description"
@@ -1041,7 +1030,7 @@ const Globaltoolkit = () => {
 
                 {/* Section Contexte */}
                 <div className="mb-4">
-                  <h4 className="font-semibold mb-2">Context</h4>
+                  <h4 className="font-semibold mb-2">{t.contextSection}</h4>
                   {editMode && isAdmin ? (
                     <textarea
                       name="context"
@@ -1050,13 +1039,13 @@ const Globaltoolkit = () => {
                       className="w-full p-2 border rounded min-h-[80px]"
                     />
                   ) : (
-                    <p className="text-gray-700">{selectedElement.context || 'No context provided'}</p>
+                    <p className="text-gray-700">{selectedElement.context || t.noContext}</p>
                   )}
                 </div>
 
                 {/* Section Exemples d'application */}
                 <div className="mb-4">
-                  <h4 className="font-semibold mb-2">Application Examples</h4>
+                  <h4 className="font-semibold mb-2">{t.examplesSection}</h4>
 
                   {/* Liste des exemples existants (filtrés par géographies) */}
                   {selectedElement.examples && selectedElement.examples.filter(ex => {
@@ -1077,7 +1066,7 @@ const Globaltoolkit = () => {
                               onClick={() => toggleExampleExpansion(example.id)}
                             >
                               <h5 className="font-medium">
-                                {example.title || 'Example'}
+                                {example.title || t.exampleDefault}
 
                                 {/* Icône pour indiquer l'expansion */}
                                 <span className="inline-block ml-2 transform transition-transform">
@@ -1125,20 +1114,20 @@ const Globaltoolkit = () => {
                                       className="text-blue-500 hover:underline text-sm"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      Source: {example.url}
+                                      {t.source} {example.url}
                                     </a>
                                   </div>
                                 )}
 
                                 {example.userName && (
                                   <div className="text-xs text-gray-500">
-                                    Contributed by: {example.userName}
+                                    {t.contributedBy} {example.userName}
                                   </div>
                                 )}
 
                                 {example.geographies && example.geographies.length > 0 && (
                                   <div className="text-xs text-gray-500 mt-1">
-                                    Geographic scope: {example.geographies.join(', ')}
+                                    {t.geoScope} {example.geographies.join(', ')}
                                   </div>
                                 )}
                               </div>
@@ -1148,36 +1137,36 @@ const Globaltoolkit = () => {
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 italic mb-4">No examples provided yet.</p>
+                    <p className="text-gray-500 italic mb-4">{t.noExamples}</p>
                   )}
 
                   {/* Formulaire d'ajout de nouvel exemple (pour les utilisateurs authentifiés) */}
                   {user && (
                     <div className="mt-4 border-t pt-4">
-                      <h5 className="font-medium mb-2">Add new example</h5>
+                      <h5 className="font-medium mb-2">{t.addNewExample}</h5>
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm text-gray-600 mb-1">Title</label>
+                          <label className="block text-sm text-gray-600 mb-1">{t.exampleForm.titleLabel}</label>
                           <input
                             type="text"
                             value={newExampleTitle}
                             onChange={(e) => setNewExampleTitle(e.target.value)}
                             className="w-full p-2 border rounded"
-                            placeholder="Brief title for your example"
+                            placeholder={t.exampleForm.titlePlaceholder}
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-gray-600 mb-1">Description</label>
+                          <label className="block text-sm text-gray-600 mb-1">{t.exampleForm.descLabel}</label>
                           <textarea
                             value={newExample}
                             onChange={(e) => setNewExample(e.target.value)}
                             className="w-full p-2 border rounded"
                             rows="3"
-                            placeholder="Describe a real-world application example..."
+                            placeholder={t.exampleForm.descPlaceholder}
                           ></textarea>
                         </div>
                         <div>
-                          <label className="block text-sm text-gray-600 mb-1">Reference URL (optional)</label>
+                          <label className="block text-sm text-gray-600 mb-1">{t.exampleForm.refLabel}</label>
                           <input
                             type="url"
                             value={newExampleUrl}
@@ -1187,7 +1176,7 @@ const Globaltoolkit = () => {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-gray-600 mb-1">Geographic Scope</label>
+                          <label className="block text-sm text-gray-600 mb-1">{t.geoScopeLabel}</label>
                           <div className="flex flex-wrap gap-2 p-2 border rounded bg-gray-50">
                             {GEOGRAPHIES.map(geo => (
                               <label key={geo} className="flex items-center space-x-1 cursor-pointer">
@@ -1201,14 +1190,14 @@ const Globaltoolkit = () => {
                               </label>
                             ))}
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">Uncheck regions where this example does not apply</p>
+                          <p className="text-xs text-gray-500 mt-1">{t.geoScopeHint}</p>
                         </div>
                         <button
                           onClick={handleAddExample}
                           className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
                           disabled={!newExample.trim() || !newExampleTitle.trim()}
                         >
-                          Add Example
+                          {t.addExample}
                         </button>
                       </div>
                     </div>
@@ -1217,7 +1206,7 @@ const Globaltoolkit = () => {
 
                 {/* Section Documents liés */}
                 <div className="mb-4 border-t pt-4">
-                  <h4 className="font-semibold mb-2">Related Documents from Library</h4>
+                  <h4 className="font-semibold mb-2">{t.relatedDocs}</h4>
                   
                   {loadingDocuments ? (
                     <div className="flex justify-center items-center py-8">
@@ -1263,7 +1252,7 @@ const Globaltoolkit = () => {
                       })}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 italic">No documents reference this element yet.</p>
+                    <p className="text-gray-500 italic">{t.noRelatedDocs}</p>
                   )}
                 </div>
 
@@ -1274,7 +1263,7 @@ const Globaltoolkit = () => {
                       onClick={handleSaveElement}
                       className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded"
                     >
-                      Save Changes
+                      {t.saveChanges}
                     </button>
                   </div>
                 )}
