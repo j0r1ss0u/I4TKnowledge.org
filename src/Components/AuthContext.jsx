@@ -435,6 +435,7 @@ export const AuthProvider = ({ children }) => {
       authPage,
       setAuthPage,
       language,
+      setLanguage,
       toggleLanguage,
       t
     }}>

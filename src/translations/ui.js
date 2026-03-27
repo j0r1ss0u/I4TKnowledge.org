@@ -71,7 +71,8 @@ const ui = {
       tagline:        'Global knowledge network for an Internet for Trust',
       login:          'Login',
       cancel:         'Cancel',
-      menuAriaLabel:  'Main menu',
+      menuAriaLabel:       'Main menu',
+      languageSelector:    'Select language',
       nav: {
         home:          'Home',
         about:         'About',
@@ -1191,7 +1192,8 @@ const ui = {
       tagline:        'Red global de conocimiento para un Internet de Confianza',
       login:          'Iniciar sesión',
       cancel:         'Cancelar',
-      menuAriaLabel:  'Menú principal',
+      menuAriaLabel:       'Menú principal',
+      languageSelector:    'Seleccionar idioma',
       nav: {
         home:          'Inicio',
         about:         'Acerca de',

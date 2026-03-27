@@ -5,6 +5,30 @@ import { LogIn, Menu, X } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import ui from '../translations/ui.js';
 
+// =============== LANGUAGE SELECTOR COMPONENT ===============
+const SUPPORTED_LANGUAGES = [
+  { code: 'en', label: 'EN — English' },
+  { code: 'es', label: 'ES — Español' },
+];
+
+const LanguageSelector = () => {
+  const { language, setLanguage } = useAuth();
+  const t = (ui[language] || ui.en).header;
+
+  return (
+    <select
+      value={language in ui ? language : 'en'}
+      onChange={(e) => setLanguage(e.target.value)}
+      aria-label={t.languageSelector}
+      className="text-sm border border-gray-300 rounded px-2 py-1 bg-white text-gray-700 hover:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 cursor-pointer"
+    >
+      {SUPPORTED_LANGUAGES.map(({ code, label }) => (
+        <option key={code} value={code}>{label}</option>
+      ))}
+    </select>
+  );
+};
+
 // =============== LOGIN BUTTON COMPONENT ===============
 const LoginButton = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -113,6 +137,7 @@ const Navigation = ({ currentPage, handlePageChange, isMobile, setIsMenuOpen }) 
           ) : (
             <LoginButton />
           )}
+          <LanguageSelector />
         </div>
       </div>
     </div>
