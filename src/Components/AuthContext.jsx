@@ -53,19 +53,26 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
   const [authPage, setAuthPage] = useState('login');
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState(() => {
+    const saved = localStorage.getItem('preferredLanguage');
+    return (saved === 'en' || saved === 'es') ? saved : 'en';
+  });
   const [translations, setTranslations] = useState({});
   const [translationsLoading, setTranslationsLoading] = useState(true);
 
   // Get translations for current language with fallback
   const t = translations || {};
 
+  // Persist language to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('preferredLanguage', language);
+  }, [language]);
+
   // Toggle language: EN → FR → ES → PT → ZH → EN
   const toggleLanguage = () => {
     const cycle = { en: 'fr', fr: 'es', es: 'pt', pt: 'zh', zh: 'en' };
     const newLanguage = cycle[language] || 'en';
     setLanguage(newLanguage);
-    localStorage.setItem('preferredLanguage', newLanguage);
     preloadTranslations(newLanguage);
   };
 

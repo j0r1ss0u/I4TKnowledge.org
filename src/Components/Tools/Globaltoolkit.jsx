@@ -8,7 +8,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { globaltoolkitService } from '../../services/globaltoolkitService';
 import { documentsService } from '../../services/documentsService';
 import { useAuth } from '../AuthContext';
-import { ui } from '../../translations/ui';
+import ui from '../../translations/ui';
 import ResolutionPath from './ResolutionPath'; // Importation du composant ResolutionPath
 import { ExternalLink, Download } from 'lucide-react';
 

@@ -241,9 +241,9 @@ function RegisterComponent({ handlePageChange, showNotification, currentLang }) 
 // ================ APP CONTENT COMPONENT ================
 function AppContent() {
   // ===== State Management =====
-  const { user, authPage, setAuthPage, showNotification } = useAuth();
+  const { user, authPage, setAuthPage, showNotification, language } = useAuth();
+  const currentLang = language;
   const [currentPage, setCurrentPage] = useState("home");
-  const [currentLang, setCurrentLang] = useState('en');
   const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('preferredView') || 'cards');
   const { address } = useAccount();
@@ -745,11 +745,6 @@ function AppContent() {
   }, [currentLang, currentPage, showNotification, handlePageChange]);
 
 
-  // ===== Language Handler =====
-  const handleLanguageChange = (newLang) => {
-    setCurrentLang(newLang);
-    localStorage.setItem('preferredLanguage', newLang);
-  };
 
   // ===== Loading State =====
   if (isLoading) {
@@ -784,8 +779,6 @@ function AppContent() {
         <Header 
           currentPage={currentPage} 
           handlePageChange={handlePageChange}
-          currentLang={currentLang}
-          onLanguageChange={handleLanguageChange}
         />
       </div>
 
