@@ -382,6 +382,161 @@ const ui = {
       },
     }, // end guide
 
+    // ── Library page ──────────────────────────────────────
+    library: {
+      pageTitle:      'I4T Knowledge Library',
+      searchPlaceholder: 'Search documents…',
+      loginPrompt:    'Login as a member to access peer-review features',
+      myContributions: 'My contributions to the I4TK community',
+      tabs: {
+        peerReviews:        'Peer reviews',
+        submitContribution: 'Submit Contribution',
+        librarianSpace:     'Librarian Space',
+        ipMonitoring:       'IP monitoring',
+      },
+    },
+
+    // ── Library AI Chat ───────────────────────────────────
+    chat: {
+      suggestedQuestions: 'Suggested Questions',
+      placeholder:        'Ask about our research documents…',
+      send:               'Send',
+      sources:            'Sources:',
+      error:              'An error occurred. Please try again.',
+      prompts: [
+        'What is the I4TK Network?',
+        'What are the UNESCO guidelines?',
+        'What are the priorities for regulating platforms?',
+        "What is Trump's election impact on digital platforms governance?",
+      ],
+    },
+
+    // ── Tools / Periodic Table ────────────────────────────
+    tools: {
+      pageTitle:      'Tools',
+      searchPlaceholder: 'Search for an element…',
+      exportCsv:      'Export CSV',
+      exporting:      'Exporting…',
+      zoomIn:         'Zoom In',
+      zoomOut:        'Zoom Out',
+      resetView:      'Reset View',
+      selectAll:      'Select All',
+      deselectAll:    'Deselect All',
+      editMode:       'Edit',
+      cancelEdit:     'Cancel',
+      showingFrom:    'Showing documents and examples from:',
+      noGeography:    'None',
+      loadError:      'Failed to load toolkit elements. Please try again later.',
+      updateError:    'Failed to update element. Please try again.',
+      addExError:     'Failed to add example. Please try again.',
+      delExError:     'Failed to delete example. Please try again.',
+      exportFailed:   'Export failed:',
+      scrollHint:     'Scroll horizontally to explore all elements',
+      zoomPanHint:    'Scroll to zoom · Hold Alt + drag to pan',
+      categories: {
+        institutionalFramework: 'Institutional framework',
+        legislatingPlatforms:   'Legislating platforms',
+        humanRights:            'Human Rights and Rule of Law',
+        contentGovernance:      'Content governance',
+        systemicRisks:          'Systemic risks + due diligence',
+        prosocialDesign:        'Pro-social design',
+      },
+      geographies: ['EUROPE', 'MIDDLE EAST', 'AFRICA', 'LATAM', 'ASIA', 'OCEANIA', 'NORTH AMERICA'],
+      csv: {
+        headers: ['Category', 'Name', 'Symbol', 'Description', 'Context', 'Application Examples', 'Related Documents'],
+      },
+      exampleForm: {
+        titleLabel:       'Title',
+        titlePlaceholder: 'Brief title for your example',
+        descLabel:        'Description',
+        descPlaceholder:  'Describe a real-world application example…',
+        refLabel:         'Reference URL (optional)',
+      },
+    },
+
+    // ── Admin View (Members section) ──────────────────────
+    adminView: {
+      tabs: {
+        organizations: 'Organizations',
+        users:         'Users',
+        invitations:   'Invitations',
+      },
+      addOrganization: 'Add Organization',
+      inviteUser:      'Invite User',
+      deleteOrgConfirm:  'Are you sure you want to delete this organization?',
+      deleteUserConfirm: 'Are you sure you want to delete this user?',
+      cancelInvConfirm:  'Are you sure you want to cancel this invitation?',
+      resendInvConfirm:  'Are you sure you want to resend this invitation?',
+      invitationResent:  'Invitation resent successfully',
+      invitationSent:    'Invitation sent successfully',
+      resendError:       'Error resending invitation',
+      expiresPrefix:     'Expires',
+      expiresToday:      'Expires today',
+      expiresTomorrow:   'Expires tomorrow',
+      editOrg:           'Edit organization',
+      deleteOrg:         'Delete organization',
+      resendInv:         'Resend invitation',
+      cancelInv:         'Cancel invitation',
+      deleteUser:        'Delete user',
+      unknownOrg:        'Unknown',
+      orgTypes: {
+        academic:     'Academic',
+        civilSociety: 'Civil society',
+        thinkTank:    'Think tank',
+      },
+      regions: {
+        europe:       'Europe',
+        asiaPacific:  'Asia-Pacific',
+        northAmerica: 'North America',
+        southAmerica: 'South America',
+        africa:       'Africa',
+        middleEast:   'Middle East',
+      },
+    },
+
+    // ── Password reset (ForgotPassword) ───────────────────
+    forgotPassword: {
+      title:            'Reset Your Password',
+      emailLabel:       'Email Address',
+      emailPlaceholder: 'Enter your email address',
+      submitButton:     'Send Instructions',
+      processing:       'Processing…',
+      verifyTitle:      'Verify Code',
+      verifyPrompt:     'Please enter the reset code received by email.',
+      codeLabel:        'Reset Code',
+      codePlaceholder:  'Enter the code received by email',
+      verifyButton:     'Verify Code',
+      backToLogin:      'Back to Login',
+      passwordTitle:    'Set New Password',
+      passwordPrompt:   'Please enter your new password below.',
+      resetButton:      'Reset Password',
+      successMessage:   'If an account exists with this email address, you will receive instructions to reset your password.',
+      checkInbox:       'Please check your inbox and spam folder.',
+      codeRequired:     'Please enter the reset code',
+      invalidCode:      'Invalid reset code',
+      missingData:      'Missing reset data',
+      resetSuccess:     'Your password has been reset successfully',
+      resetAndLoggedIn: 'Your password has been reset and you are now logged in',
+      generalError:     'An error occurred while resetting your password.',
+      linkInvalid:      'The reset link is invalid or has expired.',
+      checkError:       'An error occurred while checking the reset link.',
+      redirectingHome:  'Redirecting to homepage…',
+    },
+
+    // ── Press Releases page ───────────────────────────────
+    pressRelease: {
+      loadError:    'Error loading press releases: ',
+      loading:      'Loading press releases…',
+      noResults:    'No press releases found.',
+    },
+
+    // ── Terms of Reference page ───────────────────────────
+    tor: {
+      loadError: 'Error loading Terms of reference: ',
+      loading:   'Loading Terms of reference…',
+      noResults: 'No Terms of reference found.',
+    },
+
   }, // end en
 
 
@@ -736,6 +891,161 @@ const ui = {
         },
       },
     }, // end guide
+
+    // ── Library page ──────────────────────────────────────
+    library: {
+      pageTitle:         'Biblioteca de conocimiento I4T',
+      searchPlaceholder: 'Buscar documentos…',
+      loginPrompt:       'Inicie sesión como miembro para acceder a las funciones de revisión por pares',
+      myContributions:   'Mis contribuciones a la comunidad I4TK',
+      tabs: {
+        peerReviews:        'Revisiones por pares',
+        submitContribution: 'Enviar contribución',
+        librarianSpace:     'Espacio del bibliotecario',
+        ipMonitoring:       'Seguimiento de IP',
+      },
+    },
+
+    // ── Library AI Chat ───────────────────────────────────
+    chat: {
+      suggestedQuestions: 'Preguntas sugeridas',
+      placeholder:        'Haga una pregunta sobre nuestros documentos de investigación…',
+      send:               'Enviar',
+      sources:            'Fuentes:',
+      error:              'Se ha producido un error. Por favor, inténtelo de nuevo.',
+      prompts: [
+        '¿Qué es la Red I4TK?',
+        '¿Cuáles son las directrices de la UNESCO?',
+        '¿Cuáles son las prioridades para regular las plataformas?',
+        '¿Cómo impacta la elección de Trump en la gobernanza de las plataformas digitales?',
+      ],
+    },
+
+    // ── Tools / Periodic Table ────────────────────────────
+    tools: {
+      pageTitle:         'Herramientas',
+      searchPlaceholder: 'Buscar un elemento…',
+      exportCsv:         'Exportar CSV',
+      exporting:         'Exportando…',
+      zoomIn:            'Acercar',
+      zoomOut:           'Alejar',
+      resetView:         'Restablecer vista',
+      selectAll:         'Seleccionar todo',
+      deselectAll:       'Deseleccionar todo',
+      editMode:          'Editar',
+      cancelEdit:        'Cancelar',
+      showingFrom:       'Mostrando documentos y ejemplos de:',
+      noGeography:       'Ninguna',
+      loadError:         'Error al cargar los elementos. Inténtelo de nuevo más tarde.',
+      updateError:       'Error al actualizar el elemento. Inténtelo de nuevo.',
+      addExError:        'Error al añadir el ejemplo. Inténtelo de nuevo.',
+      delExError:        'Error al eliminar el ejemplo. Inténtelo de nuevo.',
+      exportFailed:      'Error de exportación:',
+      scrollHint:        'Desplace horizontalmente para explorar todos los elementos',
+      zoomPanHint:       'Rueda para zoom · Alt + arrastrar para mover',
+      categories: {
+        institutionalFramework: 'Marco institucional',
+        legislatingPlatforms:   'Legislación de plataformas',
+        humanRights:            'Derechos humanos y Estado de derecho',
+        contentGovernance:      'Gobernanza de contenidos',
+        systemicRisks:          'Riesgos sistémicos + diligencia debida',
+        prosocialDesign:        'Diseño pro-social',
+      },
+      geographies: ['EUROPA', 'ORIENTE MEDIO', 'ÁFRICA', 'LATAM', 'ASIA', 'OCEANÍA', 'NORTEAMÉRICA'],
+      csv: {
+        headers: ['Categoría', 'Nombre', 'Símbolo', 'Descripción', 'Contexto', 'Ejemplos de aplicación', 'Documentos relacionados'],
+      },
+      exampleForm: {
+        titleLabel:       'Título',
+        titlePlaceholder: 'Título breve para su ejemplo',
+        descLabel:        'Descripción',
+        descPlaceholder:  'Describa un ejemplo de aplicación en el mundo real…',
+        refLabel:         'URL de referencia (opcional)',
+      },
+    },
+
+    // ── Admin View (Members section) ──────────────────────
+    adminView: {
+      tabs: {
+        organizations: 'Organizaciones',
+        users:         'Usuarios',
+        invitations:   'Invitaciones',
+      },
+      addOrganization:   'Añadir organización',
+      inviteUser:        'Invitar usuario',
+      deleteOrgConfirm:  '¿Está seguro de que desea eliminar esta organización?',
+      deleteUserConfirm: '¿Está seguro de que desea eliminar este usuario?',
+      cancelInvConfirm:  '¿Está seguro de que desea cancelar esta invitación?',
+      resendInvConfirm:  '¿Está seguro de que desea reenviar esta invitación?',
+      invitationResent:  'Invitación reenviada correctamente',
+      invitationSent:    'Invitación enviada correctamente',
+      resendError:       'Error al reenviar la invitación',
+      expiresPrefix:     'Vence',
+      expiresToday:      'Vence hoy',
+      expiresTomorrow:   'Vence mañana',
+      editOrg:           'Editar organización',
+      deleteOrg:         'Eliminar organización',
+      resendInv:         'Reenviar invitación',
+      cancelInv:         'Cancelar invitación',
+      deleteUser:        'Eliminar usuario',
+      unknownOrg:        'Desconocida',
+      orgTypes: {
+        academic:     'Académico',
+        civilSociety: 'Sociedad civil',
+        thinkTank:    'Think tank',
+      },
+      regions: {
+        europe:       'Europa',
+        asiaPacific:  'Asia-Pacífico',
+        northAmerica: 'América del Norte',
+        southAmerica: 'América del Sur',
+        africa:       'África',
+        middleEast:   'Oriente Medio',
+      },
+    },
+
+    // ── Password reset (ForgotPassword) ───────────────────
+    forgotPassword: {
+      title:            'Restablecer su contraseña',
+      emailLabel:       'Dirección de correo electrónico',
+      emailPlaceholder: 'Ingrese su dirección de correo electrónico',
+      submitButton:     'Enviar instrucciones',
+      processing:       'Procesando…',
+      verifyTitle:      'Verificar código',
+      verifyPrompt:     'Ingrese el código de restablecimiento recibido por correo electrónico.',
+      codeLabel:        'Código de restablecimiento',
+      codePlaceholder:  'Ingrese el código recibido por correo electrónico',
+      verifyButton:     'Verificar código',
+      backToLogin:      'Volver al inicio de sesión',
+      passwordTitle:    'Establecer nueva contraseña',
+      passwordPrompt:   'Ingrese su nueva contraseña a continuación.',
+      resetButton:      'Restablecer contraseña',
+      successMessage:   'Si existe una cuenta con esta dirección de correo electrónico, recibirá instrucciones para restablecer su contraseña.',
+      checkInbox:       'Revise su bandeja de entrada y la carpeta de spam.',
+      codeRequired:     'Ingrese el código de restablecimiento',
+      invalidCode:      'Código de restablecimiento no válido',
+      missingData:      'Faltan datos de restablecimiento',
+      resetSuccess:     'Su contraseña se ha restablecido correctamente',
+      resetAndLoggedIn: 'Su contraseña se ha restablecido y ahora ha iniciado sesión',
+      generalError:     'Se ha producido un error al restablecer su contraseña.',
+      linkInvalid:      'El enlace de restablecimiento no es válido o ha expirado.',
+      checkError:       'Se ha producido un error al comprobar el enlace de restablecimiento.',
+      redirectingHome:  'Redirigiendo a la página de inicio…',
+    },
+
+    // ── Press Releases page ───────────────────────────────
+    pressRelease: {
+      loadError: 'Error al cargar los comunicados de prensa: ',
+      loading:   'Cargando comunicados de prensa…',
+      noResults: 'No se encontraron comunicados de prensa.',
+    },
+
+    // ── Terms of Reference page ───────────────────────────
+    tor: {
+      loadError: 'Error al cargar los términos de referencia: ',
+      loading:   'Cargando términos de referencia…',
+      noResults: 'No se encontraron términos de referencia.',
+    },
 
   }, // end es
 
